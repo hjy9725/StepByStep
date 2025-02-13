@@ -1,0 +1,2791 @@
+# 经典动态规
+
+划：最长公共
+
+子序列
+
+![](https://labuladong.online/algo/images/souyisou1.png)
+
+
+
+**通知
+
+：为满足广大
+
+读者的需求
+
+，网站上架 [速
+
+成目录](https://labuladong.online/algo/intro/quick-learning-plan/)，如有
+
+需要可以看
+
+下，谢谢大家
+
+的支持~另外
+
+，建议你在我
+
+的
+
+[网站](https://labuladong.online/algo/) 学习
+
+文章，体验更
+
+好。**
+
+读完本文
+
+，你不仅学会
+
+了算法套路
+
+，还可以顺便
+
+解决如下题
+
+目：
+
+
+
+| LeetCode
+
+| 力扣 | 难度
+
+|
+
+| :----: | :----:
+
+| :----: |
+
+|
+
+[1143. Longest Common Subsequence](https://leetcode.com/problems/longest-common-subsequence/)
+
+| [1143. 最长公共子
+
+序列](https://leetcode.cn/problems/longest-common-subsequence/) |
+
+🟠 |
+
+| [583.
+
+Delete Operation for Two
+
+Strings](https://leetcode.com/problems/delete-operation-for-two-strings/) | [583. 两个字
+
+符串的删除
+
+操作](https://leetcode.cn/problems/delete-operation-for-two-strings/)
+
+| 🟠 |
+
+|
+
+[712. Minimum ASCII Delete
+
+Sum for Two Strings](https://leetcode.com/problems/minimum-ascii-delete-sum-for-two-strings/)
+
+| [712. 两个字
+
+符串的最小
+
+ASCII删除和](https://leetcode.cn/problems/minimum-ascii-delete-sum-for-two-strings/) |
+
+🟠 |
+
+
+
+**-----------**
+
+> [!NOTE]
+
+> 阅读
+
+本文前，你需
+
+要先学习：
+
+>
+
+> - [动
+
+态规划核心
+
+框架](https://labuladong.online/algo/essential-technique/dynamic-programming-framework/)
+
+不知道
+
+大家做算法
+
+题有什么感
+
+觉，我总结出
+
+来做算法题
+
+的技巧就是
+
+，把大的问题
+
+细化到一个
+
+点，先研究在
+
+这个小的点
+
+上如何解决
+
+问题，然后再
+
+通过递归/迭
+
+代的方式扩
+
+展到整个问
+
+题。
+
+
+
+比如说我
+
+们前文 [手把
+
+手带你刷二
+
+叉树第三期
+
+](https://labuladong.online/algo/data-structure/binary-tree-part3/)，解决二叉树
+
+的题目，我们
+
+就会把整个
+
+问题细化到
+
+某一个节点
+
+上，想象自己
+
+站在某个节
+
+点上，需要做
+
+什么，然后套
+
+二叉树递归
+
+框架就行了
+
+。
+
+动态规划系
+
+列问题也是
+
+一样，尤其是
+
+子序列相关
+
+的问题。**本文
+
+从「最长公共
+
+子序列问题
+
+」展开，总结三
+
+道子序列问
+
+题**，解这道题
+
+仔细讲讲这
+
+种子序列问
+
+题的套路，你
+
+就能感受到
+
+这种思维方
+
+式了。
+
+
+
+## 最长公
+
+共子序列
+
+计
+
+算最长公共
+
+子序列（Longest Common Subsequence，简称
+
+LCS）是一道经典
+
+的动态规划
+
+题目，力扣第
+
+1143 题「最长公共
+
+子序列」就是
+
+这个问题：
+
+给
+
+你输入两个
+
+字符串
+
+
+
+s1
+
+
+
+和
+
+
+
+s2
+
+
+
+，请你找出他
+
+们俩的最长
+
+公共子序列
+
+，返回这个子
+
+序列的长度
+
+。函数签名如
+
+下：
+
+
+
+java
+
+int longestCommonSubsequence(String s1,
+
+String s2);
+
+
+
+比如说输入
+
+
+
+s1 = "zabcde", s2
+
+= "acez"
+
+
+
+，它俩的最长
+
+公共子序列
+
+是
+
+
+
+lcs = "ace"
+
+
+
+，长度为 3，所以
+
+算法返回 3。
+
+如
+
+果没有做过
+
+这道题，一个
+
+最简单的暴
+
+力算法就是
+
+，把
+
+
+
+s1
+
+
+
+和
+
+
+
+s2
+
+
+
+的所有子序
+
+列都穷举出
+
+来，然后看看
+
+有没有公共
+
+的，然后在所
+
+有公共子序
+
+列里面再寻
+
+找一个长度
+
+最大的。
+
+
+
+显然
+
+，这种思路的
+
+复杂度非常
+
+高，你要穷举
+
+出所有子序
+
+列，这个复杂
+
+度就是指数
+
+级的，肯定不
+
+实际。
+
+正确的
+
+思路是不要
+
+考虑整个字
+
+符串，而是细
+
+化到
+
+
+
+s1
+
+
+
+和
+
+
+
+s2
+
+
+
+的每个字符
+
+。前文 [子序列
+
+解题模板](https://labuladong.online/algo/dynamic-programming/subsequence-problem/) 中
+
+总结的一个
+
+规律：
+
+
+
+**对于两
+
+个字符串求
+
+子序列的问
+
+题，都是用两
+
+个指针
+
+
+
+i
+
+
+
+和
+
+
+
+j
+
+
+
+分别在两个
+
+字符串上移
+
+动，大概率是
+
+动态规划思
+
+路**。
+
+
+
+最长公共
+
+子序列的问
+
+题也可以遵
+
+循这个规律
+
+，我们可以先
+
+写一个
+
+
+
+dp
+
+
+
+函数：
+
+
+
+java
+
+// 定义：计算 s1[i..]
+
+和
+
+s2[j..] 的最长公共
+
+子序列长度
+
+int dp(String s1,
+
+int i, String s2,
+
+int j)
+
+
+
+根据这个
+
+
+
+dp
+
+
+
+函数的定义
+
+，那么我们想
+
+要的答案就
+
+是
+
+
+
+dp(s1, 0, s2, 0)
+
+
+
+，且 base case 就是
+
+
+
+i == len(s1)
+
+
+
+或
+
+
+
+j == len(s2)
+
+
+
+时，因为这时
+
+候
+
+
+
+s1[i..]
+
+
+
+或
+
+
+
+s2[j..]
+
+
+
+就相当于空
+
+串了，最长公
+
+共子序列的
+
+长度显然是
+
+0：
+
+
+
+java
+
+int longestCommonSubsequence(String s1,
+
+String s2) {
+
+return dp(s1,
+
+0, s2, 0);
+
+}
+
+// 定义：计算 s1[i..] 和
+
+s2[j..]
+
+的最长公共
+
+子序列长度
+
+int dp(String s1, int
+
+i, String s2, int
+
+j) {
+
+// base case
+
+if
+
+(i == s1.length() ||
+
+j == s2.length()) {
+
+
+
+return 0;
+
+}
+
+//
+
+...
+
+}
+
+
+
+**接下来，咱不
+
+要看
+
+
+
+s1
+
+
+
+和
+
+
+
+s2
+
+
+
+两个字符串
+
+，而是要具体
+
+到每一个字
+
+符，思考每个
+
+字符该做什
+
+么**。
+
+
+
+![](https://labuladong.online/algo/images/LCS/1.jpeg)
+
+我们只看
+
+
+
+s1[i]
+
+
+
+和
+
+
+
+s2[j]
+
+
+
+，**如果
+
+
+
+s1[i] == s2[j]
+
+
+
+，说明这个字
+
+符一定在
+
+
+
+lcs
+
+
+
+中**：
+
+
+
+![](https://labuladong.online/algo/images/LCS/2.jpeg)
+
+这样，就找
+
+到了一个
+
+
+
+lcs
+
+
+
+中的字符，根
+
+据
+
+
+
+dp
+
+
+
+函数的定义
+
+，我们可以完
+
+善一下代码
+
+：
+
+
+
+java
+
+// 定义：计算 s1[i..]
+
+和
+
+s2[j..] 的最长公共
+
+子序列长度
+
+int dp(String s1,
+
+int i, String s2,
+
+int j) {
+
+if (s1.charAt(i)
+
+== s2.charAt(j)) {
+
+
+
+// s1[i] 和
+
+s2[j] 必然在 lcs 中
+
+，
+
+
+
+// 加上
+
+s1[i+1..] 和 s2[j+1..] 中的
+
+lcs
+
+长度，就是答
+
+案
+
+
+
+return 1 + dp(s1,
+
+i + 1, s2,
+
+j + 1);
+
+} else
+
+{
+
+
+
+// ...
+
+}
+
+}
+
+
+
+刚才说的
+
+
+
+s1[i] == s2[j]
+
+
+
+的情况，但如
+
+果
+
+
+
+s1[i] != s2[j]
+
+
+
+，应该怎么办
+
+呢？
+
+
+
+**
+
+
+
+s1[i] != s2[j]
+
+
+
+意味着，
+
+
+
+s1[i]
+
+
+
+和
+
+
+
+s2[j]
+
+
+
+中至少有一
+
+个字符不在
+
+
+
+lcs
+
+
+
+中**：
+
+
+
+![](https://labuladong.online/algo/images/LCS/3.jpeg)
+
+如上图，总
+
+共可能有三
+
+种情况，我怎
+
+么知道具体
+
+是那种情况
+
+呢？
+
+
+
+其实我们
+
+也不知道，那
+
+就把这三种
+
+情况的答案
+
+都算出来，取
+
+其中结果最
+
+大的那个呗
+
+，因为题目让
+
+我们算「最长
+
+」公共子序列
+
+的长度嘛。
+
+这
+
+三种情况的
+
+答案怎么算
+
+？回想一下我
+
+们的
+
+
+
+dp
+
+
+
+函数定义，不
+
+就是专门为
+
+了计算它们
+
+而设计的嘛
+
+！
+
+
+
+代码可以再
+
+进一步：
+
+
+
+java
+
+// 定义：计算 s1[i..]
+
+和
+
+s2[j..] 的最长公共
+
+子序列长度
+
+int dp(String s1,
+
+int i, String s2,
+
+int j) {
+
+if (s1.charAt(i)
+
+== s2.charAt(j)) {
+
+
+
+return 1 +
+
+dp(s1, i + 1,
+
+s2, j + 1);
+
+}
+
+else {
+
+
+
+// s1[i] 和 s2[j]
+
+中至少有
+
+一个字符不
+
+在 lcs 中，
+
+
+
+// 穷举三
+
+种情况的结
+
+果，取其中的
+
+最大结果
+
+
+
+return max(
+
+
+
+
+
+// 情
+
+况一、s1[i] 不在 lcs
+
+中
+
+
+
+
+
+dp(s1, i
+
++ 1, s2, j),
+
+
+
+
+
+// 情况二、s2[j] 不在
+
+lcs
+
+中
+
+
+
+dp(s1,
+
+i, s2, j +
+
+1),
+
+
+
+//
+
+情况三、都
+
+不在 lcs 中
+
+
+
+
+
+dp(s1, i + 1,
+
+s2, j + 1)
+
+
+
+);
+
+}
+
+}
+
+
+
+这里就已经
+
+非常接近我
+
+们的最终答
+
+案了，**还有一
+
+个小的优化
+
+，情况三「
+
+
+
+s1[i]
+
+
+
+和
+
+
+
+s2[j]
+
+
+
+都不在 lcs 中」其
+
+实可以直接
+
+忽略**。
+
+因为我
+
+们在求最大
+
+值嘛，情况三
+
+在计算
+
+
+
+s1[i+1..]
+
+
+
+和
+
+
+
+s2[j+1..]
+
+
+
+的
+
+
+
+lcs
+
+
+
+长度，这个长
+
+度肯定是小
+
+于等于情况
+
+二
+
+
+
+s1[i..]
+
+
+
+和
+
+
+
+s2[j+1..]
+
+
+
+中的
+
+
+
+lcs
+
+
+
+长度的，因为
+
+
+
+s1[i+1..]
+
+
+
+比
+
+
+
+s1[i..]
+
+
+
+短嘛，那从这
+
+里面算出的
+
+
+
+lcs
+
+
+
+当然也不可
+
+能更长嘛。
+
+
+
+同
+
+理，情况三的
+
+结果肯定也
+
+小于等于情
+
+况一。**说白了
+
+，情况三被情
+
+况一和情况
+
+二包含了**，所
+
+以我们可以
+
+直接忽略掉
+
+情况三，完整
+
+代码如下：
+
+
+
+java
+
+class Solution {
+
+//
+
+备忘录，消除
+
+重叠子问题
+
+
+
+int[][] memo;
+
+// 主函数
+
+public
+
+int longestCommonSubsequence(String s1, String
+
+s2) {
+
+
+
+int m = s1.length(),
+
+n = s2.length();
+
+
+
+// 备忘
+
+录值为 -1
+
+代表
+
+未曾计算
+
+
+
+memo = new int[m][n];
+
+
+
+for (int[]
+
+row : memo)
+
+
+
+
+
+Arrays.fill(row, -1);
+
+
+
+// 计
+
+算 s1[0..]
+
+和 s2[0..] 的 lcs
+
+长度
+
+
+
+return
+
+dp(s1, 0, s2, 0);
+
+}
+
+
+
+// 定义：计算 s1[i..] 和
+
+s2[j..]
+
+的最长公共
+
+子序列长度
+
+
+
+int dp(String s1, int
+
+i, String s2, int
+
+j) {
+
+
+
+// base case
+
+
+
+if (i ==
+
+s1.length() || j ==
+
+s2.length()) {
+
+
+
+
+
+return 0;
+
+
+
+}
+
+
+
+// 如果之前计
+
+算过，则直接
+
+返回备忘录
+
+中的答案
+
+
+
+if (memo[i][j] != -1)
+
+{
+
+
+
+return
+
+memo[i][j];
+
+
+
+}
+
+
+
+// 根
+
+据 s1[i] 和
+
+s2[j] 的情况
+
+做选择
+
+
+
+if (s1.charAt(i) == s2.charAt(j))
+
+{
+
+
+
+//
+
+s1[i] 和 s2[j] 必
+
+然在
+
+lcs 中
+
+
+
+
+
+memo[i][j] = 1 +
+
+dp(s1, i + 1,
+
+s2, j + 1);
+
+
+
+} else
+
+{
+
+
+
+//
+
+s1[i] 和 s2[j] 至
+
+少有一个不
+
+在
+
+lcs 中
+
+
+
+
+
+memo[i][j] = Math.max(
+
+
+
+
+
+
+
+dp(s1, i + 1,
+
+s2, j),
+
+
+
+
+
+dp(s1,
+
+i, s2, j +
+
+1)
+
+
+
+);
+
+
+
+}
+
+
+
+return memo[i][j];
+
+}
+
+}
+
+
+
+以上思路完
+
+全就是按照
+
+我们之前的
+
+爆文 [动态规
+
+划套路框架
+
+](https://labuladong.online/algo/essential-technique/dynamic-programming-framework/) 来的，应该是
+
+很容易理解
+
+的。至于为什
+
+么要加
+
+
+
+memo
+
+
+
+备忘录，我们
+
+之前写过很
+
+多次，为了照
+
+顾新来的读
+
+者，这里再简
+
+单重复一下
+
+，首先抽象出
+
+我们核心
+
+
+
+dp
+
+
+
+函数的递归
+
+框架：
+
+
+
+java
+
+int dp(int i,
+
+int j) {
+
+dp(i +
+
+1, j + 1);
+
+// #1
+
+dp(i, j +
+
+1);
+
+// #2
+
+dp(i + 1,
+
+j);
+
+// #3
+
+}
+
+
+
+你看，假设我
+
+想从
+
+
+
+dp(i, j)
+
+
+
+转移到
+
+
+
+dp(i+1, j+1)
+
+
+
+，有不止一种
+
+方式，可以直
+
+接走
+
+
+
+#1
+
+
+
+，也可以走
+
+
+
+#2 -> #3
+
+
+
+，也可以走
+
+
+
+#3 -> #2
+
+
+
+。
+
+
+
+这就是重叠
+
+子问题，如果
+
+我们不用
+
+
+
+memo
+
+
+
+备忘录消除
+
+子问题，那么
+
+
+
+dp(i+1, j+1)
+
+
+
+就会被多次
+
+计算，这是没
+
+有必要的。
+
+
+
+至
+
+此，最长公共
+
+子序列问题
+
+就完全解决
+
+了，用的是自
+
+顶向下带备
+
+忘录的动态
+
+规划思路，我
+
+们当然也可
+
+以使用自底
+
+向上的迭代
+
+的动态规划
+
+思路，和我们
+
+的递归思路
+
+一样，关键是
+
+如何定义
+
+
+
+dp
+
+
+
+数组，我这里
+
+也写一下自
+
+底向上的解
+
+法吧：
+
+
+
+java
+
+class Solution {
+
+public
+
+int longestCommonSubsequence(String s1, String
+
+s2) {
+
+
+
+int m = s1.length(),
+
+n = s2.length();
+
+
+
+int[][] dp =
+
+new int[m + 1][n
+
++ 1];
+
+
+
+// 定义：s1[0..i-1] 和 s2[0..j-1]
+
+的 lcs 长
+
+度为 dp[i][j]
+
+
+
+// 目标：s1[0..m-1]
+
+和
+
+s2[0..n-1] 的 lcs 长度，即
+
+dp[m][n]
+
+
+
+// base case: dp[0][..]
+
+= dp[..][0] = 0
+
+
+
+for
+
+(int i = 1;
+
+i <= m; i++)
+
+{
+
+
+
+for
+
+(int j = 1;
+
+j <= n; j++)
+
+{
+
+
+
+
+
+// 现
+
+在
+
+i 和 j 从
+
+1 开始
+
+，所以要减一
+
+
+
+
+
+
+
+if (s1.charAt(i
+
+- 1) == s2.charAt(j
+
+- 1)) {
+
+
+
+
+
+
+
+//
+
+s1[i-1] 和 s2[j-1] 必然在
+
+lcs 中
+
+
+
+
+
+
+
+
+
+dp[i][j] = 1
+
++ dp[i - 1][j
+
+- 1];
+
+
+
+
+
+}
+
+else {
+
+
+
+
+
+
+
+// s1[i-1]
+
+和 s2[j-1] 至少有一
+
+个不在 lcs
+
+中
+
+
+
+
+
+
+
+dp[i][j] = Math.max(dp[i][j
+
+- 1], dp[i -
+
+1][j]);
+
+
+
+
+
+}
+
+
+
+
+
+}
+
+
+
+}
+
+
+
+return dp[m][n];
+
+}
+
+}
+
+
+
+<hr/>
+
+<a href="https://labuladong.online/algo-visualize/leetcode/longest-common-subsequence/" target="_blank">
+
+<details style="max-width:90%;max-height:400px">
+
+<summary>
+
+<strong>🍭
+
+代码可视化
+
+动画🍭</strong>
+
+</summary>
+
+</details>
+
+</a>
+
+<hr/>
+
+自底向
+
+上的解法中
+
+
+
+dp
+
+
+
+数组定义的
+
+方式和我们
+
+的递归解法
+
+有一点差异
+
+，而且由于数
+
+组索引从 0 开
+
+始，有索引偏
+
+移，不过思路
+
+和我们的递
+
+归解法完全
+
+相同，如果你
+
+看懂了递归
+
+解法，这个解
+
+法应该不难
+
+理解。
+
+另外，自
+
+底向上的解
+
+法可以通过
+
+我们前文讲
+
+过的 [动态规
+
+划空间压缩
+
+技巧](https://labuladong.online/algo/dynamic-programming/space-optimization/) 来进行
+
+优化，把空间
+
+复杂度压缩
+
+为 O(N)，这里由于
+
+篇幅所限，就
+
+不展开了。
+
+下
+
+面，来看两道
+
+和最长公共
+
+子序列相似
+
+的两道题目
+
+。
+
+
+
+## 字符串的删
+
+除操作
+
+这是
+
+力扣第 583 题「两
+
+个字符串的
+
+删除操作」，看
+
+下题目：
+
+给定
+
+两个单词
+
+
+
+s1
+
+
+
+和
+
+
+
+s2
+
+
+
+，返回使得
+
+
+
+s1
+
+
+
+和
+
+
+
+s2
+
+
+
+相同所需的
+
+最小步数。每
+
+步可以删除
+
+任意一个字
+
+符串中的一
+
+个字符。
+
+
+
+函数
+
+签名如下：
+
+
+
+java
+
+int minDistance(String s1,
+
+String s2);
+
+
+
+比如输入
+
+
+
+s1 = "sea" s2
+
+= "eat"
+
+
+
+，算法返回 2，第
+
+一步将
+
+
+
+"sea"
+
+
+
+变为
+
+
+
+"ea"
+
+
+
+，第二步将
+
+
+
+"eat"
+
+
+
+变为
+
+
+
+"ea"
+
+
+
+。
+
+
+
+题目让我们
+
+计算将两个
+
+字符串变得
+
+相同的最少
+
+删除次数，那
+
+我们可以思
+
+考一下，最后
+
+这两个字符
+
+串会被删成
+
+什么样子？
+
+删
+
+除的结果不
+
+就是它俩的
+
+最长公共子
+
+序列嘛！
+
+
+
+那么
+
+，要计算删除
+
+的次数，就可
+
+以通过最长
+
+公共子序列
+
+的长度推导
+
+出来：
+
+
+
+java
+
+int minDistance(String s1,
+
+String s2) {
+
+int m
+
+= s1.length(), n =
+
+s2.length();
+
+// 复用前文计
+
+算 lcs 长度的函
+
+数
+
+int
+
+lcs = longestCommonSubsequence(s1, s2);
+
+return
+
+m - lcs +
+
+n - lcs;
+
+}
+
+
+
+这道题就解
+
+决了！
+
+
+
+## 最小
+
+ASCII 删
+
+除和
+
+
+
+这是力
+
+扣第
+
+712 题「两个
+
+字符串的最
+
+小 ASCII 删除和」，题
+
+目和上一道
+
+题目类似，只
+
+不过上道题
+
+要求删除次
+
+数最小化，这
+
+道题要求删
+
+掉的字符
+
+ASCII 码
+
+之和最小化
+
+。
+
+
+
+函数签名如
+
+下：
+
+
+
+java
+
+int minimumDeleteSum(String s1,
+
+String s2)
+
+
+
+比如输入
+
+
+
+s1 = "sea", s2
+
+= "eat"
+
+
+
+，算法返回 231。
+
+
+
+因
+
+为在
+
+
+
+"sea"
+
+
+
+中删除
+
+
+
+"s"
+
+
+
+，在
+
+
+
+"eat"
+
+
+
+中删除
+
+
+
+"t"
+
+
+
+，可使得两个
+
+字符串相等
+
+，且删掉字符
+
+的 ASCII 码之和最
+
+小，即
+
+
+
+s(115) + t(116) =
+
+231
+
+
+
+。
+
+
+
+**这道题不能
+
+直接复用计
+
+算最长公共
+
+子序列的函
+
+数，但是可以
+
+依照之前的
+
+思路，稍微修
+
+改 base
+
+case 和状态转
+
+移部分即可
+
+直接写出解
+
+法代码**：
+
+
+
+java
+
+class Solution {
+
+//
+
+备忘录
+
+int memo[][];
+
+// 主函
+
+数
+
+public int
+
+minimumDeleteSum(String s1, String s2)
+
+{
+
+
+
+int m = s1.length(),
+
+n = s2.length();
+
+
+
+// 备忘录值
+
+为 -1
+
+代表未曾
+
+计算
+
+
+
+memo = new int[m][n];
+
+
+
+for (int[]
+
+row : memo)
+
+
+
+
+
+Arrays.fill(row, -1);
+
+
+
+
+
+
+
+return dp(s1, 0, s2,
+
+0);
+
+}
+
+// 定义：将
+
+s1[i..] 和
+
+s2[j..] 删除成相
+
+同字符串，
+
+// 最
+
+小的 ASCII
+
+码之和
+
+为 dp(s1, i, s2,
+
+j)。
+
+int dp(String s1, int
+
+i, String s2, int
+
+j) {
+
+
+
+int res = 0;
+
+
+
+// base
+
+case
+
+
+
+if (i == s1.length())
+
+{
+
+
+
+//
+
+如果 s1 到头
+
+了，那么 s2
+
+剩下
+
+的都得删除
+
+
+
+
+
+for (;
+
+j < s2.length(); j++)
+
+
+
+
+
+
+
+res += s2.charAt(j);
+
+
+
+
+
+return res;
+
+
+
+}
+
+
+
+if (j == s2.length())
+
+{
+
+
+
+//
+
+如果 s2 到头了
+
+，那么 s1
+
+剩下的
+
+都得删除
+
+
+
+for
+
+(; i < s1.length();
+
+i++)
+
+
+
+
+
+res +=
+
+s1.charAt(i);
+
+
+
+return
+
+res;
+
+
+
+}
+
+
+
+
+
+if
+
+(memo[i][j] != -1) {
+
+
+
+
+
+return memo[i][j];
+
+
+
+}
+
+
+
+
+
+
+
+if (s1.charAt(i) == s2.charAt(j))
+
+{
+
+
+
+//
+
+s1[i] 和
+
+s2[j] 都是在 lcs
+
+中的
+
+，不用删除
+
+
+
+memo[i][j]
+
+= dp(s1, i +
+
+1, s2, j +
+
+1);
+
+
+
+} else {
+
+
+
+
+
+// s1[i] 和
+
+s2[j] 至少有一个
+
+不在
+
+lcs 中，删一
+
+个
+
+
+
+
+
+memo[i][j] = Math.min(
+
+
+
+
+
+
+
+s1.charAt(i) + dp(s1, i
+
++ 1, s2, j),
+
+
+
+
+
+
+
+s2.charAt(j) + dp(s1, i,
+
+s2, j + 1)
+
+
+
+
+
+);
+
+
+
+}
+
+
+
+return memo[i][j];
+
+}
+
+}
+
+
+
+<hr/>
+
+<a href="https://labuladong.online/algo-visualize/leetcode/minimum-ascii-delete-sum-for-two-strings/" target="_blank">
+
+<details style="max-width:90%;max-height:400px">
+
+<summary>
+
+<strong>🍭
+
+代码可视化
+
+动画🍭</strong>
+
+</summary>
+
+</details>
+
+</a>
+
+<hr/>
+
+base case 有一定
+
+区别，计算
+
+
+
+lcs
+
+
+
+长度时，如果
+
+一个字符串
+
+为空，那么
+
+
+
+lcs
+
+
+
+长度必然是
+
+0；但是这道题
+
+如果一个字
+
+符串为空，另
+
+一个字符串
+
+必然要被全
+
+部删除，所以
+
+需要计算另
+
+一个字符串
+
+所有字符的
+
+ASCII 码之和。
+
+
+
+关于
+
+状态转移，当
+
+
+
+s1[i]
+
+
+
+和
+
+
+
+s2[j]
+
+
+
+相同时不需
+
+要删除，不同
+
+时需要删除
+
+，所以可以利
+
+用
+
+
+
+dp
+
+
+
+函数计算两
+
+种情况，得出
+
+最优的结果
+
+。其他的大同
+
+小异，就不具
+
+体展开了。
+
+
+
+至
+
+此，三道子序
+
+列问题就解
+
+决完了，关键
+
+在于将问题
+
+细化到字符
+
+，根据每两个
+
+字符是否相
+
+同来判断他
+
+们是否在结
+
+果子序列中
+
+，从而避免了
+
+对所有子序
+
+列进行穷举
+
+。
+
+这也算是在
+
+两个字符串
+
+中求子序列
+
+的常用思路
+
+吧，建议好好
+
+体会，多多练
+
+习~
+
+<hr>
+
+<details class="hint-container details">
+
+<summary><strong>引用本文
+
+的文章</strong></summary>
+
+- [动态
+
+规划之子序
+
+列问题解题
+
+模板](https://labuladong.online/algo/dynamic-programming/subsequence-problem/)
+
+</details><hr>
+
+<hr>
+
+<details class="hint-container details">
+
+<summary><strong>引用本
+
+文的题目</strong></summary>
+
+
+
+<strong>安
+
+装 [我的
+
+Chrome 刷题
+
+插件](https://labuladong.online/algo/intro/chrome/) 点开下
+
+列题目可直
+
+接查看解题
+
+思路：</strong>
+
+| LeetCode | 力扣
+
+| 难
+
+度 |
+
+|
+
+:----: | :----: |
+
+:----: |
+
+| [97.
+
+Interleaving String](https://leetcode.com/problems/interleaving-string/?show=1) | [97.
+
+交错字符
+
+串](https://leetcode.cn/problems/interleaving-string/?show=1) | 🟠 |
+
+| - | [剑指
+
+Offer II 095. 最长
+
+公共子序列
+
+](https://leetcode.cn/problems/qJnOS7/?show=1)
+
+| 🟠 |
+
+</details>
+
+<hr>
+
+**＿＿＿＿＿＿＿＿＿＿＿＿＿**
+
+![](https://labuladong.online/algo/images/souyisou2.png)
