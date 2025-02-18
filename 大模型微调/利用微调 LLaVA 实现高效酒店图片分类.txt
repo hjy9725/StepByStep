@@ -1,0 +1,984 @@
+亚马逊AWS
+
+官方博客
+
+
+多模态
+
+大模型
+
+应用实践（一）- 
+
+利用微调 
+
+LLaVA 实现
+
+高效酒店
+
+图片分类
+
+
+by AWS Team on 
+
+12 2月 2025 
+
+in Artificial 
+
+Intelligence Permalink  
+
+Share
+
+需求背景
+
+
+在当今数字化时代，
+
+在线旅行预订
+
+平台已成为
+
+旅游行业的
+
+重要组成部分。
+
+平台的日常
+
+运营常常面临
+
+着一个关键挑战：
+
+如何高效、准确地
+
+对海量酒店
+
+图片进行分类。
+
+准确的图片
+
+分类不仅能
+
+提升用户
+
+浏览体验，
+
+还能显著
+
+提高平台的
+
+运营效率和
+
+产品上架速度。
+
+然而，随着
+
+数据量的急剧增加，
+
+传统的人工
+
+分类方法已经
+
+难以应对。
+
+面对每天可能
+
+新增的数十万
+
+张图片，人工处理
+
+不仅耗时耗力，
+
+还容易出现
+
+分类不一致。
+
+因此，一个自动化、
+
+高精度的图片
+
+分类解决方案
+
+变得尤为重要。
+
+本文将介绍
+
+如何利用 Amazon 
+
+SageMaker 部署 
+
+LLaVA 模型，实现
+
+酒店图片的自动化、
+
+高精度分类，以应对
+
+千万级别图片的
+
+处理需求，同时
+
+显著降低运营成本。
+
+具体目标：
+
+准确分类酒店
+
+图片（如房间、
+
+大堂、泳池、餐厅
+
+等几十余种）。
+
+
+高效处理千万级别
+
+的存量图片，同时
+
+控制推理成本。
+
+
+方案概述
+
+
+近年来，多模态 
+
+AI 模型（能同时
+
+处理文本和图像的
+
+模型）取得了
+
+显著进展。
+
+商业模型如 
+
+GPT-4o、C
+
+laude3.5 的
+
+多模态能力
+
+已经相当强大，
+
+可以直接用于
+
+图片分类任务。
+
+然而，在大规模
+
+应用场景中，
+
+这些模型仍
+
+存在一些局限性：
+
+模型在自定义
+
+标签分类场景
+
+精度有上限，
+
+需要大量提示词
+
+工程的工作；
+
+
+模型升级可能
+
+导致已积累的
+
+提示词失效；
+
+
+推理的成本较高。
+
+
+考虑到这些因素，
+
+我们选择了开源的 
+
+LLaVA 作为基础模型，
+
+并使用私域数据
+
+进行微调。微调
+
+是一种将预训练
+
+模型适应特定任务
+
+的技术，能够在
+
+保持模型通用能力
+
+的同时，显著提升
+
+其在特定领域的
+
+表现。这种方法
+
+能够实现自主可控、
+
+性能达标且
+
+具有成本效益的
+
+图片处理模型。
+
+同时，我们采用 
+
+vllm 推理加速框架，
+
+进一步提升模型
+
+的吞吐量。vllm 
+
+是一个高效的
+
+大语言模型推理
+
+引擎，能够显著
+
+提高模型的处理
+
+速度，这对于处理
+
+大规模图片数据
+
+集尤为重要。
+
+LLaVA 模型简介
+
+
+LLaVA（Large Language 
+
+and Vision Assistant）
+
+是一个强大的多模态 AI 
+
+模型，它结合了
+
+预训练的大型语言
+
+模型和预训练的
+
+视觉编码器。这种
+
+结构使 LLaVA 能够
+
+同时理解和处理文本
+
+和图像信息，使其
+
+成为多模态任务
+
+（如图像分类、
+
+图像描述等）的
+
+理想选择。
+
+
+Figure 1 LLaVA 
+
+Architecture
+
+本次我们使用 
+
+LLaVa-NeXT（
+
+也称为 LLaVa-1.6），
+
+它是 LLaVA 的最新版本。
+
+相较于前代模型
+
+LLaVa-1.5，LLaVa-1.6 
+
+通过以下改进
+
+显著提升了性能：
+
+提高了输入图像
+
+分辨率，使模型
+
+能够捕捉更多
+
+图像细节；
+
+
+在改进的视觉
+
+指令调优数据集
+
+上进行训练，增强
+
+了模型的理解能力；
+
+
+显著提升了 OCR
+
+（光学字符识别）能力，
+
+使模型更擅长识别
+
+图像中的文字；
+
+
+增强了常识推理
+
+能力，使模型能够
+
+更好地理解图像
+
+内容的上下文。
+
+
+本项目使用的
+
+具体版本是基于 
+
+Mistral 7B 的
+
+大语言模型：
+
+llava-hf/llava-v1.6-mistral-7b-hf。
+
+Mistral 7B 是一个
+
+相对轻量级但性能
+
+优秀的语言模型，
+
+这使得我们的解决
+
+方案既高效又经济实惠。
+
+值得一提的是，
+
+LLava 系列适配
+
+多种大语言模型的
+
+语言头，这些模型
+
+在不同的下游任务
+
+的表现各有优劣，
+
+读者可以参考各大
+
+榜单，进行最新的
+
+模型选择，在本
+
+方案的基础上快速
+
+切换。
+
+数据准备
+
+
+高质量的训练数据
+
+对于模型性能至关
+
+重要。因此我们需要
+
+精心准备训练数据集
+
+。具体步骤如下：
+
+收集各类酒店场景的
+
+图片数据集：确保
+
+图片种类和数量
+
+尽可能丰富，覆盖
+
+各种可能的场景
+
+（如不同类型的
+
+房间、各种风格的
+
+大堂、室内外泳池、
+
+各式餐厅等）。
+
+
+为每张图片标注
+
+相应类别：这一步骤
+
+需要专业知识，确保
+
+标注的准确性和一致性。
+
+
+构建图像-文本对：
+
+这是训练数据的核心。
+
+每个训练样本
+
+应包含一张图片
+
+和与之相关的
+
+问题-答案对。
+
+例如，问题可以是”
+
+这张图片展示的
+
+是什么类型的
+
+酒店设施？”，
+
+答案则是相应
+
+的类别。
+
+
+为了高效管理
+
+这些训练数据，
+
+我们推荐使用 
+
+Hugging Face 的 
+
+datasets 包。这个
+
+强大的工具不仅
+
+可以帮助我们下载
+
+和使用开源数据集，
+
+还能高效地
+
+进行数据预处理。
+
+使用 datasets，
+
+我们可以将数据
+
+构造成如下格式：
+
+from datasets 
+
+import Dataset, 
+
+DatasetDict, Image, 
+
+load_dataset, load_from_disk
+
+
+dataset = load_from_disk('data.hf')
+
+
+dataset['train'][0]
+{
+ 'id': 133,
+ 'images': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=550x412>,
+ 'messages': [
+   {
+     'content': [
+       {
+         'index': None,
+         'text': 'Fill in the blank: this is a photo of a {}, you should select the appropriate categories from the provided labels: [Pool,Exterior,Bar...]',
+         'type': 'text'
+       },
+       {
+         'index': 0, 
+         'text': None, 
+         'type': 'image'
+       }
+     ],
+     'role': 'user'
+   },
+   {
+     'content': [
+       {
+         'index': None,
+         'text': 'this is a photo of Room.',
+         'type': 'text'
+       }
+     ],
+     'role': 'assistant'
+   }
+ ]
+}
+小提示：在构造
+
+训练数据集的 
+
+content.text 时，
+
+提示词的格式
+
+对下游任务具有
+
+很大的影响，我们
+
+测试发现，使用
+
+接近于预训练 
+
+clip 的格式模版：
+
+this is a photo of {} ，
+
+能够提升下游任务
+
+的准确率~5%。
+
+模型训练
+数据准备完成后，
+
+下一步是进行模型
+
+微调。我们使用 
+
+TRL（Transformer 
+
+Reinforcement Learning）
+
+训练框架进行模型
+
+微调，基于 deepspeed 
+
+进行分布式训练。
+
+以下是关键的训练
+
+命令及其重要参数：
+
+accelerate launch --config_file=examples/accelerate_configs/deepspeed_zero3.yaml \
+    examples/scripts/sft_vlm.py \
+    --dataset_name customer \
+    --model_name_or_path llava-hf/llava-v1.6-mistral-7b-hf \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 1 \
+    --output_dir sft-llava-1.6-7b-hf-customer2batch \
+    --bf16 \
+    --torch_dtype bfloat16 \
+    --gradient_checkpointing \
+    --num_train_epochs 20 \
+    --evaluation_strategy "no" \
+    --save_strategy "steps" \
+    --save_steps 100 \
+    --learning_rate 2e-5 \
+    --weight_decay 0. \
+    --warmup_ratio 0.03 \
+    --per_device_eval_batch_size 8
+关键参数说明：
+
+–dataset_name：指定
+
+使用的数据集
+
+–model_name_or_path：
+
+基础模型路径
+
+–save_steps：每 100 步
+
+存储一次模型 checkpoint
+
+–num_train_epochs：训练
+
+轮数，这里设置为 20 轮
+
+–learning_rate：学习率，
+
+这里设置为 2e-5
+
+–per_device_train_batch_size：
+
+每个设备的训练
+
+批次大小，这里设为1，
+
+注意这里由于
+
+微调数据量较小，
+
+建议使用较小的 
+
+batch size 
+
+提升精度表现
+
+经测试，在一台配备 
+
+Nvidia H100 GPU 的 
+
+P5 实例上，训练 
+
+1000 张图片大约需要 
+
+10 分钟完成
+
+训练。这个时间
+
+可能会根据具体的
+
+硬件配置和数据集
+
+大小有所变化。
+
+训练结束后，我们
+
+将 checkpoint 
+
+上传至 S3，为
+
+后续的推理
+
+部署做准备。
+
+部署推理
+模型训练完成后，
+
+下一步是将其
+
+部署为可用的
+
+推理端点，由 
+
+Amazon SageMaker 
+
+为我们托管。这里
+
+我们采用了基于
+
+DJL（Deep Java Library）
+
+的推理框架，将
+
+微调后的 LLaVA 1.6 
+
+模型部署在 g5.xlarge 
+
+实例上。
+
+部署过程主要
+
+包括以下步骤：
+
+1. 准备 serving.
+
+properties文件，
+
+这个文件用于
+
+指定推理框架和
+
+微调模型的位置：
+
+engine = Python
+
+
+option.rolling_batch=vllm
+
+
+option.tensor_parallel_degree = max
+
+
+option.max_rolling_batch_size=64
+
+
+option.model_loading_timeout = 600
+
+
+option.max_model_len = 7200
+
+
+option.model_id = {{s3url}}
+
+
+这里我们使用 vllm 
+
+作为推理引擎，它能
+
+够显著提升推理速度。
+
+2. 将配置目录
+
+打包上传到 S3，
+
+然后使用以下
+
+代码完成推理
+
+端点的部署：
+
+from sagemaker.model import Model
+
+
+model = Model(
+
+
+    image_uri=inference_image_uri,
+
+
+    model_data=s3_code_artifact,
+
+
+    role=role,
+
+
+    name=deploy_model_name,
+
+
+)
+
+
+predictor = model.deploy(
+
+
+    initial_instance_count=1,
+
+
+    instance_type="ml.g5.xlarge",
+
+
+    endpoint_name=endpoint_name
+
+
+)
+这段代码
+
+使用 SageMaker 
+
+的 Model 类
+
+来创建和部署模型。
+
+我们指定了
+
+模型镜像、模型
+
+数据位置、IAM 
+
+角色等信息，
+
+然后调用 deploy 
+
+方法来创建
+
+推理端点。
+
+3. 部署完成后，
+
+我们可以测试
+
+推理端点。
+
+以下是一个
+
+测试示例，
+
+我们构造一个
+
+包含文本和
+
+图片的请求：
+
+请求包含一个
+
+文本问题和一张
+
+base64 编码的
+
+图片，模型将
+
+分析图片
+
+并回答问题。
+
+推理结果样例：
+
+inputs = {
+    "messages": [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Fill in the blank: this is a photo of a {}"
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}"
+                    }
+                }
+            ]
+        }
+    ],
+    "max_tokens": 256
+}
+
+
+output = predictor.predict(inputs)
+{
+ 'id': 'chatcmpl-140501937231984',
+ 'object': 'chat.completion',
+ 'created': 1732716397,
+ 'choices': [{
+   'index': 0,
+   'message': {
+     'role': 'assistant',
+     'content': ' this is a photo of Terrace/Patio.'
+   },
+   'logprobs': None,
+   'finish_reason': 'eos_token'
+ }],
+ 'usage': {
+   'prompt_tokens': 2168,
+   'completion_tokens': 12,
+   'total_tokens': 2180
+ }
+}
+在这个例子中，
+
+模型识别出
+
+预定义的类别：
+
+Terrace/Patio。
+
+成本估算
+得益于 vllm 
+
+批量推理的特性，
+
+每千张图片的
+
+推理时间约 674s，
+
+结合 g5.xlarge 
+
+的实例价格，
+
+千张图片的推理
+
+成本约为 $0.26，
+
+对应 GPT4o 的
+
+价格约 $5.54。
+
+ml.g5.xlarge($/hour)	GPT4o($/M Tokens)
+price	1.408	2.5
+Time	674s	/
+tokens	/	2180000
+cost	0.26	5.54
+Table 1 Cost Comparison
+
+总结与展望
+本方案基于 
+
+Amazon SageMaker 
+
+平台，通过对最新 
+
+LLaVA Next 模型的
+
+微调，成功探索了
+
+多模态大模型
+
+在酒店图片分类
+
+任务中的应用，
+
+实现了一个高效率、
+
+低成本的图片
+
+处理解决方案。
+
+这一经验不仅
+
+适用于酒店图片
+
+分类，还可推广
+
+至其他电商领域，
+
+如服装、家具等
+
+产品的图片分类。
+
+方案的项目代码
+
+可从 Git 上获取。
+
+随着业务规模的
+
+扩大和有效数据
+
+的积累，我们需要
+
+持续关注并改进
+
+以下方面：
+
+拓展模型能力，
+
+支持更多样化的
+
+图片类别和复杂场景。
+
+
+利用经市场验证
+
+的高质量数据集，
+
+持续优化模型性能，
+
+提升分类准确率。
+
+
+探索先进的批量
+
+推理技术和模型
+
+压缩方法，进一步
+
+降低推理成本，
+
+提高系统效率。
+
+
+*前述特定亚马逊
+
+云科技生成式
+
+人工智能相关的
+
+服务仅在亚马逊
+
+云科技海外区域
+
+可用，亚马逊云
+
+科技中国仅为帮助
+
+您了解行业前沿
+
+技术和发展海外
+
+业务选择推介该服务。
+
+参考资料
+
+LLaVA NeXT
+Amazon SageMaker
+vllm
+DJL
