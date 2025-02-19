@@ -1,0 +1,8465 @@
+Unleashing Generalization of End-to-End
+
+Autonomous Driving with Controllable
+
+Long Video Generation
+
+利用可控长
+
+视频生成释
+
+放端到端自
+
+动驾驶的普
+
+遍性
+
+
+
+Enhui Ma1,2,3∗ Lijun Zhou2∗
+
+Tao Tang4,2	Zhan Zhang5,1
+
+Dong Han6,1		Junpeng
+
+Jiang7,2 Kun Zhan2	Peng
+
+Jia2	Xianpeng Lang2	Haiyang
+
+Sun2	Di Lin3	Kaicheng
+
+Yu1†
+
+恩慧马
+
+1，2，3∫李俊周2∫陶唐
+
+4，2	詹章5，1	董翰6，1
+
+江
+
+7，2昆展2	彭佳2	仙
+
+彭郎2	海洋阳
+
+光2号
+
+狄林3	凯
+
+成Yu1
+
+1Westlake University
+
+2Li Auto Inc. 3Tianjin
+
+University 4Shenzhen Campus, Sun
+
+Yat-sen University
+
+1西湖大学
+
+2Li汽车公司3天
+
+津大学4中山
+
+大学深圳校
+
+区
+
+5Southeast
+
+University 6Harbin Engineering University
+
+7Harbin Institute of Technology(Shenzhen)
+
+5东南大学
+
+6哈尔滨工程
+
+大学7哈尔滨
+
+工业大学(深
+
+圳)
+
+{maenhui, kyu}@westlake.edu.cn, zhoulijun@lixiang.com
+
+kyu}@westlake.edu.cn马恩辉，zhoulijun@lixiang.com
+
+Figure 1:
+
+Overview of our method.
+
+We show that (a)
+
+our Delphi can generate
+
+up to 40 frames
+
+consecutive videos while (b)
+
+existing best only generate
+
+8 frames. (c) With
+
+the failure-cased driven framework
+
+equipped with Delphi, (d)
+
+we can significantly boost
+
+the end-to-end model performance
+
+with much smaller cost.
+
+图
+
+1:我们方法的
+
+概述。我们表
+
+明:( a)我们的Delphi可
+
+以生成多达
+
+40帧的连续视
+
+频，而(b)现有的
+
+best只能生成8帧
+
+。(3)使用Delphi配备的
+
+故障案例驱
+
+动框架，(4)我们
+
+可以用小得
+
+多的成本显
+
+著提高端到
+
+端模型的性
+
+能。
+
+Abstract
+
+摘要
+
+Using generative models to
+
+synthesize new data has
+
+become a de-facto standard
+
+in autonomous driving to
+
+address the data scarcity
+
+issue. Though existing approaches
+
+are able to boost
+
+perception models, we discover
+
+that these approaches fail
+
+to improve the performance
+
+of planning of end-to-end
+
+autonomous driving models as
+
+the generated videos are
+
+usually less than 8
+
+frames and the spatial
+
+and temporal inconsistencies are
+
+not negligible. To this
+
+end, we propose Delphi,
+
+a novel diffusion- based
+
+long video generation method
+
+with a shared noise
+
+modeling mechanism across the
+
+multi-views to increase spatial
+
+consistency, and a feature-aligned
+
+module to achieves both
+
+precise controllability and temporal
+
+consistency. Our method can
+
+generate up to 40
+
+frames of video without
+
+loss of consistency which
+
+is about 5 times
+
+longer compared with state-of-the-art
+
+methods. Instead of randomly
+
+generating new data, we
+
+further design a sampling
+
+policy to let Delphi
+
+generate new data that
+
+are similar to those
+
+failure cases to improve
+
+the sample efficiency. This
+
+is achieved by building
+
+a failure-case driven framework
+
+with the help of
+
+pre-trained visual language models.
+
+Our extensive experiment demonstrates
+
+that our Delphi generates
+
+a higher quality of
+
+long videos surpassing previous
+
+state-of- the-art methods. Consequentially,
+
+with only generating 4%
+
+of the training dataset
+
+使用
+
+生成模型来
+
+合成新数据
+
+已经成为自
+
+动驾驶中解
+
+决数据稀缺
+
+问题的事实
+
+上的标准。尽
+
+管现有方法
+
+能够增强感
+
+知模型，但我
+
+们发现这些
+
+方法无法提
+
+高端到端自
+
+动驾驶模型
+
+的规划性能
+
+，因为生成的
+
+视频通常少
+
+于8帧，并且空
+
+间和时间不
+
+一致性不可
+
+忽略。为此，我
+
+们提出了Delphi，一
+
+种新的基于
+
+扩散的长视
+
+频生成方法
+
+，具有跨多视
+
+图的共享噪
+
+声建模机制
+
+以增加空间
+
+一致性，以及
+
+特征对齐模
+
+块以实现精
+
+确的可控性
+
+和时间一致
+
+性。我们的方
+
+法可以生成
+
+多达40帧的视
+
+频而不损失
+
+一致性，这比
+
+最先进的方
+
+法长约5倍。我
+
+们不再随机
+
+生成新数据
+
+，而是进一步
+
+设计了一种
+
+抽样策略，让
+
+Delphi生成与那些
+
+失败案例相
+
+似的新数据
+
+，以提高抽样
+
+效率。这是通
+
+过在预先训
+
+练的视觉语
+
+言模型的帮
+
+助下构建失
+
+败案例驱动
+
+的框架来实
+
+现的。我们的
+
+大量实验表
+
+明，我们的Delphi生
+
+成了更高质
+
+量的长视频
+
+，超过了以前
+
+最先进的方
+
+法。因此，仅生
+
+成4%的训练数
+
+据集
+
+
+
+
+
+∗Co-first
+
+authors
+
+*共同第
+
+一作者
+
+†Corresponding Author
+
+通讯
+
+作者
+
+
+
+
+
+Preprint.
+
+Under review.
+
+预印本
+
+。正在审查中
+
+。
+
+大小，我们的
+
+框架能够超
+
+越感知和预
+
+测任务，据我
+
+们所知，这是
+
+第一次将端
+
+到端自动驾
+
+驶模型的规
+
+划性能提高
+
+了25%。请观看视
+
+频演示https://westlake-autolab.github.io/delphi.github.io/。
+
+1Introduction
+
+2介绍
+
+End-to-end
+
+autonomous driving has recently
+
+garnered increasing attention [13,
+
+16, 43], which directly
+
+learns to plan motions
+
+from raw sensor data,
+
+reducing heavy reliance on
+
+hand-crafted rules and avoiding
+
+cascading modules. However, current
+
+end-to-end models face significant
+
+challenges in the scale
+
+and quality of training
+
+data. Insufficient data diversity
+
+can lead to model
+
+overfitting [44], such as
+
+the collected real-word trajectories
+
+mainly involve straight lines
+
+for the "go straight"
+
+action, when applied to
+
+more complex scenarios like
+
+"turn left on cross
+
+intersection", the model is
+
+prone to fail. While
+
+large-scale and high-quality annotated
+
+data is crucial for
+
+the safe and robust
+
+end-to-end autonomous driving system,
+
+unfortunately, collecting such data
+
+poses challenges, particularly in
+
+situations involving dangerous scenes
+
+where data collection can
+
+be difficult or unsafe.
+
+端到端自动
+
+驾驶最近受
+
+到了越来越
+
+多的关注[13，16，43]，它
+
+直接从原始
+
+传感器数据
+
+中学习规划
+
+运动，减少了
+
+对手工制作
+
+的规则的严
+
+重依赖，并避
+
+免了级联模
+
+块。然而，当前
+
+的端到端模
+
+型在训练数
+
+据的规模和
+
+质量方面面
+
+临着重大挑
+
+战。数据多样
+
+性不足会导
+
+致模型过度
+
+拟合[44]，例如收
+
+集的真实世
+
+界轨迹主要
+
+涉及“直行”动
+
+作的直线，当
+
+应用于更复
+
+杂的场景如
+
+“十字路口左
+
+转”时，模型容
+
+易失败。虽然
+
+大规模和高
+
+质量的注释
+
+数据对于安
+
+全和稳健的
+
+端到端自动
+
+驾驶系统至
+
+关重要，但不
+
+幸的是，收集
+
+这种数据带
+
+来了挑战，特
+
+别是在涉及
+
+危险场景的
+
+情况下，数据
+
+收集可能很
+
+困难或不安
+
+全。
+
+Although recent generative
+
+models [5, 40, 42]
+
+have gained remarkable progress
+
+in mitigating the problem
+
+of data scarcity for
+
+perception models, which is
+
+achieved by employing ControlNet
+
+[46] to control the
+
+geometric position of scene
+
+elements with injected BEV
+
+layouts and extend across
+
+the view dimension to
+
+generate multi-view images. When
+
+applied to end-to-end autonomous
+
+driving which requires long
+
+multi-view videos, two main
+
+challenges arise: spatial-temporal consistency
+
+and precise controllability. Existing
+
+generative methods [5, 40,
+
+38, 39] simply utilize
+
+cross-frame attention with the
+
+previously generated frame to
+
+ensure consistency, which overlooks
+
+the differences in noise
+
+patterns between image generation
+
+and video generation, as
+
+well as the alignment
+
+of features in the
+
+cross-frame attention. As a
+
+result, temporal consistency can
+
+only be maintained in
+
+short video sequences, such
+
+as Panacea [40] with
+
+8 frames and MagicDrive
+
+[5] with 7 frames.
+
+Furthermore, current methods only
+
+offer coarse-grained control over
+
+the generated videos, limited
+
+to modifying simple global
+
+attributes, such as changing
+
+weather with simple text
+
+prompts. They cannot finely
+
+control the overall architectural
+
+style of the scene
+
+or the specific appearance
+
+attributes of individual objects.
+
+尽管最近
+
+的生成模型
+
+[5，40，42]在缓解感知
+
+模型的数据
+
+缺乏问题方
+
+面取得了显
+
+著的进展，这
+
+是通过采用
+
+ControlNet [46]来控制具有
+
+注入的BEV布局
+
+的场景元素
+
+的几何位置
+
+并扩展到视
+
+图维度以生
+
+成多视图图
+
+像而实现的
+
+。当应用于需
+
+要长多视图
+
+视频的端到
+
+端自动驾驶
+
+时，会出现两
+
+个主要挑战
+
+:时空一致性
+
+和精确可控
+
+性。现有的生
+
+成方法[5，40，38，39]简单
+
+地利用与先
+
+前生成的帧
+
+的跨帧注意
+
+力来确保一
+
+致性，这忽略
+
+了图像生成
+
+和视频生成
+
+之间的噪声
+
+模式的差异
+
+，以及跨帧注
+
+意力中的特
+
+征对准。因此
+
+，只能在短视
+
+频序列中保
+
+持时间一致
+
+性，例如8帧的
+
+panacle[40]和7帧的MagicDrive [5]。此外
+
+，当前的方法
+
+仅提供对生
+
+成的视频的
+
+粗粒度控制
+
+，限于修改简
+
+单的全局属
+
+性，例如用简
+
+单的文本提
+
+示改变天气
+
+。它们无法精
+
+确控制场景
+
+的整体建筑
+
+风格或单个
+
+对象的特定
+
+外观属性。
+
+To
+
+this end, we propose
+
+a novel multi-view long
+
+video generation method, dubbed
+
+Delphi, to address these
+
+limitations. First, we notice
+
+that existing approaches fall
+
+short in two aspects:
+
+i) adding independent noise
+
+to different views and
+
+does not consider the
+
+cross-view consistency; ii) exploiting
+
+a simple cross attention
+
+to fuse multiple feature
+
+spaces with different reception
+
+fields. We then propose
+
+two components, a noise
+
+reinitialization module to model
+
+the shared noise across
+
+frames and a feature-aligned
+
+temporal consistent module to
+
+address the second challenge.
+
+为
+
+此，我们提出
+
+了一种新的
+
+多视角长视
+
+频生成方法
+
+，称为Delphi，以解决
+
+这些限制。首
+
+先，我们注意
+
+到现有的方
+
+法在两个方
+
+面存在不足
+
+:I)向不同的视
+
+图添加独立
+
+的噪声，并且
+
+没有考虑跨
+
+视图的一致
+
+性；ii)利用简单
+
+的交叉注意
+
+力来融合具
+
+有不同接收
+
+场的多个特
+
+征空间。然后
+
+，我们提出了
+
+两个组件，噪
+
+声重新初始
+
+化模块来模
+
+拟跨帧的共
+
+享噪声，以及
+
+特征对齐的
+
+时间一致性
+
+模块来解决
+
+第二个挑战
+
+。
+
+Leveraging Delphi as
+
+the data engine, we
+
+further propose a failure-case
+
+driven framework, which automatically
+
+enhances the generalization of
+
+end-to-end models. Specifically, this
+
+framework inte- grates several
+
+steps as shown in
+
+Figure 1: 1) evaluating
+
+the end-to-end model, collecting
+
+failure cases,
+
+利用Delphi作为数
+
+据引擎，我们
+
+进一步提出
+
+了一个失败
+
+案例驱动的
+
+框架，它自动
+
+增强了端到
+
+端模型的泛
+
+化能力。具体
+
+来说，这个框
+
+架集成了几
+
+个步骤，如图
+
+1所示:1)评估端
+
+到端模型，收
+
+集失败案例
+
+，
+
+2)
+
+analyzing the implicit data
+
+patterns using pre-trained VLMs,
+
+3) retrieving similar patterned
+
+data from existing training
+
+data, 4) generating diverse
+
+training data with Delphi,
+
+and then updating the
+
+end-to-end model. To investigate
+
+the effectiveness of our
+
+method, we conducted extensive
+
+experi- ments on the
+
+large-scale public dataset nuScenes
+
+[2]. Firstly, comprehensive evaluations
+
+with various metrics demonstrate
+
+that our Delphi generate
+
+high-quality long multi-view videos
+
+with spatiotemporal consistency and
+
+precise controllability. Furthermore, the
+
+proposed failure-case driven framework
+
+achieves remarkable improvement in
+
+the generalization capability of
+
+end-to-end models at a
+
+low cost.
+
+2)使用预先训
+
+练的VLMs分析隐
+
+含的数据模
+
+式，3)从现有的
+
+训练数据中
+
+检索相似的
+
+模式化数据
+
+，4)使用Delphi生成多
+
+样化的训练
+
+数据，然后更
+
+新端到端模
+
+型。为了研究
+
+我们方法的
+
+有效性，我们
+
+在大规模公
+
+共数据集nuScenes [2]上
+
+进行了大量
+
+实验。首先，多
+
+种指标的综
+
+合评价表明
+
+，我们的Delphi生成
+
+了高质量的
+
+长多视点视
+
+频，具有时空
+
+一致性和精
+
+确可控性。此
+
+外，所提出的
+
+故障案例驱
+
+动框架以较
+
+低的成本显
+
+著提高了端
+
+到端模型的
+
+泛化能力。
+
+Our contributions can be
+
+summarized as follows:
+
+我
+
+们的贡献可
+
+以总结如下
+
+:
+
+•We introduce Delphi, a
+
+novel method that can
+
+generate up to 12
+
+seconds (40 frames) temporally
+
+consistent multi-view videos in
+
+autonomous driving (AD) scenarios,
+
+which is 5x longer
+
+compared to the state-of-the-art
+
+video generation methods. In
+
+addition, Delphi encompasses the
+
+control ability including both
+
+object and scene level
+
+details to enrich the
+
+diversity of generated data.
+
+•我们介绍了
+
+Delphi，这是一种新
+
+颖的方法，可
+
+以在自动驾
+
+驶(AD)场景中生
+
+成长达12秒(40帧
+
+)的时间一致
+
+的多视图视
+
+频，比最先进
+
+的视频生成
+
+方法长5倍。此
+
+外，Delphi包含了包
+
+括对象和场
+
+景级细节的
+
+控制能力，以
+
+丰富生成数
+
+据的多样性
+
+。
+
+•We propose a
+
+failure-case driven framework to
+
+drastically increase sampling efficiency.
+
+We show that using
+
+a long-term video generation
+
+method that trained purely
+
+on the training dataset,
+
+we are able to
+
+improve the UniAD’s performance
+
+by 25% (collision rate
+
+reduces from 0.34 to
+
+0.27) from with generating
+
+only 4% (972 cases)
+
+of the training dataset
+
+size.
+
+•我们提出了
+
+一个失败案
+
+例驱动的框
+
+架来大幅提
+
+高采样效率
+
+。我们表明，使
+
+用纯粹在训
+
+练数据集上
+
+训练的长期
+
+视频生成方
+
+法，我们能够
+
+将UniAD的性能提
+
+高25%(冲突率从
+
+0.34降低到0.27)，而只
+
+生成训练数
+
+据集大小的
+
+4% (972例)。
+
+•与早期仅
+
+使用合成数
+
+据来提高感
+
+知能力的工
+
+作相比，就我
+
+们所知，我们
+
+是第一个展
+
+示数据引擎
+
+可以超越感
+
+知任务并自
+
+动提高端到
+
+端广告方法
+
+的规划能力
+
+的工作。我们
+
+希望这能有
+
+助于缓解广
+
+告车大规模
+
+发展的长尾
+
+问题。
+
+3Related work
+
+4相关著
+
+作
+
+End-to-end Autonomous Driving. End-to-end
+
+models have garnered significant
+
+attention in the field
+
+of autonomous driving. These
+
+models simplify the traditional
+
+modular pipeline by integrating
+
+perception, prediction, decision, and
+
+planning into a single
+
+learning framework. TransFuser[25] fuses
+
+visual and lidar inputs
+
+with a transformer-based architecture
+
+to improve perception and
+
+driving decisions. ST-P3[12] leverages
+
+spatial-temporal feature learning to
+
+improve perception, prediction, and
+
+planning tasks. UniAD[13] effectively
+
+combines multiple perception and
+
+prediction tasks to improve
+
+planning performance. VAD [16]
+
+explores the potential of
+
+vectorized scene representation for
+
+planning and getting rid
+
+of dense maps. VADv2[3]
+
+utilizes probabilistic planning to
+
+manage uncertainties and transforms
+
+multi-view image sequences into
+
+environmental token embeddings to
+
+predict and sample vehicle
+
+control actions. In this
+
+paper, we have opted
+
+to utilize the well-known
+
+UniAD as our downstream
+
+model due to the
+
+computational resource constraints.
+
+端到端自
+
+动驾驶。端到
+
+端模型在自
+
+动驾驶领域
+
+获得了极大
+
+的关注。这些
+
+模型通过将
+
+感知、预测、决
+
+策和规划集
+
+成到一个学
+
+习框架中，简
+
+化了传统的
+
+模块化管道
+
+。TransFuser[25]将视觉和激
+
+光雷达输入
+
+与基于变压
+
+器的架构相
+
+融合，以改善
+
+感知和驾驶
+
+决策。圣P3[12]利用
+
+时空特征学
+
+习来改善感
+
+知、预测和规
+
+划任务。UniAD[13]有效
+
+地结合了多
+
+种感知和预
+
+测任务，以提
+
+高规划性能
+
+。VAD
+
+[16]探索了矢量
+
+化场景表示
+
+在规划和摆
+
+脱密集地图
+
+方面的潜力
+
+。VADv2[3]利用概率规
+
+划来管理不
+
+确定性，并将
+
+多视图图像
+
+序列转换为
+
+环境标志嵌
+
+入，以预测和
+
+采样车辆控
+
+制动作。在本
+
+文中，由于计
+
+算资源的限
+
+制，我们选择
+
+利用众所周
+
+知的UniAD作为我
+
+们的下游模
+
+型。
+
+Generative model to
+
+boost autonomous driving performance.
+
+Video generation stands as
+
+a pivotal technology in
+
+understanding the visual world.
+
+Early methods mainly include
+
+Variational Autoencoders (VAEs) [4,
+
+14], flow-based models [18],
+
+and Generative Adversarial Networks
+
+(GANs) [23, 30, 34,
+
+36]. Notably, the recent
+
+achievements of diffusion models
+
+in image generation [24,
+
+28, 29] have stimulated
+
+interest in their application
+
+to video generation [6,
+
+10]. Diffusion-based methods have
+
+significantly improved realism, controllability,
+
+and temporal consistency. With
+
+their controllable attributes, text-based
+
+conditional video generation has
+
+garnered increasing attention, leading
+
+to the emergence of
+
+numerous methods [28, 9,
+
+31, 41, 48]. Especially
+
+popular models like diffusion-
+
+based models [28, 32,
+
+8, 46], which enable
+
+users to generate images
+
+with controllability. Inspired by
+
+this innovation, some models
+
+[5, 42] employ ControlNet
+
+to control the geometric
+
+position of scene elements
+
+by injecting BEV layouts
+
+and extend this approach
+
+across the view dimension
+
+to generate multi-view images.
+
+The other models [40,
+
+38, 47] further extend
+
+this to the temporal
+
+dimension to generate multi-view
+
+videos, which are all
+
+trained based on the
+
+pre-trained image models [28].
+
+BEVGen [33] specializes in
+
+generating multi-view street images
+
+based on Bird’s Eye
+
+View (BEV) layouts. BEVControl
+
+[42] proposes a two-stage
+
+generation pipeline for creating
+
+image foregrounds and backgrounds
+
+from BEV layouts. DriveDreamer
+
+[38] and Panacea [40]
+
+introduce a layout-conditioned video
+
+generation system aimed at
+
+diversifying data sources for
+
+training perception models. GAIA-1
+
+[11] and ADriver-I [15]
+
+integrate large language models
+
+into video generation; a
+
+concurrent work DriveDreamer-2 [47]
+
+proposes a traffic simulation
+
+pipeline employing only text
+
+prompts as input, which
+
+can be utilized to
+
+generate diverse traffic conditions
+
+for driving video generation,
+
+however, it requires one
+
+frame input and does
+
+not work in the
+
+setting of boosting planning
+
+task. All in all,
+
+these methods can only
+
+generate fairly short videos
+
+up to 8 frames,
+
+while our Delphi can
+
+generate much longer ones.
+
+提升自动
+
+驾驶性能的
+
+生成模型。视
+
+频生成是理
+
+解视觉世界
+
+的关键技术
+
+。早期的方法
+
+主要包括变
+
+分自动编码
+
+器(VAEs) [4，14]，基于流的
+
+模型[18]，以及生
+
+成对抗网络
+
+(GANs) [23，30，34，36]。值得注意的
+
+是，扩散模型
+
+在图像生成
+
+中的最新成
+
+就[24，28，29]激发了人
+
+们对其在视
+
+频生成中的
+
+应用的兴趣
+
+[6，10]。基于扩散的
+
+方法已经显
+
+著提高了真
+
+实性、可控性
+
+和时间一致
+
+性。由于其可
+
+控的属性，基
+
+于文本的条
+
+件视频生成
+
+已经获得了
+
+越来越多的
+
+关注，导致了
+
+许多方法的
+
+出现[28，9，31，41，48]。特别是
+
+流行的模型
+
+，如基于扩散
+
+的模型[28，32，8，46]，使用
+
+户能够生成
+
+可控的图像
+
+。受这种创新
+
+的启发，一些
+
+模型[5，42]采用ControlNet通
+
+过注入BEV布局
+
+来控制场景
+
+元素的几何
+
+位置，并将这
+
+种方法扩展
+
+到视图维度
+
+以生成多视
+
+图图像。其他
+
+模型[40，38，47]进一步
+
+将其扩展到
+
+时间维度以
+
+生成多视图
+
+视频，这些视
+
+频都是基于
+
+预训练的图
+
+像模型[28]来训
+
+练的。BEVGen [33]专门基
+
+于鸟瞰图(BEV)布
+
+局生成多视
+
+图街道图像
+
+。BEVControl
+
+[42]提出了从BEV布
+
+局创建图像
+
+前景和背景
+
+的两阶段生
+
+成流水线。DriveDreamer [38]和
+
+Panacea [40]引入了一个
+
+布局调整的
+
+视频生成系
+
+统，旨在为训
+
+练感知模型
+
+提供多样化
+
+的数据源。GAIA-1 [11]和
+
+ADriver-I
+
+[15]将大型语言
+
+模型集成到
+
+视频生成中
+
+；并行工作DriveDreamer-2 [47]提
+
+出了仅采用
+
+文本提示作
+
+为输入的交
+
+通模拟流水
+
+线，其可用于
+
+生成用于驾
+
+驶视频生成
+
+的各种交通
+
+状况，然而，其
+
+需要一帧输
+
+入，并且在推
+
+进规划任务
+
+的设置中不
+
+起作用。总而
+
+言之，这些方
+
+法只能生成
+
+相当短的视
+
+频，最多8帧，而
+
+我们的Delphi可以
+
+生成长得多
+
+的视频。
+
+5Method
+
+6方法
+
+In this section,
+
+we first present Delphi,
+
+an innovative method for
+
+generating long multi-view videos
+
+of autonomous driving. There
+
+are two core modules
+
+designed for generating temporally
+
+consistent videos: Noise Reinitialization
+
+Module (NRM) in Sec
+
+3.1.1 and Feature-aligned Temporal
+
+Consistency Module (FTCM) in
+
+Sec 3.1.2. Finally, Sec.
+
+3.2 presents a failure-case
+
+driven framework to show
+
+how we can leverage
+
+the long-term video generation
+
+ability to automatically enhance
+
+the generalization of an
+
+end-to-end model with only
+
+data from the training
+
+dataset.
+
+在本节中，我
+
+们首先介绍
+
+Delphi，这是一种用
+
+于生成自动
+
+驾驶的长多
+
+视图视频的
+
+创新方法。有
+
+两个设计用
+
+于生成时间
+
+一致性视频
+
+的核心模块
+
+:第3.1.1节中的噪
+
+声重新初始
+
+化模块(NRM)和第
+
+3.1.2节中的特征
+
+对齐的时间
+
+一致性模块
+
+(FTCM)。最后，Sec。3.2介绍了
+
+一个失败案
+
+例驱动的框
+
+架，以展示我
+
+们如何利用
+
+长期视频生
+
+成能力，仅使
+
+用来自训练
+
+数据集的数
+
+据来自动增
+
+强端到端模
+
+型的泛化。
+
+6.1Delphi: A Controllable Long
+
+Video Generation Method
+
+6.2Delphi:一
+
+种可控的长
+
+视频生成方
+
+法
+
+Here, we present the
+
+architecture of Delphi in
+
+Figure 2(a). Existing models
+
+tend to overlook the
+
+noise formulation across time
+
+and spatial dimensions, leading
+
+to inferior long-video generation
+
+quality. In
+
+这里，我们
+
+在图2(a)中展示
+
+了Delphi的架构。现
+
+有模型倾向
+
+于忽略跨时
+
+间和空间维
+
+度的噪声公
+
+式，导致较差
+
+的长视频生
+
+成质量。在…里
+
+
+
+Figure 2: (a)
+
+Architecture of Delphi. It
+
+takes multi-view videos z
+
+and the corresponding BEV
+
+(Bird’s Eye View) layout
+
+sequences as input. Each
+
+video consists of N
+
+frames and V views.
+
+The BEV layout sequences
+
+are first projected into
+
+camera space according to
+
+camera parameters, resulting in
+
+camera layouts that include
+
+both foreground and background
+
+layouts. Specifically, the foreground
+
+layout includes the bounding
+
+box’s corner coordinates, heading,
+
+instance id, and dense
+
+caption, while the background
+
+one includes different colored
+
+lines to represent road
+
+trends. The layout embeddings,
+
+processed by the encoder,
+
+are injected into the
+
+U-Net through cross-attention to
+
+achieve fine-grained layout control
+
+in the generation process.
+
+Additionally, we leverage VLM
+
+[1] to extract dense
+
+captions for the input
+
+scenes, which are encoded
+
+by Long-CLIP [45] to
+
+obtain text embeddings, which
+
+are then injected into
+
+the U-Net via text
+
+cross-attention to achieve text-based
+
+control. We further design
+
+two key modules, (b)
+
+Noise Reinitialization Module that
+
+encompass a share noise
+
+across different views and
+
+(c) Feature-aligned Temporal Consistency
+
+Module to ensure spatial
+
+and temporal consistency accordingly.
+
+图2:(a)Delphi的架构。它
+
+将多视图视
+
+频z和相应的
+
+BEV(鸟瞰图)布局
+
+序列作为输
+
+入。每个视频
+
+由N个帧和V个
+
+视图组成。BEV布
+
+局序列首先
+
+根据摄像机
+
+参数被投影
+
+到摄像机空
+
+间，产生包括
+
+前景和背景
+
+布局的摄像
+
+机布局。具体
+
+来说，前景布
+
+局包括边界
+
+框的角坐标
+
+、标题、实例id和
+
+密集标题，而
+
+背景布局包
+
+括不同颜色
+
+的线来表示
+
+道路走向。由
+
+编码器处理
+
+的布局嵌入
+
+通过交叉关
+
+注被注入到
+
+U-Net中，以在生成
+
+过程中实现
+
+细粒度的布
+
+局控制。此外
+
+，我们利用VLM [1]提
+
+取输入场景
+
+的密集字幕
+
+，通过长剪辑
+
+[45]进行编码以
+
+获得文本嵌
+
+入，然后通过
+
+文本交叉注
+
+意将其注入
+
+U-Net以实现基于
+
+文本的控制
+
+。我们进一步
+
+设计了两个
+
+关键模块，(b)噪
+
+声重新初始
+
+化模块，其包
+
+含跨不同视
+
+图共享噪声
+
+，以及(c)特征对
+
+齐的时间一
+
+致性模块，以
+
+相应地确保
+
+空间和时间
+
+一致性。
+
+contrast, we
+
+propose two key components
+
+to address these challenges:
+
+a noise reinitialization module
+
+and a feature-aligned temporal
+
+consistency module.
+
+相比
+
+之下，我们提
+
+出了两个关
+
+键组件来解
+
+决这些挑战
+
+:噪声重新初
+
+始化模块和
+
+特征对齐的
+
+时间一致性
+
+模块。
+
+6.2.1Noise Reinitialization Module
+
+6.2.2噪声重
+
+新初始化模
+
+块
+
+Multi-view videos naturally exhibit
+
+similarities across both time
+
+and view dimensions. However,
+
+existing approaches are categorized
+
+into two groups, i)
+
+concurrent single-view video generation
+
+methods [22, 27, 26]
+
+cannot be directly applied
+
+in outdoor multi-view scenarios;
+
+ii) multi-view generative models
+
+are adding independent noise
+
+that does not consider
+
+cross view consistencies [5,
+
+42, 40]. Here, we
+
+plan to address this
+
+issue by introducing a
+
+shared noise across these
+
+two dimensions. Specifically, as
+
+shown in Figure 2(b),
+
+we introduce shared motion
+
+noise m along the
+
+temporal dimension and shared
+
+panoramic noise p along
+
+the viewpoint dimension. This
+
+results in a noisy
+
+version of the multi-view
+
+video that is correlated
+
+across both time and
+
+view dimensions. The process
+
+of incorporating shared noise
+
+can be represented as
+
+follows:
+
+多视图视
+
+频在时间和
+
+视图维度上
+
+自然表现出
+
+相似性。然而
+
+，现有的方法
+
+分为两组，I)并
+
+行单视图视
+
+频生成方法
+
+[22，27，26]不能直接应
+
+用于室外多
+
+视图场景；ii)多
+
+视图生成模
+
+型增加了不
+
+考虑交叉视
+
+图一致性的
+
+独立噪声[5，42，40]。这
+
+里，我们计划
+
+通过在这两
+
+个维度上引
+
+入共享噪声
+
+来解决这个
+
+问题。具体来
+
+说，如图2(b)所示
+
+，我们沿时间
+
+维度引入共
+
+享运动噪声
+
+m，沿视点维度
+
+引入共享全
+
+景噪声p。这导
+
+致多视图视
+
+频的噪声版
+
+本在时间和
+
+视图维度上
+
+都是相关的
+
+。合并共享噪
+
+声的过程可
+
+以表示如下
+
+:
+
+zv =
+
+√αˆxv + √1 −
+
+αˆ(rv + mv +
+
+pn),	(1)
+
+zv =√αˊXV+√1αˊ(RV+mv+pn)，
+
+(1)
+
+where zvR1×1×h×w represents
+
+the image latent variable
+
+of view v at
+
+frame n, mRV ×1×h×w
+
+are the shared motion
+
+noise of V views,
+
+and p R1×N×h×w are
+
+the shared panoramic noise
+
+of N frames. For
+
+simplicity, we omit the
+
+subscript t.
+
+其中zvR1×1×h×w表示第
+
+N帧的视图V的
+
+图像潜变量
+
+，mRV ×1×h×w是V视图的共
+
+享运动噪声
+
+，p
+
+R1×N×h×w是N帧的共享
+
+全景噪声。为
+
+了简单起见
+
+，我们省略了
+
+下标t。
+
+
+
+
+
+6.2.3Feature-aligned
+
+Temporal Consistency
+
+6.2.4特征对
+
+齐的时间一
+
+致性
+
+Existing
+
+methods [40, 5, 39],
+
+when generating the current
+
+frame, exploits a simple
+
+cross-attention mechanism to fuse
+
+previous frame information into
+
+the current view. However,
+
+they tend to overlook
+
+the fact that features
+
+located at different network
+
+depths possess varying receptive
+
+fields. Consequently, this coarse
+
+feature interaction method fails
+
+to capture all the
+
+information from the receptive
+
+fields from different levels
+
+of the previous frame,
+
+leading to sub-optimal video
+
+generation performance.
+
+当生成
+
+当前帧时，现
+
+有方法[40，5，39]利用
+
+简单的交叉
+
+注意机制将
+
+先前帧信息
+
+融合到当前
+
+视图中。然而
+
+，他们往往忽
+
+略了这样一
+
+个事实，即位
+
+于不同网络
+
+深度的特征
+
+拥有不同的
+
+感受域。因此
+
+，这种粗糙的
+
+特征交互方
+
+法不能从前
+
+一帧的不同
+
+级别的感受
+
+野捕获所有
+
+信息，导致次
+
+优的视频生
+
+成性能。
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure 3:
+
+Overview of Failure-case Driven
+
+Framework.
+
+图3:失
+
+败案例驱动
+
+框架概述。
+
+To this end, we
+
+propose a more effective
+
+structure to fully establish
+
+feature interactions between aligned
+
+features at the same
+
+network depth in adjacent
+
+frames as shown in
+
+Figure 2 (c). We
+
+approach this by ensuring
+
+global consistency and optimizing
+
+local consistency, incorporating two
+
+main designs: Scene-aware Attention
+
+and Instance-aware Attention.
+
+为
+
+此，我们提出
+
+了一种更有
+
+效的结构来
+
+完全建立相
+
+邻帧中相同
+
+网络深度的
+
+对齐特征之
+
+间的特征交
+
+互，如图2
+
+(c)所示
+
+。我们通过确
+
+保全局一致
+
+性和优化局
+
+部一致性来
+
+实现这一点
+
+，结合了两种
+
+主要设计:场
+
+景感知注意
+
+力和实例感
+
+知注意力。
+
+
+
+
+
+Scene-aware
+
+Attention. To fully leverage
+
+the rich information from
+
+features at different network
+
+depths in the previous
+
+frame, we propose a
+
+scene-level cross-frame attention mechanism.
+
+Specifically, this module performs
+
+the attention calculation on
+
+features at the same
+
+network depth between adjacent
+
+frames. The computation process
+
+can be represented as
+
+follows:
+
+场
+
+景感知注意
+
+力。为了充分
+
+利用前一帧
+
+中不同网络
+
+深度特征的
+
+丰富信息，我
+
+们提出了场
+
+景级跨帧注
+
+意机制。具体
+
+来说，该模块
+
+对相邻帧之
+
+间相同网络
+
+深度的特征
+
+进行关注度
+
+计算。计算过
+
+程可以表示
+
+如下:
+
+Qi Ki
+
+T !
+
+戚姬	t！
+
+where Qi (query)
+
+is the latent feature
+
+map from the current
+
+frame n at a
+
+specific network depth i,
+
+其
+
+中Qi(查询)是来
+
+自特定网络
+
+深度I处的当
+
+前帧n的潜在
+
+特征图，
+
+
+
+
+
+i
+
+n−1
+
+I n1
+
+(key) and V i
+
+(关键
+
+)和V i
+
+
+
+(value)
+
+are the latent feature
+
+maps from the previous
+
+frame n − 1
+
+at the same
+
+(值)来自前
+
+一帧n1的潜在
+
+特征图是否
+
+相同
+
+
+
+
+
+network
+
+depth i, and dk
+
+is the dimensionality of
+
+the key. And i
+
+= 1, ..., I,
+
+where I indicates the
+
+total
+
+网络深
+
+度I，dk是密钥的
+
+维数。并且i = 1，...，I，其
+
+中I表示总数
+
+number
+
+of U-Net blocks. We
+
+omit the view channel
+
+for simplicity. By applying
+
+this scene-aware attention mechanism,
+
+the module effectively transfers
+
+the global style information
+
+from the previous frame
+
+to the current frame,
+
+ensuring temporal consistency across
+
+frames.
+
+U网块数。为了
+
+简单起见，我
+
+们省略了观
+
+看频道。通过
+
+应用这种场
+
+景感知注意
+
+机制，该模块
+
+有效地将全
+
+局样式信息
+
+从前一帧转
+
+移到当前帧
+
+，从而确保跨
+
+帧的时间一
+
+致性。
+
+Instance-aware Attention. To enhance
+
+the coherence of moving
+
+objects within the scene,
+
+we propose an Instance-aware
+
+Cross-frame Attention mechanism. Compared
+
+to scene-level attention, this
+
+module uses foreground bounding
+
+boxes as attention masks
+
+to compute feature interactions
+
+in local regions between
+
+adjacent frames. The computation
+
+process can be represented
+
+as follows:
+
+实例感
+
+知注意力。为
+
+了增强场景
+
+中运动物体
+
+的一致性，我
+
+们提出了一
+
+种实例感知
+
+的跨帧注意
+
+机制。与场景
+
+级注意力相
+
+比，该模块使
+
+用前景边界
+
+框作为注意
+
+力掩模来计
+
+算相邻帧之
+
+间的局部区
+
+域中的特征
+
+交互。计算过
+
+程可以表示
+
+如下:
+
+(Qi · Mn)(Ki
+
+· Mn−1)T 
+
+(齐Mn)(Ki
+
+mn1)T
+
+
+
+Qˆi = Qi +
+
+Zero[Attnins(Qi , Ki
+
+Qi
+
+= Qi+Zero[Attn ins(Qi，Ki
+
+, V i
+
+，V i
+
+
+
+)]q,
+
+(4)
+
+
+
+)]q，	(4)
+
+n	n	n
+
+n	n	n
+
+n−1
+
+
+
+n1
+
+n−1
+
+
+
+n1
+
+where Mn and Mn−1
+
+are the masks of
+
+foreground objects from the
+
+current frame and previous
+
+frame respectively, focusing on
+
+the region defined by
+
+the foreground bounding box,
+
+and Zero indicates the
+
+trainable convolution layers initialized
+
+with a value of
+
+0.
+
+其中
+
+Mn和mn1分别是当
+
+前帧和前一
+
+帧的前景对
+
+象的遮罩，聚
+
+焦于由前景
+
+边界框定义
+
+的区域，零表
+
+示用值0初始
+
+化的可训练
+
+卷积层。
+
+6.3Failure-case Driven Framework
+
+6.4失败
+
+案例驱动的
+
+框架
+
+In order to leverage
+
+the generated data, common
+
+approaches will randomly sample
+
+a subset of the
+
+training dataset and then
+
+apply video generation models
+
+to augment these data
+
+to enhance the performance
+
+of downstream tasks. We
+
+hypothesize that this random
+
+sample does not consider
+
+the
+
+为了利
+
+用生成的数
+
+据，常见的方
+
+法将随机采
+
+样训练数据
+
+集的子集，然
+
+后应用视频
+
+生成模型来
+
+增加这些数
+
+据，以增强下
+
+游任务的性
+
+能。我们假设
+
+这个随机样
+
+本不考虑
+
+表
+
+1:我们在nuScenes验证
+
+集上将Delphi与最
+
+先进的方法
+
+进行了比较
+
+。结果衡量不
+
+同方法的时
+
+空一致性和
+
+可控性。↓/↑表示
+
+指标值越小
+
+/越大，性能越
+
+好。
+
+Method	Spatial Consistency
+
+Temporal Consistency	Sim-Real Gap
+
+FID↓	CLIP↑	FVD↓	NDS↑
+
+Avg. Col. Rate↓
+
+4 frames	8
+
+frames	40 frames
+
+方法	空间
+
+一致性	时间
+
+一致性
+
+模拟
+
+真实差距
+
+	FID↓	剪
+
+辑↑
+
+FVD↓	NDS↑	平均值。Col. Rate↓
+
+4帧
+
+8帧	40帧
+
+BEVGen
+
+[33]	25.54	71.23	N/A
+
+N/A	Fail	N/A	N/A
+
+BEVControl [42]	24.85	82.70
+
+N/A	N/A	Fail	N/A
+
+N/A
+
+DriveDreamer [38]	26.8
+
+N/A	N/A	353.2	Fail
+
+N/A	N/A
+
+MagicDrive [5]
+
+16.20	N/A	N/A	N/A
+
+Fail	N/A	N/A
+
+MagicDrive*
+
+[5]	46.18	82.47	617.2
+
+N/A	Fail	34.56	3.87
+
+Panacea [40]	16.96	N/A
+
+N/A	139.0	Fail	32.10
+
+N/A
+
+Panacea* [40]	55.32
+
+84.23	–	446.9	Fail
+
+29.41	1.35
+
+Drive-WM [39]
+
+15.8	N/A	N/A	122.7
+
+Fail	N/A	N/A
+
+Delphi
+
+(Ours)	15.08	86.73	–
+
+113.5	275.6	36.58	0.29
+
+贝夫根
+
+[33]	25.54	71.23	不适用的
+
+不
+
+适用的	失败
+
+不适用的	不
+
+适用的
+
+饮料
+
+控制[42]
+
+24.85	82.70	不适用
+
+的	不适用的
+
+失败
+
+不适用
+
+的	不适用的
+
+司机梦想家
+
+[38]	26.8	不适用的
+
+不
+
+适用的	353.2	失败
+
+不适用的	不
+
+适用的
+
+魔法
+
+驱动[5]	16.20	不适用
+
+的	不适用的
+
+不适用的
+
+失
+
+败	不适用的
+
+不适用的
+
+魔
+
+法驱动* [5]
+
+46.18	82.47	617.2	不适
+
+用的
+
+失败	34.56	3.87
+
+灵
+
+丹妙药[40]
+
+16.96	不适
+
+用的	不适用
+
+的	139.0
+
+失败	32.10	不适
+
+用的
+
+灵丹妙
+
+药*
+
+[40]	55.32	84.23	–
+
+446.9	失败	29.41	1.35
+
+Drive-WM [39]	15.8	不适
+
+用的
+
+不适用
+
+的	122.7	失败	不适
+
+用的
+
+不适用
+
+的
+
+德尔福(我
+
+们的)	15.08	86.73
+
+–	113.5	275.6	36.58
+
+0.29
+
+∗ Results are
+
+computed using the official
+
+github release code or
+
+rendered videos on validation
+
+set.
+
+*结果是
+
+使用官方github发
+
+布代码或验
+
+证集上的渲
+
+染视频计算
+
+的。
+
+N/A indicates
+
+the model or the
+
+pre-trained weights is not
+
+open-sourced so we cannot
+
+faithfully reproduce.
+
+N/A表示模型
+
+或预训练权
+
+重不是开源
+
+的，因此我们
+
+无法如实再
+
+现。
+
+existing distribution of long-tail
+
+cases and is substantial
+
+for further optimization. We
+
+hence propose a simple
+
+but effective failure-case driven
+
+framework that exploits four
+
+steps to reduce the
+
+computational costs. As shown
+
+in Figure 3, we
+
+first evaluate the existing
+
+failure cases as a
+
+starting point, we then
+
+implement a visual language-based
+
+method to analyze the
+
+patterns of these data
+
+and retrieve similar scenes
+
+to gain a deeper
+
+understanding of the context,
+
+we then diversify the
+
+captions for scene and
+
+instance editing, to generate
+
+new data with different
+
+appearances. Finally, we train
+
+the downstream tasks with
+
+such additional data for
+
+a few epochs to
+
+increase the generalization ability.
+
+现有分布
+
+的长尾情况
+
+下，是实质性
+
+的进一步优
+
+化。因此，我们
+
+提出了一个
+
+简单而有效
+
+的失败案例
+
+驱动框架，利
+
+用四个步骤
+
+来减少计算
+
+成本。如图3所
+
+示，我们首先
+
+评估现有的
+
+失败案例作
+
+为起点，然后
+
+实施一种基
+
+于可视化语
+
+言的方法来
+
+分析这些数
+
+据的模式，并
+
+检索相似的
+
+场景以更深
+
+入地理解上
+
+下文，然后我
+
+们将场景和
+
+实例编辑的
+
+标题多样化
+
+，以生成具有
+
+不同外观的
+
+新数据。最后
+
+，我们用这样
+
+的附加数据
+
+训练下游任
+
+务几个时期
+
+，以增加泛化
+
+能力。
+
+Note that, all
+
+of these operations are
+
+conducted on training set
+
+to avoid any potential
+
+leak of the validation
+
+information. Please see supplementary
+
+materials for detailed implementation
+
+of each component. In
+
+addition, we notice a
+
+concurrent work [20] that
+
+exploits a similar idea.
+
+However, their approach only
+
+works for 2D detection
+
+tasks while our method
+
+is capable of improving
+
+end-to-end planning ability.
+
+请注意
+
+，所有这些操
+
+作都是在训
+
+练集上进行
+
+的，以避免验
+
+证信息的任
+
+何潜在泄漏
+
+。每个组件的
+
+详细实现请
+
+参见补充材
+
+料。此外，我们
+
+注意到一个
+
+并行的工作
+
+[20]利用了类似
+
+的想法。然而
+
+，他们的方法
+
+仅适用于2D检
+
+测任务，而我
+
+们的方法能
+
+够提高端到
+
+端的规划能
+
+力。
+
+7Experiments
+
+8实验
+
+We
+
+follow popular methods [40,
+
+42], to use nuScenes
+
+[2] and use FID
+
+[7], FVD [35], and
+
+downstream model’s performances on
+
+newly generated data to
+
+evaluate the image, video,
+
+and sim-to-real gap. See
+
+the Appendix for more
+
+details.
+
+我们
+
+遵循流行的
+
+方法[40，42]，使用nuScenes [2]并
+
+使用FID [7]，FVD
+
+[35]和下游
+
+模型对新生
+
+成的数据的
+
+性能来评估
+
+图像，视频和
+
+模拟到真实
+
+的差距。更多
+
+详情见附录
+
+。
+
+Dataset. We conduct
+
+extensive experiments on the
+
+popular nuScenes [2] validation
+
+dataset, which comprises 150
+
+driving scenes marked by
+
+dense traffic and intricate
+
+street driving scenarios. Each
+
+scene contains roughly 40
+
+frames. We utilize ten
+
+foreground categories (i.e., bus,
+
+car, bicycle, truck, trailer,
+
+motorcycle) to create detailed
+
+street foreground object layouts.
+
+Four background classes obtained
+
+from the map expansion
+
+pack are used to
+
+generate background layouts.
+
+数据集。我们
+
+在流行的nuScenes
+
+[2]验
+
+证数据集上
+
+进行了大量
+
+实验，该数据
+
+集包括150个以
+
+密集交通和
+
+复杂街道驾
+
+驶场景为标
+
+志的驾驶场
+
+景。每个场景
+
+包含大约40帧
+
+。我们利用十
+
+个前景类别
+
+(即，公共汽车
+
+、汽车、自行车
+
+、卡车、拖车、摩
+
+托车)来创建
+
+详细的街道
+
+前景对象布
+
+局。从地图扩
+
+展包获得的
+
+四个背景类
+
+用于生成背
+
+景布局。
+
+Hyperparameters. We train
+
+our models on 8
+
+A800 80GB GPUs. The
+
+diffusion U-Net is optimized
+
+using the AdamW [17]
+
+optimizer with a learning
+
+rate of 5e-5. We
+
+resize the original images
+
+from 1600 × 900
+
+to 512 × 512.
+
+During training, the video
+
+length is set to
+
+10, and we generate
+
+video frames sequentially in
+
+a streaming manner. For
+
+inference, we use the
+
+PLMS [21] sampler configured
+
+with 50 sampling steps.
+
+The spatial resolution of
+
+the video samples is
+
+set to 512 ×
+
+512, with a frame
+
+length of 40. The
+
+inference length is not
+
+restricted and could be
+
+40 or longer. Our
+
+model is trained on
+
+the nuScenes dataset with
+
+50,000 steps for the
+
+cross-view model and 20,000
+
+steps for the temporal
+
+model.
+
+超参
+
+数。我们在8个
+
+A800 80GB GPUs上训练我们
+
+的模型。使用
+
+AdamW
+
+[17]优化器以5e-5的
+
+学习速率优
+
+化扩散U-Net。我们
+
+将原始图像
+
+的大小从1600 × 900调
+
+整到512 ×
+
+512。在训练
+
+过程中，视频
+
+长度设置为
+
+10，我们以流式
+
+方式顺序生
+
+成视频帧。为
+
+了进行推断
+
+，我们使用配
+
+置有50个采样
+
+步骤的PLMS [21]采样
+
+器。视频样本
+
+的空间分辨
+
+率设置为512 × 512，帧
+
+长为40。推断长
+
+度不受限制
+
+，可以是40或更
+
+长。我们的模
+
+型在nuScenes数据集
+
+上进行训练
+
+，交叉视图模
+
+型有50，000步，时间
+
+模型有20，000步。
+
+8.1Comparing Delphi to
+
+state-of-the-art video generation methods
+
+8.2比
+
+较Delphi和最先进
+
+的视频生成
+
+方法
+
+We assess the
+
+quality of video generation
+
+through a comprehensive evaluation
+
+encompassing both quantitative and
+
+qualitative aspects, comparing our
+
+approach with previous methodologies.
+
+In Table 1, we
+
+report the metrics in
+
+three aspects on nuScenes
+
+validation set, spatial and
+
+temporal consistency, and sim-real
+
+gap. In short, our
+
+method surpasses the state-of-the-art
+
+by a clear margin,
+
+on short video generation
+
+tasks, and can generate
+
+videos up to 40
+
+frames. In contrast, the
+
+other methods collapse, which
+
+proves the effectiveness of
+
+our method in long-term
+
+video generation. We show
+
+qualitative
+
+我们通
+
+过包括定量
+
+和定性两个
+
+方面的综合
+
+评估来评估
+
+视频生成的
+
+质量，将我们
+
+的方法与以
+
+前的方法进
+
+行比较。在表
+
+1中，我们报告
+
+了nuScenes验证集、空
+
+间和时间一
+
+致性以及sim-real gap三
+
+个方面的指
+
+标。简而言之
+
+，我们的方法
+
+在短视频生
+
+成任务上明
+
+显优于最先
+
+进的方法，可
+
+以生成高达
+
+40帧的视频。相
+
+比之下，其他
+
+方法崩溃，这
+
+证明了我们
+
+的方法在长
+
+期视频生成
+
+的有效性。我
+
+们展示定性
+
+的
+
+Figure 4:
+
+Visual comparison of local
+
+region generated by different
+
+generative models.
+
+图4:不同生
+
+成模型生成
+
+的局部区域
+
+的可视化比
+
+较。
+
+Figure 5: The multi-view
+
+long video with spatiotemporal
+
+consistency generated by Delphi.
+
+图Delphi生成的
+
+时空一致性
+
+多视角长视
+
+频。
+
+
+
+
+
+results
+
+in Figure 4 and
+
+compare the video quality
+
+with previous methods on
+
+the same clip. Our
+
+method maintains consistent spatial
+
+and temporal appearance where
+
+the previous methods fail.
+
+结果如图
+
+4所示，并将视
+
+频质量与相
+
+同剪辑上的
+
+先前方法进
+
+行比较。我们
+
+的方法在以
+
+前的方法失
+
+败的地方保
+
+持一致的空
+
+间和时间外
+
+观。
+
+Visualization of multi-view
+
+long videos generated by
+
+Delphi. We demonstrate the
+
+generated multi-view long video
+
+in Figure 5. It
+
+can be seen that
+
+our method has the
+
+powerful ability to generate
+
+long videos with spatiotemporal
+
+consistency.
+
+Delphi生成的多
+
+视角长视频
+
+的可视化。我
+
+们在图5中演
+
+示了生成的
+
+多视角长视
+
+频。可见，我们
+
+的方法具有
+
+生成时空一
+
+致性长视频
+
+的强大能力
+
+。
+
+Visualization comparison
+
+of multi-view video generated
+
+by different models. We
+
+demonstrate visualization comparisons of
+
+multi-view video generated by
+
+different models in Figure
+
+6. It can be
+
+seen that our method
+
+has the powerful ability
+
+to generate long videos
+
+with spatiotemporal consistency.
+
+不同模型生
+
+成的多视点
+
+视频的可视
+
+化比较。我们
+
+在图6中展示
+
+了由不同模
+
+型生成的多
+
+视图视频的
+
+可视化比较
+
+。可见，我们的
+
+方法具有生
+
+成时空一致
+
+性长视频的
+
+强大能力。
+
+8.3Our failure-case driven
+
+framework boosts the end-to-end
+
+planning model
+
+8.4我
+
+们的失败案
+
+例驱动框架
+
+提升了端到
+
+端规划模型
+
+To prove
+
+the effectiveness of our
+
+framework, we compare three
+
+factors in Table 2,
+
+the number of generated
+
+cases, data engine (video
+
+generation method), and the
+
+choice of data source.
+
+In summary, we discover
+
+that, by generating only
+
+4% of the training
+
+set size data, our
+
+method can reduce the
+
+collision rate from 0.33
+
+to 0.27 by a
+
+margin of 25%. However,
+
+under the same setting,
+
+the collision rate increases
+
+if we use other
+
+data engines such as
+
+Panacea to fine-tune the
+
+UniAD. Nonetheless, we also
+
+exploit random sampling for
+
+both data engines and
+
+our method constantly outperforms
+
+the baseline. We also
+
+show how our frameworks
+
+can fix failure cases
+
+in Figure 7.
+
+为了证明我
+
+们的框架的
+
+有效性，我们
+
+比较了表2中
+
+的三个因素
+
+，即生成案例
+
+的数量、数据
+
+引擎(视频生
+
+成方法)和数
+
+据源的选择
+
+。总之，我们发
+
+现，通过仅生
+
+成4%的训练集
+
+大小数据，我
+
+们的方法可
+
+以将冲突率
+
+从0.33降低到0.27，降
+
+低幅度为25%。然
+
+而，在相同的
+
+设置下，如果
+
+我们使用其
+
+他数据引擎
+
+(如Panasonic)来微调UniAD，冲
+
+突率会增加
+
+。尽管如此，我
+
+们也为两个
+
+数据引擎利
+
+用随机抽样
+
+，我们的方法
+
+始终优于基
+
+线。我们还展
+
+示了我们的
+
+框架如何修
+
+复图7中的失
+
+败案例。
+
+What if we sample
+
+the layouts from the
+
+validation set? Since our
+
+Delphi only sees the
+
+training set of nuScenes,
+
+a natural question is,
+
+can we include the
+
+validation set to see
+
+if we can further
+
+boost the performances of
+
+downstream tasks? Here, we
+
+collect failure cases from
+
+both the training and
+
+validation sets. Note that,
+
+since only layouts and
+
+captions are used in
+
+our framework, the validation
+
+video clips are never
+
+exposed in any training
+
+processes. We notice that
+
+the collision rate is
+
+reduced from 0.33 to
+
+0.26 with merely generating
+
+429 cases, which is
+
+only 1.5% of the
+
+training set size. This
+
+如果
+
+我们从验证
+
+集中抽取布
+
+局样本呢？由
+
+于我们的Delphi只
+
+看到nuScenes的训练
+
+集，一个自然
+
+的问题是，我
+
+们能包括验
+
+证集来看看
+
+我们是否能
+
+进一步提高
+
+下游任务的
+
+性能吗？这里
+
+，我们从训练
+
+集和验证集
+
+中收集失败
+
+案例。请注意
+
+，因为在我们
+
+的框架中只
+
+使用了布局
+
+和标题，所以
+
+验证视频剪
+
+辑不会在任
+
+何训练过程
+
+中暴露。我们
+
+注意到，冲突
+
+率从0.33降低到
+
+0.26，仅生成429个案
+
+例，这只是训
+
+练集大小的
+
+1.5%。这
+
+Figure 6: Visualization comparison
+
+of multi-view video generated
+
+by different models.
+
+图6:不同模
+
+型生成的多
+
+视角视频的
+
+可视化对比
+
+。
+
+
+
+Figure 7: Visualization of
+
+four examples before and
+
+after. (a) Here, we
+
+show four hard examples
+
+from the validation set,
+
+“large objects in the
+
+front” and “unprotected left
+
+turn at intersection”. (b)
+
+Our framework is able
+
+to fix these four
+
+examples without using these
+
+data during training.
+
+图7:前后四个
+
+例子的可视
+
+化。(a)此处，我们
+
+展示了来自
+
+验证集的四
+
+个硬示例，“前
+
+方大型物体
+
+”和“交叉口无
+
+保护左转”。(b)我
+
+们的框架能
+
+够在训练期
+
+间不使用这
+
+些数据的情
+
+况下修复这
+
+四个示例。
+
+Table 2: Performance
+
+comparison of the end-to-end
+
+models fine-tuned from the
+
+UniAD open source model
+
+by applying different data
+
+sampling strategies, numbers of
+
+data cases, data engines,
+
+and data sources in
+
+the failure-case driven framework.The
+
+baseline performance is presented
+
+in the first row
+
+of the table.
+
+表
+
+2:通过在故障
+
+案例驱动框
+
+架中应用不
+
+同的数据采
+
+样策略、数据
+
+案例数量、数
+
+据引擎和数
+
+据源，从UniAD开源
+
+模型微调而
+
+来的端到端
+
+模型的性能
+
+比较。基线性
+
+能显示在表
+
+格的第一行
+
+。
+
+Baseline(UniAD)
+
+–	–	–	0.10
+
+0.18	0.71	0.33
+
+14065 (50%)	Panacea
+
+0.03	0.23	0.79	0.35
+
+Random Sampling		Delphi
+
+Training Set	0.08	0.20
+
+0.58	0.29
+
+0.43
+
+28130 (100%)	Panacea
+
+0.08	0.22	0.98
+
+Delphi		0.07
+
+0.29	0.65	0.33
+
+Failure-case
+
+Driven Sampling	972 (4%)
+
+Panacea
+
+Delphi	Training Set
+
+0.05
+
+0.08	0.18
+
+0.18
+
+0.81
+
+0.56	0.35
+
+0.27
+
+0.26
+
+	429 (1.5%)
+
+Delphi	Validation Set	0.07
+
+0.10	0.61	
+
+基线(UniAD)
+
+–	–	–	0.10
+
+0.18	0.71	0.33
+
+14065 (50%)	灵丹妙
+
+药
+
+0.03	0.23	0.79	0.35
+
+随机抽样
+
+德尔斐	训练
+
+集	0.08
+
+0.20	0.58	0.29
+
+0.43
+
+28130 (100%)	灵丹妙药
+
+0.08
+
+0.22	0.98
+
+德尔斐		0.07	0.29
+
+0.65	0.33
+
+故障
+
+案例驱动采
+
+样	972
+
+(4%)	灵丹妙药
+
+德尔斐	训练
+
+集	0.05
+
+0.08	0.18
+
+0.18	0.81
+
+0.56	0.35
+
+0.27
+
+0.26
+
+429 (1.5%)	德尔斐	验
+
+证集
+
+0.07	0.10	0.61
+
+result
+
+might be interesting to
+
+industrial practitioners that a
+
+diffusion-based approach that only
+
+sees training dataset videos
+
+can effectively boost the
+
+performance of the validation
+
+set with layout and
+
+captions.
+
+行业从
+
+业者可能会
+
+对结果感兴
+
+趣，即仅查看
+
+训练数据集
+
+视频的基于
+
+扩散的方法
+
+可以有效地
+
+提高带有布
+
+局和标题的
+
+验证集的性
+
+能。
+
+Figure 8: Visualization
+
+of instance and scene
+
+editing. (a) shows the
+
+instance-level control result, such
+
+as the appearance attributes
+
+of all vehicles. (b)
+
+shows the scene-level control
+
+result, including weather and
+
+time.
+
+图8:实例和
+
+场景编辑的
+
+可视化。(a)显示
+
+实例级控制
+
+结果，如所有
+
+车辆的外观
+
+属性。(b)显示场
+
+景级控制结
+
+果，包括天气
+
+和时间。
+
+8.5Ablation Studies
+
+8.6消融
+
+研究
+
+We
+
+perform ablation studies to
+
+showcase the effectiveness of
+
+our method.
+
+我们进
+
+行消融研究
+
+来展示我们
+
+方法的有效
+
+性。
+
+Ablating Sim-Real Gap. To
+
+further evaluate the sim-
+
+to-real gap, we train
+
+the UniAD with different
+
+portions of synthetic data.
+
+At the top of
+
+Table 3, we train
+
+UniAD with purely generated
+
+video clips, and the
+
+collision rate increases from
+
+0.34 to 0.50. This
+
+indicates that the synthetic
+
+data cannot yet fully
+
+replace the real data.
+
+By contrast, if we
+
+consider the incremental learning
+
+setting, while we train
+
+UniAD with additional data,
+
+using syn- thetic data
+
+results in a much
+
+better performance while using
+
+additional real data deteriorates
+
+the performance from 0.34
+
+to 0.38.
+
+消融虚拟
+
+现实的鸿沟
+
+。为了进一步
+
+评估模拟与
+
+真实之间的
+
+差距，我们用
+
+不同部分的
+
+合成数据来
+
+训练UniAD。在表3的
+
+顶部，我们用
+
+纯生成的视
+
+频片段训练
+
+UniAD，碰撞率从0.34增
+
+加到0.50。这表明
+
+合成数据还
+
+不能完全取
+
+代真实数据
+
+。相比之下，如
+
+果我们考虑
+
+增量学习设
+
+置，当我们用
+
+额外的数据
+
+训练UniAD时，使用
+
+合成数据会
+
+产生更好的
+
+性能，而使用
+
+额外的真实
+
+数据会使性
+
+能从0.34恶化到
+
+0.38。
+
+Table 3: Performance of
+
+end-to-end model with real
+
+and generated data. We
+
+train the second stage
+
+of UniAD [13] with
+
+the officially released weights
+
+of the first stage
+
+as a starting point.
+
+表3:使用真实
+
+数据和生成
+
+数据的端到
+
+端模型的性
+
+能。我们以官
+
+方发布的第
+
+一阶段的权
+
+重作为起点
+
+来训练UniAD [13]的第
+
+二阶段。
+
+Method	
+
+1s	Col.
+
+Rate(%)↓ 2s	3s
+
+Avg. 
+
+Real	0.07
+
+0.24	0.70	0.34
+
+Generated
+
+0.17	0.37	0.97	0.50
+
+Real+Real	0.03	0.33	0.77
+
+0.38
+
+Real+Generated	0.08	0.18
+
+0.56	0.27
+
+方法
+
+1s
+
+颜色变化率
+
+(%)↓ 2s	3s
+
+平均值。
+
+真实
+
+的	0.07	0.24
+
+0.70	0.34
+
+生成的	0.17
+
+0.37	0.97	0.50
+
+真
+
+实+真实
+
+0.03	0.33	0.77	0.38
+
+真实
+
++生成	0.08	0.18	0.56
+
+0.27
+
+Ablating Scene and Instance
+
+Editing. Table 4 demon-
+
+strates the effectiveness of
+
+data diversity for end-to-end
+
+mod- els. Specifically, we
+
+edited existing scenes in
+
+two approaches: scene-level editing
+
+and instance-level editing. This
+
+fancy function allows us
+
+to generate a large
+
+amount of new data
+
+from a limited amount
+
+of existing data. As
+
+shown in Table 4,
+
+simultaneous editing of both
+
+the scene and instances
+
+yields the best performance.
+
+Leveraging powerful precise control-
+
+lability, Delphi maximizes end-to-end
+
+model performance by generating
+
+richer and more diverse
+
+data.
+
+消融场
+
+景和实例编
+
+辑。表4展示了
+
+端到端模型
+
+的数据多样
+
+性的有效性
+
+。具体来说，我
+
+们用两种方
+
+法编辑现有
+
+场景:场景级
+
+编辑和实例
+
+级编辑。这个
+
+奇特的功能
+
+让我们可以
+
+从有限的现
+
+有数据中生
+
+成大量的新
+
+数据。如表4所
+
+示，同时编辑
+
+场景和实例
+
+可以获得最
+
+佳性能。利用
+
+强大的精确
+
+控制能力，Delphi通
+
+过生成更丰
+
+富、更多样的
+
+数据，最大限
+
+度地提高了
+
+端到端模型
+
+的性能。
+
+
+
+Table
+
+4: The effectiveness of
+
+Delphi’s pre- cise controllability
+
+on end-to-end models.
+
+表4:德
+
+尔福精确可
+
+控性在端到
+
+端模型上的
+
+有效性。
+
+0.10
+
+0.20	0.71	0.34
+
+✓
+
+0.11	0.18	0.64	0.31
+
+✓
+
+✓	✓
+
+0.05
+
+0.08 	0.20
+
+0.18 	0.62
+
+0.56
+
+0.29
+
+0.27
+
+0.10	0.20	0.71	0.34
+
+✓	0.11	0.18	0.64
+
+0.31
+
+✓
+
+✓	✓
+
+0.05
+
+0.08	0.20
+
+0.18
+
+0.62
+
+0.56	0.29
+
+0.27
+
+Ablating
+
+NRM and FTCM. In
+
+Table 5, we validate
+
+the two modules, the
+
+Noise Reinitialization Module (NRM)
+
+and the Feature-aligned Temporal
+
+Consistency Module (FTCM). We
+
+see an evident increase
+
+in all metrics to
+
+validate the effectiveness of
+
+our proposed method. In
+
+particular, the FTCM structure
+
+improves FID from 22.85
+
+to 19.81 while the
+
+NRM further boosts it.
+
+消融
+
+NRM和FTCM。在表5中，我
+
+们验证了两
+
+个模块，噪声
+
+重新初始化
+
+模块(NRM)和特征
+
+对齐的时间
+
+一致性模块
+
+(FTCM)。我们看到所
+
+有指标都有
+
+明显的提高
+
+，证明了我们
+
+提出的方法
+
+的有效性。特
+
+别是，FTCM结构将
+
+FID从22.85提高到19.81，而
+
+NRM进一步提高
+
+了FID。
+
+
+
+
+
+9Conclusion
+
+10结论
+
+
+
+Table 5:
+
+Ablation study results for
+
+our proposed NRM and
+
+FTCM.
+
+
+
+表5:我
+
+们提议的NRM和
+
+FTCM的消融研究
+
+结果。
+
+Delphi
+
+15.08275.686.73 
+
+德尔斐
+
+15.08275.686.73
+
+w/o
+
+NRM	19.81	291.5	85.22
+
+w/o NRM & FTCM
+
+22.85	346.96	82.91
+
+不含NRM
+
+19.81	291.5	85.22
+
+不含NRM和
+
+FTCM
+
+22.85	346.96	82.91
+
+In summary,
+
+we propose a novel
+
+video generation method for
+
+autonomous driving scenarios that
+
+can synthesize up to
+
+40 frames of videos
+
+on nuScenes dataset. Surprisingly,
+
+we show that with
+
+a diffusion model trained
+
+only with training split,
+
+we are able to
+
+improve the performance of
+
+the end-to-end planning model
+
+by a sample efficient
+
+failure-case driven framework. We
+
+hope to shed light
+
+on addressing the data
+
+scarcity problem for both
+
+researchers and practitioners in
+
+this field, and make
+
+a solid step towards
+
+making autonomous driving vehicles
+
+safe on the road.
+
+总之，我们提
+
+出了一种新
+
+的自动驾驶
+
+场景视频生
+
+成方法，可以
+
+在nuScenes数据集上
+
+合成多达40帧
+
+的视频。令人
+
+惊讶的是，我
+
+们表明，利用
+
+仅用训练分
+
+割训练的扩
+
+散模型，我们
+
+能够通过样
+
+本有效的故
+
+障案例驱动
+
+框架来提高
+
+端到端规划
+
+模型的性能
+
+。我们希望为
+
+该领域的研
+
+究人员和从
+
+业人员解决
+
+数据稀缺问
+
+题提供帮助
+
+，并朝着自动
+
+驾驶汽车安
+
+全上路迈出
+
+坚实的一步
+
+。
+
+局限性和社
+
+会影响。我们
+
+的Delphi将BEV布局作
+
+为输入，以确
+
+保控制能力
+
+，即我们只能
+
+丰富外观，不
+
+能在合成过
+
+程中改变布
+
+局。这导致了
+
+一个限制，即
+
+我们的框架
+
+只能用于开
+
+环设置[2]，而不
+
+能用于闭环
+
+设置。然而，另
+
+一个限制是
+
+，当端到端模
+
+型在训练数
+
+据集中表现
+
+完美时，我们
+
+的失败案例
+
+驱动的采样
+
+不起作用。就
+
+社会影响而
+
+言，我们相信
+
+我们的方法
+
+可以用来提
+
+高端到端模
+
+型的性能，并
+
+可能有助于
+
+未来大规模
+
+自动驾驶汽
+
+车的部署。
+
+
+
+
+
+References
+
+参
+
+考
+
+[1]Josh Achiam, Steven
+
+Adler, Sandhini Agarwal, Lama
+
+Ahmad, Ilge Akkaya, Florencia
+
+Leoni Aleman, Diogo Almeida,
+
+Janko Altenschmidt, Sam Altman,
+
+Shyamal Anadkat, et al.
+
+Gpt-4 technical report. arXiv
+
+preprint arXiv:2303.08774, 2023.
+
+[2]乔希·阿齐
+
+姆、史蒂文·阿
+
+德勒、桑迪尼
+
+·阿加瓦尔、拉
+
+马·艾哈迈德
+
+、伊尔格·阿克
+
+卡亚、弗洛伦
+
+西亚·莱昂尼
+
+·埃勒曼、迪奥
+
+戈·阿尔梅达
+
+、扬科·阿尔滕
+
+施密特、萨姆
+
+·奥特曼、希亚
+
+马尔·阿纳德
+
+卡特等。arXiv预印
+
+本arXiv:2303.08774，2023。
+
+[3]Holger Caesar, Varun Bankiti,
+
+Alex H Lang, Sourabh
+
+Vora, Venice Erin Liong,
+
+Qiang Xu, Anush Krishnan,
+
+Yu Pan, Giancarlo Baldan,
+
+and Oscar Beijbom. nuscenes:
+
+A multimodal dataset for
+
+autonomous driving. In Proceedings
+
+of the IEEE/CVF conference
+
+on computer vision and
+
+pattern recognition, pages 11621–11631,
+
+2020.
+
+[4]霍尔格·凯
+
+撒、瓦伦·班基
+
+蒂、亚历克斯
+
+·H·朗、苏拉布·沃
+
+拉、威尼斯·艾
+
+琳·莱昂、徐强
+
+、阿努什·克里
+
+希南、潘宇、贾
+
+恩卡洛·巴尔
+
+丹和奥斯卡
+
+·贝伊邦。nuscenes:用于
+
+自动驾驶的
+
+多模态数据
+
+集。IEEE/CVF计算机视
+
+觉和模式识
+
+别会议论文
+
+集，第11621-11631页，2020年。
+
+[5]Shaoyu Chen,
+
+Bo Jiang, Hao Gao,
+
+Bencheng Liao, Qing Xu,
+
+Qian Zhang, Chang Huang,
+
+Wenyu Liu, and Xinggang
+
+Wang. Vadv2: End-to-end vectorized
+
+autonomous driving via probabilistic
+
+planning. arXiv preprint arXiv:2402.13243,
+
+2024.
+
+[6]、姜
+
+波、、廖本成、、、黄
+
+昌、、王兴刚。Vadv2:通
+
+过概率规划
+
+的端到端矢
+
+量化自动驾
+
+驶。arXiv预印本arXiv:2402.13243，2024。
+
+[7]Emily Denton
+
+and Rob Fergus. Stochastic
+
+video generation with a
+
+learned prior. In International
+
+conference on machine learning,
+
+pages 1174–1183. PMLR, 2018.
+
+[8]艾
+
+米莉·丹顿和
+
+罗布·费格斯
+
+。具有学习先
+
+验的随机视
+
+频生成。在机
+
+器学习国际
+
+会议上，第1174-1183页
+
+。PMLR，2018。
+
+[9]Ruiyuan Gao, Kai
+
+Chen, Enze Xie, Lanqing
+
+Hong, Zhenguo Li, Dit-Yan
+
+Yeung, and Qiang Xu.
+
+Magicdrive: Street view generation
+
+with diverse 3d geometry
+
+control. arXiv preprint arXiv:2310.02601,
+
+2023.
+
+[10]高瑞元、、谢恩
+
+泽、洪蓝青、、杨
+
+迪燕和。Magicdrive:具有
+
+不同3d几何控
+
+制的街景生
+
+成。arXiv预印本arXiv:2310.02601，2023。
+
+[11]William Harvey,
+
+Saeid Naderiparizi, Vaden Masrani,
+
+Christian Weilbach, and Frank
+
+Wood. Flexible diffusion modeling
+
+of long videos. Advances
+
+in Neural Information Processing
+
+Systems, 35:27953–27965, 2022.
+
+[12]威
+
+廉姆·哈维、赛
+
+义德·纳德里
+
+帕里兹、瓦登
+
+·马斯拉尼、克
+
+里斯蒂安·韦
+
+尔巴赫和弗
+
+兰克·伍德。长
+
+视频的柔性
+
+扩散建模。神
+
+经信息处理
+
+系统进展，35:27953–27965，2022。
+
+[13]Martin Heusel, Hubert Ramsauer,
+
+Thomas Unterthiner, Bernhard Nessler,
+
+and Sepp Hochreiter. Gans
+
+trained by a two
+
+time-scale update rule converge
+
+to a local nash
+
+equilibrium. Advances in neural
+
+information processing systems, 30,
+
+2017.
+
+[14]马
+
+丁·霍塞尔，休
+
+伯特·拉姆绍
+
+尔，托马斯·安
+
+特辛纳，伯恩
+
+哈德·奈斯勒
+
+和赛普·霍克
+
+雷特。由双时
+
+标更新规则
+
+训练的gan收敛
+
+到局部纳什
+
+均衡。神经信
+
+息处理系统
+
+进展，30，2017。
+
+[15]Jonathan Ho,
+
+Ajay Jain, and Pieter
+
+Abbeel. Denoising diffusion probabilistic
+
+models. Advances in neural
+
+information processing systems, 33:6840–6851,
+
+2020.
+
+[16]乔纳森
+
+·何，阿贾伊·贾
+
+恩和彼得·阿
+
+比勒。去噪扩
+
+散概率模型
+
+。神经信息处
+
+理系统进展
+
+，33:6840–6851，2020。
+
+[17]Jonathan Ho,
+
+William Chan, Chitwan Saharia,
+
+Jay Whang, Ruiqi Gao,
+
+Alexey Gritsenko, Diederik P
+
+Kingma, Ben Poole, Mohammad
+
+Norouzi, David J Fleet,
+
+et al. Imagen video:
+
+High definition video generation
+
+with diffusion models. arXiv
+
+preprint arXiv:2210.02303, 2022.
+
+[18]乔纳森·何、、奇
+
+特万·萨哈利
+
+亚、黄杰、高瑞
+
+琪、阿列克谢
+
+·格里岑科、迪
+
+德里克·P·金马
+
+、本·普尔、穆罕
+
+默德·诺鲁齐
+
+、戴维·J·弗利特
+
+等。arXiv预印本arXiv:2210.02303，2022。
+
+[19]Tobias Höppe. Diffusion models
+
+for video prediction and
+
+infilling: Training a conditional
+
+video diffusion model for
+
+arbitrary video completion tasks,
+
+2022.
+
+[20]托
+
+比亚斯·霍普
+
+。视频预测和
+
+填充的扩散
+
+模型:为任意
+
+视频完成任
+
+务训练一个
+
+条件视频扩
+
+散模型，2022。
+
+[21]Anthony Hu,
+
+Lloyd Russell, Hudson Yeo,
+
+Zak Murez, George Fedoseev,
+
+Alex Kendall, Jamie Shotton,
+
+and Gianluca Corrado. Gaia-1:
+
+A generative world model
+
+for autonomous driving. arXiv
+
+preprint arXiv:2309.17080, 2023.
+
+[22]安东
+
+尼·胡，劳埃德
+
+·拉塞尔，哈德
+
+森·杨，扎克·穆
+
+雷兹，乔治·费
+
+多塞夫，亚历
+
+克斯·肯德尔
+
+，杰米·肖顿和
+
+吉安卢卡·科
+
+拉多。Gaia-1:自动驾
+
+驶的生成世
+
+界模型。arXiv预印
+
+本arXiv:2309.17080，2023。
+
+[23]Shengchao Hu, Li Chen,
+
+Penghao Wu, Hongyang Li,
+
+Junchi Yan, and Dacheng
+
+Tao. St-p3: End-to-end vision-based
+
+autonomous driving via spatial-temporal
+
+feature learning. In European
+
+Conference on Computer Vision
+
+(ECCV), 2022.
+
+[24]胡、、、吴、李红
+
+阳、严俊池、陶
+
+大成。St-p3:通过时
+
+空特征学习
+
+的端到端基
+
+于视觉的自
+
+动驾驶。欧洲
+
+计算机视觉
+
+会议(ECCV)，2022年。
+
+[25]Yihan
+
+Hu, Jiazhi Yang, Li
+
+Chen, Keyu Li, Chonghao
+
+Sima, Xizhou Zhu, Siqi
+
+Chai, Senyao Du, Tianwei
+
+Lin, Wenhai Wang, et
+
+al. Planning-oriented autonomous driving.
+
+In Proceedings of the
+
+IEEE/CVF Conference on Computer
+
+Vision and Pattern Recognition,
+
+pages 17853–17862, 2023.
+
+[26]胡，，杨
+
+家志，，，司马崇
+
+浩，朱喜洲，柴
+
+思齐，杜森耀
+
+，林天伟，，等。面
+
+向自动驾驶
+
+的规划。IEEE/CVF计算
+
+机视觉和模
+
+式识别会议
+
+论文集，第17853-17862页
+
+，2023。
+
+[27]Aapo Hyvä rinen和Peter Dayan。通过分数
+
+匹配估计非
+
+归一化统计
+
+模型。机器学
+
+习研究杂志
+
+，6(4)，2005。
+
+[15]、毛伟新、、赵玉
+
+成、温玉清、、和
+
+。自动驾驶的
+
+通用世界模
+
+型。arXiv预印本arXiv:2311.13549，2023。
+
+[16]Bo Jiang, Shaoyu
+
+Chen, Qing Xu, Bencheng
+
+Liao, Jiajie Chen, Helong
+
+Zhou, Qian Zhang, Wenyu
+
+Liu, Chang Huang, and
+
+Xinggang Wang. Vad: Vectorized
+
+scene representation for efficient
+
+autonomous driving. 2023 IEEE/CVF
+
+International Conference on Computer
+
+Vision (ICCV), pages 8306–8316,
+
+2023.
+
+[17]姜
+
+波，，，廖本成，，周
+
+和龙，，，黄昌，王
+
+兴刚。Vad:有效自
+
+动驾驶的矢
+
+量化场景表
+
+示。2023年IEEE/CVF计算机
+
+视觉国际会
+
+议(ICCV)，第8306–8316页，2023年。
+
+[18]Diederik P
+
+Kingma and Jimmy Ba.
+
+Adam: A method for
+
+stochastic optimization. arXiv preprint
+
+arXiv:1412.6980, 2014.
+
+[19]迪
+
+德里克·P·金马
+
+和吉米·巴。亚
+
+当:一种随机
+
+优化方法。arXiv预
+
+印本arXiv:1412.6980，2014。
+
+[20]Manoj
+
+Kumar, Mohammad Babaeizadeh, Dumitru
+
+Erhan, Chelsea Finn, Sergey
+
+Levine, Laurent Dinh, and
+
+Durk Kingma. Videoflow: A
+
+flow-based generative model for
+
+video. arXiv preprint arXiv:1903.01434,
+
+2(5):3, 2019.
+
+[21]Manoj Kumar、Mohammad
+
+Babaeizadeh、Dumitru Erhan、Chelsea Finn、Sergey Levine、Laurent
+
+Dinh和Durk Kingma。Videoflow:一个
+
+基于流的视
+
+频生成模型
+
+。arXiv预印本arXiv:1903.01434，2(5):3，2019。
+
+[22]Junnan Li,
+
+Dongxu Li, Silvio Savarese,
+
+and Steven Hoi. Blip-2:
+
+Bootstrapping language- image pre-training
+
+with frozen image encoders
+
+and large language models.
+
+arXiv preprint arXiv:2301.12597, 2023.
+
+[23]李，，西
+
+尔维奥·萨瓦
+
+雷塞和史蒂
+
+文·霍伊。Blip-2:用冻
+
+结图像编码
+
+器和大型语
+
+言模型引导
+
+语言图像预
+
+训练。arXiv预印本
+
+arXiv:2301.12597，2023。
+
+[24]Mingfu Liang, Jong-Chyi
+
+Su, Samuel Schulter, Sparsh
+
+Garg, Shiyu Zhao, Ying
+
+Wu, and Manmohan Chandraker.
+
+Aide: An automatic data
+
+engine for object detection
+
+in autonomous driving. arXiv
+
+preprint arXiv:2403.17373, 2024.
+
+[25]梁明福、苏钟
+
+琦、塞缪尔·舒
+
+尔特、斯巴斯
+
+·加格、赵、和曼
+
+莫汉·钱德勒
+
+克。Aide:自动驾驶
+
+中用于对象
+
+检测的自动
+
+数据引擎。arXiv预
+
+印本arXiv:2403.17373，2024。
+
+[26]Luping Liu, Yi Ren,
+
+Zhijie Lin, and Zhou
+
+Zhao. Pseudo numerical methods
+
+for diffusion models on
+
+manifolds. arXiv preprint arXiv:2202.09778,
+
+2022.
+
+[27]刘、、、和。流
+
+形上扩散模
+
+型的伪数值
+
+方法。arXiv预印本
+
+arXiv:2202.09778，2022。
+
+[28]Zhengxiong Luo,
+
+Dayou Chen, Yingya Zhang,
+
+Yan Huang, Liang Wang,
+
+Yujun Shen, Deli Zhao,
+
+Jingren Zhou, and Tieniu
+
+Tan. Videofusion: Decomposed diffusion
+
+models for high-quality video
+
+generation. In Proceedings of
+
+the IEEE/CVF Conference on
+
+Computer Vision and Pattern
+
+Recognition, pages 10209–10218, 2023.
+
+[29]、罗、、陈、张颖雅
+
+、、、沈、、、周和谭铁
+
+牛。视频融合
+
+:高质量视频
+
+生成的分解
+
+扩散模型。IEEE/CVF计
+
+算机视觉和
+
+模式识别会
+
+议论文集，第
+
+10209–10218页，2023。
+
+[30]Michael Mathieu, Camille
+
+Couprie, and Yann LeCun.
+
+Deep multi-scale video prediction
+
+beyond mean square error.
+
+arXiv preprint arXiv:1511.05440, 2015.
+
+[31]迈克尔·马
+
+修，卡米尔·库
+
+普里和扬·勒
+
+昆。超越均方
+
+误差的深度
+
+多尺度视频
+
+预测。arXiv预印本
+
+arXiv:1511.05440，2015。
+
+[32]Alex Nichol, Prafulla
+
+Dhariwal, Aditya Ramesh, Pranav
+
+Shyam, Pamela Mishkin, Bob
+
+McGrew, Ilya Sutskever, and
+
+Mark Chen. Glide: Towards
+
+photorealistic image generation and
+
+editing with text-guided diffusion
+
+models. arXiv preprint arXiv:2112.10741,
+
+2021.
+
+[33]Alex Nichol，Prafulla Dhariwal，Aditya
+
+Ramesh，Pranav Shyam，Pamela Mishkin，Bob McGrew，Ilya
+
+Sutskever和陈唐山。Glide:使
+
+用文本引导
+
+扩散模型实
+
+现照片级真
+
+实感图像生
+
+成和编辑。arXiv预
+
+印本arXiv:2112.10741，2021。
+
+[34]Aditya Prakash, Kashyap
+
+Chitta, and Andreas Geiger.
+
+Multimodal fusion transformer for
+
+end-to-end autonomous driving. In
+
+Proceedings of the IEEE/CVF
+
+Conference on Computer Vision
+
+and Pattern Recognition (CVPR),
+
+2021.
+
+[35]Aditya Prakash，Kashyap Chitta和Andreas
+
+Geiger。用于
+
+端到端自动
+
+驾驶的多模
+
+式融合变压
+
+器。IEEE/CVF计算机视
+
+觉和模式识
+
+别会议论文
+
+集(CVPR)，2021年。
+
+[36]Haonan Qiu, Menghan
+
+Xia, Yong Zhang, Yingqing
+
+He, Xintao Wang, Ying
+
+Shan, and Ziwei Liu.
+
+Freenoise: Tuning-free longer video
+
+diffusion via noise rescheduling.
+
+arXiv preprint arXiv:2310.15169, 2023.
+
+[37]邱浩南
+
+，，夏，，何颖清，，，，和
+
+。Freenoise:通过噪声重
+
+新调度的免
+
+调谐较长视
+
+频扩散。arXiv预印
+
+本arXiv:2310.15169，2023。
+
+[38]Weiming Ren, Harry
+
+Yang, Ge Zhang, Cong
+
+Wei, Xinrun Du, Stephen
+
+Huang, and Wenhu Chen.
+
+Consisti2v: Enhancing visual consistency
+
+for image-to-video generation. arXiv
+
+preprint arXiv:2402.04324, 2024.
+
+[39]任伟明、杨
+
+海瑞、、、杜新润
+
+、黄建华和陈
+
+。Consisti2v:增强图像到
+
+视频生成的
+
+视觉一致性
+
+。arXiv预印本arXiv:2402.04324，2024。
+
+[40]Robin Rombach, Andreas Blattmann,
+
+Dominik Lorenz, Patrick Esser,
+
+and Björn Ommer. High-
+
+resolution image synthesis with
+
+latent diffusion models. In
+
+Proceedings of the IEEE/CVF
+
+conference on computer vision
+
+and pattern recognition, pages
+
+10684–10695, 2022.
+
+[41]罗宾
+
+·龙巴赫、安德
+
+里亚斯·布拉
+
+特曼、张秀坤
+
+·洛伦茨、帕特
+
+里克·埃塞尔
+
+和比约恩·奥
+
+默。用潜在扩
+
+散模型合成
+
+高分辨率图
+
+像。IEEE/CVF计算机视
+
+觉和模式识
+
+别会议论文
+
+集，第10684-10695页，2022。
+
+[42]Nataniel
+
+Ruiz, Yuanzhen Li, Varun
+
+Jampani, Yael Pritch, Michael
+
+Rubinstein, and Kfir Aberman.
+
+Dreambooth: Fine tuning text-to-image
+
+diffusion models for subject-driven
+
+generation. In Proceedings of
+
+the IEEE/CVF Conference on
+
+Computer Vision and Pattern
+
+Recognition, pages 22500–22510, 2023.
+
+[43]纳坦
+
+尼尔·鲁伊斯
+
+、李元镇、瓦伦
+
+·詹帕尼、雅艾
+
+尔·普里奇、迈
+
+克尔·温斯顿
+
+和克菲尔·阿
+
+伯曼。Dreambooth:微调主
+
+题驱动生成
+
+的文本到图
+
+像扩散模型
+
+。IEEE/CVF计算机视觉
+
+和模式识别
+
+会议论文集
+
+，第22500-22510页，2023。
+
+[44]Masaki Saito, Eiichi
+
+Matsumoto, and Shunta Saito.
+
+Temporal generative adversarial nets
+
+with singular value clipping.
+
+In Proceedings of the
+
+IEEE international conference on
+
+computer vision, pages 2830–2839,
+
+2017.
+
+[45]斋藤正
+
+树，松本荣一
+
+和斋藤顺太
+
+。具有奇异值
+
+裁剪的时态
+
+生成对抗网
+
+。IEEE计算机视觉
+
+国际会议论
+
+文集，第2830-2839页，2017年
+
+。
+
+[46]Uriel Singer, Adam Polyak,
+
+Thomas Hayes, Xi Yin,
+
+Jie An, Songyang Zhang,
+
+Qiyuan Hu, Harry Yang,
+
+Oron Ashual, Oran Gafni,
+
+et al. Make-a-video: Text-to-video
+
+generation without text-video data.
+
+arXiv preprint arXiv:2209.14792, 2022.
+
+[47]辛格，亚当·波
+
+亚克，托马斯
+
+·海斯，席音，解
+
+安，，胡启元，杨
+
+海瑞，奥龙·阿
+
+舒尔，奥兰·加
+
+夫尼，等。制作
+
+视频:不需要
+
+文本-视频数
+
+据的文本-视
+
+频生成。arXiv预印
+
+本arXiv:2209.14792，2022。
+
+[48]Jiaming Song, Chenlin
+
+Meng, and Stefano Ermon.
+
+Denoising diffusion implicit models.
+
+arXiv preprint arXiv:2010.02502, 2020.
+
+[49]宋家明，孟
+
+和斯特凡诺
+
+埃尔蒙。去噪
+
+扩散隐式模
+
+型。arXiv预印本arXiv:2010.02502，2020。
+
+[50]Alexander Swerdlow, Runsheng
+
+Xu, and Bolei Zhou.
+
+Street-view image generation from
+
+a bird’s-eye view layout.
+
+arXiv preprint arXiv:2301.04634, 2023.
+
+[51]Alexander Swerdlow、徐
+
+润生和周。从
+
+鸟瞰图布局
+
+生成街景图
+
+像。arXiv预印本arXiv:2301.04634，2023。
+
+[52]Sergey Tulyakov,
+
+Ming-Yu Liu, Xiaodong Yang,
+
+and Jan Kautz. Mocogan:
+
+Decomposing motion and content
+
+for video generation. In
+
+Proceedings of the IEEE
+
+conference on computer vision
+
+and pattern recognition, pages
+
+1526–1535, 2018.
+
+[53]谢
+
+尔盖·图利亚
+
+科夫、刘明宇
+
+、杨晓东和扬
+
+·考茨。Mocogan:分解视
+
+频生成的运
+
+动和内容。IEEE计
+
+算机视觉和
+
+模式识别会
+
+议论文集，第
+
+1526-1535页，2018年。
+
+[54]Thomas
+
+Unterthiner, Sjoerd Van Steenkiste,
+
+Karol Kurach, Raphael Marinier,
+
+Marcin Michalski, and Sylvain
+
+Gelly. Towards accurate generative
+
+models of video: A
+
+new metric & challenges.
+
+arXiv preprint arXiv:1812.01717, 2018.
+
+[55]托马斯
+
+·安特辛纳、斯
+
+约尔德·范·斯
+
+廷基斯特、凯
+
+罗尔·库拉奇
+
+、拉斐尔·马里
+
+尼尔、马钦·米
+
+哈尔斯基和
+
+西尔万·盖利
+
+。走向精确的
+
+视频生成模
+
+型:新的度量
+
+和挑战。arXiv预印
+
+本arXiv:1812.01717，2018。
+
+[56]Carl Vondrick, Hamed
+
+Pirsiavash, and Antonio Torralba.
+
+Generating videos with scene
+
+dynamics.
+
+[57]卡尔·冯德
+
+里克、哈米德
+
+·皮尔西亚瓦
+
+什和安东尼
+
+奥·托雷巴。用
+
+场景动态生
+
+成视频。
+
+Advances in
+
+neural information processing systems,
+
+29, 2016.
+
+神经
+
+信息处理系
+
+统进展，29，2016。
+
+[58]Shihao
+
+Wang, Yingfei Liu, Tiancai
+
+Wang, Ying Li, and
+
+Xiangyu Zhang. Exploring object-centric
+
+temporal modeling for efficient
+
+multi-view 3d object detection.
+
+arXiv preprint arXiv:2303.11926, 2023.
+
+[59]王世
+
+豪、刘英飞、王
+
+沺裁、李颖和
+
+张翔宇。探索
+
+以对象为中
+
+心的时间建
+
+模，用于有效
+
+的多视图3d对
+
+象检测。arXiv预印
+
+本arXiv:2303.11926，2023。
+
+[60]Xiaofeng Wang, Zheng
+
+Zhu, Guan Huang, Xinze
+
+Chen, and Jiwen Lu.
+
+Drivedreamer: Towards real-world-driven world
+
+models for autonomous driving.
+
+arXiv preprint arXiv:2309.09777, 2023.
+
+[61]、郑竹、、陈新
+
+泽和陆继文
+
+。Drivedreamer:走向自动驾
+
+驶的真实世
+
+界驱动世界
+
+模型。arXiv预印本
+
+arXiv:2309.09777，2023。
+
+[62]Yuqi Wang, Jiawei
+
+He, Lue Fan, Hongxin
+
+Li, Yuntao Chen, and
+
+Zhaoxiang Zhang. Driving into
+
+the future: Multiview visual
+
+forecasting and planning with
+
+world model for autonomous
+
+driving. arXiv preprint arXiv:2311.17918,
+
+2023.
+
+[63]、王、、吕凡、、陈云
+
+涛、。驾驶未来
+
+:自动驾驶世
+
+界模型的多
+
+视角视觉预
+
+测和规划。arXiv预
+
+印本arXiv:2311.17918，2023。
+
+[64]Yuqing Wen,
+
+Yucheng Zhao, Yingfei Liu,
+
+Fan Jia, Yanhui Wang,
+
+Chong Luo, Chi Zhang,
+
+Tiancai Wang, Xiaoyan Sun,
+
+and Xiangyu Zhang. Panacea:
+
+Panoramic and controllable video
+
+generation for autonomous driving.
+
+arXiv preprint arXiv:2311.16813, 2023.
+
+[65]余庆文
+
+，赵玉成，，，王艳
+
+辉，，，，，，和张翔宇
+
+。灵丹妙药:自
+
+动驾驶的全
+
+景可控视频
+
+生成。arXiv预印本
+
+arXiv:2311.16813，2023。
+
+[66]Jay Zhangjie Wu,
+
+Yixiao Ge, Xintao Wang,
+
+Weixian Lei, Yuchao Gu,
+
+Wynne Hsu, Ying Shan,
+
+Xiaohu Qie, and Mike
+
+Zheng Shou. Tune-a-video: One-shot
+
+tuning of image diffusion
+
+models for text-to-video generation.
+
+arXiv preprint arXiv:2212.11565, 2022.
+
+[67]周杰伦吴，葛
+
+，王，雷伟贤，顾
+
+，许永利，，肖虎
+
+和郑寿。视频
+
+调谐:文本到
+
+视频生成的
+
+图像扩散模
+
+型的一次性
+
+调谐。arXiv预印本
+
+arXiv:2212.11565，2022。
+
+[68]Kairui Yang, Enhui
+
+Ma, Jibin Peng, Qing
+
+Guo, Di Lin, and
+
+Kaicheng Yu. Bevcontrol: Accurately
+
+controlling street-view elements with
+
+multi-perspective consistency via bev
+
+sketch layout. arXiv preprint
+
+arXiv:2308.01661, 2023.
+
+[69]杨，马恩慧，，彭
+
+，，郭庆，，俞开成
+
+。Bevcontrol:通过bev草图布
+
+局，精确控制
+
+多视角一致
+
+性的街景元
+
+素。arXiv预印本arXiv:2308.01661，2023。
+
+[70]Zetong
+
+Yang, Li Chen, Yanan
+
+Sun, and Hongyang Li.
+
+Visual point cloud forecasting
+
+enables scalable autonomous driving.
+
+arXiv preprint arXiv:2312.17655, 2023.
+
+[71]杨
+
+泽通，，，李红阳
+
+。视觉点云预
+
+测实现可扩
+
+展的自动驾
+
+驶。arXiv预印本arXiv:2312.17655，2023。
+
+[72]Jiang-Tian Zhai, Ze
+
+Feng, Jinhao Du, Yongqiang
+
+Mao, Jiang-Jiang Liu, Zichang
+
+Tan, Yifu Zhang, Xiaoqing
+
+Ye, and Jingdong Wang.
+
+Rethinking the open-loop evaluation
+
+of end-to-end autonomous driving
+
+in nuscenes. arXiv preprint
+
+arXiv:2305.10430, 2023.
+
+[73]翟
+
+江田、泽峰、杜
+
+金浩、毛永强
+
+、江、谭子昌、张
+
+毅夫、、王京东
+
+。重新思考nuscenes中
+
+端到端自动
+
+驾驶的开环
+
+评测。arXiv预印本
+
+arXiv:2305.10430，2023。
+
+[74]Beichen
+
+Zhang, Pan Zhang, Xiaoyi
+
+Dong, Yuhang Zang, and
+
+Jiaqi Wang. Long-clip: Unlocking
+
+the long-text capability of
+
+clip. arXiv preprint arXiv:2403.15378,
+
+2024.
+
+[75]北辰张，潘章
+
+，董晓义，臧余
+
+杭，。长剪辑:释
+
+放剪辑的长
+
+文本功能。arXiv预
+
+印本arXiv:2403.15378，2024。
+
+[76]Lvmin Zhang
+
+and Maneesh Agrawala. Adding
+
+conditional control to text-to-image
+
+diffusion models. arXiv preprint
+
+arXiv:2302.05543, 2023.
+
+[77]张和马
+
+涅什·阿格拉
+
+瓦拉。向文本
+
+到图像扩散
+
+模型添加条
+
+件控制。arXiv预印
+
+本arXiv:2302.05543，2023。
+
+[78]Guosheng
+
+Zhao, Xiaofeng Wang, Zheng
+
+Zhu, Xinze Chen, Guan
+
+Huang, Xiaoyi Bao, and
+
+Xin- gang Wang. Drivedreamer-2:
+
+Llm-enhanced world models for
+
+diverse driving video generation.
+
+arXiv preprint arXiv:2403.06845, 2024.
+
+[79]赵，，郑竹，陈
+
+新泽，，鲍晓义
+
+，。drive dreamer-2:Llm-增强的世界
+
+模型，用于多
+
+样化的驾驶
+
+视频生成。arXiv预
+
+印本arXiv:2403.06845，2024。
+
+[80]Daquan Zhou,
+
+Weimin Wang, Hanshu Yan,
+
+Weiwei Lv, Yizhe Zhu,
+
+and Jiashi Feng. Magicvideo:
+
+Efficient video generation with
+
+latent diffusion models. arXiv
+
+preprint arXiv:2211.11018, 2022.
+
+[81]周大全
+
+，，颜汉书，，，朱，冯
+
+家实。Magicvideo:利用潜
+
+在扩散模型
+
+的高效视频
+
+生成。arXiv预印本
+
+arXiv:2211.11018，2022。
+
+AMethod
+
+B方法
+
+B.1Detailed
+
+implementation of failure case
+
+driven framework
+
+B.2故障案
+
+例驱动框架
+
+的详细实现
+
+Collecting Failure
+
+Cases. Initially, we assess
+
+the performance of the
+
+base end-to-end model on
+
+the validation set .
+
+For this evaluation, we
+
+utilize the UniAD [13]
+
+base model as our
+
+starting point. We employ
+
+a metric, wherein a
+
+collision occurring within 3
+
+seconds on the path
+
+planned by the algorithm
+
+qualifies a scenario as
+
+a failure case. Additionally,
+
+to gain further insights,
+
+we visualize both the
+
+perception results of the
+
+3D boxes and the
+
+planning outcomes derived from
+
+the end-to-end model. Through
+
+this process, we identify
+
+and select failure cases
+
+for further analysis.
+
+收集失败案
+
+例。最初，我们
+
+在验证集上
+
+评估基本端
+
+到端模型的
+
+性能。在本次
+
+评估中，我们
+
+利用UniAD
+
+[13]基础模
+
+型作为起点
+
+。我们采用一
+
+种度量标准
+
+，其中在算法
+
+规划的路径
+
+上3秒钟内发
+
+生的碰撞将
+
+一个场景视
+
+为失败案例
+
+。此外，为了获
+
+得进一步的
+
+见解，我们将
+
+3D盒子的感知
+
+结果和从端
+
+到端模型中
+
+得出的规划
+
+结果可视化
+
+。通过这个过
+
+程，我们识别
+
+并选择失败
+
+案例进行进
+
+一步分析。
+
+
+
+
+
+Analyzing
+
+data pattern. We initially
+
+anticipated that large visual-language
+
+models would be able
+
+to automatically pinpoint the
+
+reasons behind algorithm failures.
+
+However, our investigations revealed
+
+that a straightforward inquiry
+
+was insufficient for this
+
+purpose. Consequently, we devised
+
+a multi-round inquiry method
+
+leveraging VLM [1]. This
+
+approach enables a more
+
+precise analysis of the
+
+factors contributing to algorithm
+
+failures, as well as
+
+a detailed description of
+
+the key elements leading
+
+to such failures.
+
+分
+
+析数据模式
+
+。我们最初预
+
+计大型视觉
+
+语言模型将
+
+能够自动查
+
+明算法失败
+
+背后的原因
+
+。然而，我们的
+
+调查显示，一
+
+个简单的调
+
+查是不够的
+
+。因此，我们设
+
+计了一种利
+
+用VLM的多轮调
+
+查方法[1]。这种
+
+方法能够更
+
+精确地分析
+
+导致算法失
+
+败的因素，并
+
+详细描述导
+
+致这种失败
+
+的关键因素
+
+。
+
+Specifically, we feed the
+
+visualization outcomes from the
+
+preceding step into VLM
+
+and prompt it to
+
+discern whether the primary
+
+cause of failure stems
+
+from perception or planning
+
+issues. In cases where
+
+perception is the culprit,
+
+the reasons can be
+
+further categorized into various
+
+factors such as nighttime
+
+darkness, challenges in recognizing
+
+large nearby objects, or
+
+the inability to identify
+
+rare object categories. On
+
+the other hand, if
+
+planning is identified as
+
+the source of failure,
+
+VLM can differentiate between
+
+scenarios like occlusion or
+
+infrequent interactions, including running
+
+a red light or
+
+crossing the road. Ultimately,
+
+based on the previously
+
+established reasons for failure,
+
+we prompt VLM to
+
+offer a precise account
+
+of the specific factors
+
+that led to the
+
+failure.
+
+具体来说，我
+
+们将前一步
+
+的可视化结
+
+果输入VLM，并提
+
+示它辨别失
+
+败的主要原
+
+因是源于感
+
+知还是计划
+
+问题。在感知
+
+是罪魁祸首
+
+的情况下，原
+
+因可以进一
+
+步分为各种
+
+因素，如夜间
+
+黑暗、识别附
+
+近大型物体
+
+的挑战或无
+
+法识别罕见
+
+物体类别。另
+
+一方面，如果
+
+规划被确定
+
+为失败的根
+
+源，VLM可以区分
+
+堵塞或不频
+
+繁互动等场
+
+景，包括闯红
+
+灯或过马路
+
+。最终，根据先
+
+前确定的失
+
+败原因，我们
+
+要求VLM提供导
+
+致失败的具
+
+体因素的准
+
+确说明。
+
+Retrieving similar scenes. Using
+
+the detailed image description,
+
+we employ BLIP-2 [19]
+
+to identify and retrieve
+
+scenes from the train
+
+set that closely correspond
+
+to the reasons behind
+
+the failure. This process
+
+involves quantifying the cosine
+
+similarity between embeddings extracted
+
+from both the image
+
+and the designated text
+
+input using BLIP-2. Based
+
+on this similarity measure,
+
+we then select and
+
+retrieve only the top-k
+
+most relevant images.
+
+检索
+
+相似场景。使
+
+用详细的图
+
+像描述，我们
+
+使用BLIP-2
+
+[19]从列车
+
+组中识别和
+
+检索与故障
+
+背后的原因
+
+紧密对应的
+
+场景。这个过
+
+程包括使用
+
+BLIP-2量化从图像
+
+和指定文本
+
+输入中提取
+
+的嵌入之间
+
+的余弦相似
+
+性。基于这种
+
+相似性度量
+
+，我们然后只
+
+选择和检索
+
+前k个最相关
+
+的图像。
+
+
+
+
+
+Updating
+
+Model. Based on the
+
+identified potential failure scenarios,
+
+we created an extensive
+
+and varied image dataset
+
+utilizing Delphi. We obtained
+
+scene captions from VLM
+
+using corresponding sample tokens
+
+and employed these captions
+
+as input to generate
+
+analogous images with Delphi.
+
+更新
+
+模型。基于确
+
+定的潜在故
+
+障场景，我们
+
+利用Delphi创建了
+
+一个广泛多
+
+样的图像数
+
+据集。我们使
+
+用相应的样
+
+本令牌从VLM获
+
+得场景字幕
+
+，并使用这些
+
+字幕作为输
+
+入，用Delphi生成类
+
+似的图像。
+
+To augment data
+
+diversity, we employed a
+
+LLM to adjust the
+
+captions inputted into Delphi.
+
+This approach facilitated the
+
+alteration of scene descriptions
+
+to encompass various scene
+
+conditions and instance conditions,
+
+such as sunny, rainy,
+
+cloudy, Night, suburban, changing
+
+the color of the
+
+cars. Consequently, feeding these
+
+revised captions into Delphi
+
+resulted in the generation
+
+of a broader range
+
+of images.
+
+为
+
+了增加数据
+
+的多样性，我
+
+们使用了一
+
+个LLM来调整输
+
+入到Delphi中的标
+
+题。这种方法
+
+有助于场景
+
+描述的改变
+
+，以包含各种
+
+场景条件和
+
+实例条件，例
+
+如晴天、雨天
+
+、阴天、夜晚、郊
+
+区、改变汽车
+
+的颜色。因此
+
+，将这些修改
+
+过的标题输
+
+入到Delphi中导致
+
+了更广泛的
+
+图像的产生
+
+。
+
+However,
+
+we discovered that directly
+
+utilizing the generated failure
+
+scenes for training could
+
+result in overfitting. While
+
+the trained model excelled
+
+in the selected failure
+
+instances, its performance suffered
+
+in previously successful cases.
+
+Therefore, to mitigate this
+
+issue, we integrated our
+
+generated data with the
+
+complete train set for
+
+each fine-tuning session. This
+
+strategy proved effective in
+
+optimizing the model’s overall
+
+performance.
+
+然而，我们发
+
+现直接利用
+
+生成的失败
+
+场景进行训
+
+练可能会导
+
+致过度拟合
+
+。虽然经过训
+
+练的模型在
+
+选定的失败
+
+案例中表现
+
+出色，但其性
+
+能在以前的
+
+成功案例中
+
+受到影响。因
+
+此，为了缓解
+
+这个问题，我
+
+们将生成的
+
+数据与每个
+
+微调会话的
+
+完整训练集
+
+相集成。这种
+
+策略在优化
+
+模型的整体
+
+性能方面被
+
+证明是有效
+
+的。
+
+Ultimately, we
+
+trained the end-to-end model
+
+using this combined dataset,
+
+yielding a refined model
+
+that marked the commencement
+
+of the subsequent iteration
+
+of the improvement cycle.
+
+最终，我们
+
+使用这个组
+
+合的数据集
+
+训练端到端
+
+模型，产生一
+
+个改进的模
+
+型，它标志着
+
+改进周期的
+
+后续迭代的
+
+开始。
+
+
+
+
+
+CExperiments
+
+D实验
+
+D.1Metrics
+
+D.2韵
+
+律学
+
+Metrics
+
+about Quality and Controllability
+
+of Generated Video. We
+
+evaluate the quality of
+
+the generated videos from
+
+two aspects: quality and
+
+controllability. Specifically, for quality,
+
+we use Frechet Inception
+
+Distance (FID) [7] to
+
+assess the realism of
+
+single-frame single-view images in
+
+the generated videos, Frechet
+
+Video Distance (FVD) [35]
+
+to evaluate the temporal
+
+consistency of
+
+关于生
+
+成视频的质
+
+量和可控性
+
+的指标。我们
+
+从两个方面
+
+评估生成视
+
+频的质量:质
+
+量和可控性
+
+。具体来说，对
+
+于质量，我们
+
+使用弗雷歇
+
+初始距离(FID) [7]来
+
+评估生成的
+
+视频中单帧
+
+单视图图像
+
+的真实性，弗
+
+雷歇视频距
+
+离(FVD)
+
+[35]来评估
+
+
+
+
+
+single-view
+
+videos, and CLIP scores
+
+(CLIP) [42] to assess
+
+the spatial consistency of
+
+single-frame multi-view images. For
+
+controllability, we utilize the
+
+popular BEV detection model
+
+StreamPETR [37] and end-to-end
+
+model [13] to evaluate
+
+the generated data and
+
+report the NDS score
+
+and the Average Collision
+
+Rate(Avg. Col. Rate) respectively,
+
+which comprehensively reflects the
+
+geometric alignment between the
+
+generated images and the
+
+BEV layout annotations. By
+
+using these evaluation metrics,
+
+we can ensure that
+
+the generated results maintain
+
+high standards in both
+
+quality and controllability.
+
+单
+
+视图视频和
+
+剪辑分数(CLIP)
+
+[42]来
+
+评估单帧多
+
+视图图像的
+
+空间一致性
+
+。对于可控性
+
+，我们利用流
+
+行的BEV检测模
+
+型StreamPETR [37]和端到端
+
+模型[13]来评估
+
+生成的数据
+
+，并报告NDS分数
+
+和平均碰撞
+
+率(Avg。Col. Rate ),其全面反
+
+映了所生成
+
+的图像和BEV布
+
+局注释之间
+
+的几何对准
+
+。通过使用这
+
+些评估指标
+
+，我们可以确
+
+保生成的结
+
+果在质量和
+
+可控性方面
+
+保持高标准
+
+。
+
+Metrics about Effectiveness
+
+of the Generated Video
+
+for End-to-End Model. To
+
+evaluate the effectiveness of
+
+our proposed failure-case driven
+
+framework based upon the
+
+Delphi for the end-to-end
+
+model, we utilize the
+
+generated diverse training data
+
+to augment the end-to-end
+
+model’s origin training data.
+
+Specifically, we evaluate the
+
+performance of the end-to-end
+
+model by applying data
+
+augmentation on the nuScenes
+
+validation set and report
+
+the average collision rate.
+
+端到端模型
+
+生成的视频
+
+有效性的度
+
+量。为了评估
+
+我们提出的
+
+基于德尔菲
+
+法的端到端
+
+模型的故障
+
+案例驱动框
+
+架的有效性
+
+，我们利用生
+
+成的不同训
+
+练数据来扩
+
+充端到端模
+
+型的原始训
+
+练数据。具体
+
+来说，我们通
+
+过在nuScenes验证集
+
+上应用数据
+
+扩充来评估
+
+端到端模型
+
+的性能，并报
+
+告平均冲突
+
+率。
+
+
+
+
+
+D.3More
+
+Experimental Details
+
+D.4更多实验
+
+细节
+
+Experimental
+
+Setting of the end-to-end
+
+model. During the training
+
+phase, we utilize the
+
+model available on the
+
+UniAD official repository as
+
+our foundation for fine-tuning.
+
+To enhance the training
+
+process, we have decreased
+
+the learning rate by
+
+a factor of 10,
+
+setting it to 2e-5.
+
+Additionally, we maintain consistency
+
+with the hyperparameters recommended
+
+on the UniAD repository,
+
+including the optimizer settings.
+
+端到端
+
+模型的实验
+
+设置。在培训
+
+阶段，我们利
+
+用UniAD官方知识
+
+库上的模型
+
+作为微调的
+
+基础。为了增
+
+强训练过程
+
+，我们将学习
+
+率降低了10倍
+
+，设置为2e-5。此外
+
+，我们与UniAD存储
+
+库上推荐的
+
+超参数保持
+
+一致，包括优
+
+化器设置。
+
+
+
+
+
+Computation
+
+Efficiency and Hardware RequirementsWe
+
+report the model complexity
+
+of our two model
+
+variants in Table 6.
+
+We will further provide
+
+the generated data on
+
+the nuScenes training set
+
+for the convenience of
+
+data augmentation.
+
+计
+
+算效率和硬
+
+件要求我们
+
+在表6中报告
+
+了两个模型
+
+变体的模型
+
+复杂性。我们
+
+将进一步在
+
+nuScenes训练集上提
+
+供生成的数
+
+据，以便于数
+
+据扩充。
+
+表6:模
+
+型效率和硬
+
+件要求。
+
+Model	Parameter	Inference Memeory&GPU
+
+Inference Time	Train config
+
+模型
+
+参数	推理存
+
+储器和GPU	推理
+
+时间	列车配
+
+置
+
+multi-view single-frame	0.5B
+
+22GB(RTX3090)	4s / example
+
+8×A100, 24 hours
+
+multi-view
+
+multi-frame	1.1B	39GB(A100 40G)
+
+4s / example	8×A800,
+
+72 hours
+
+多视图单
+
+帧	0.5亿
+
+22GB(RTX3090)	4s /示例	8×A100，24小
+
+时
+
+多视图多
+
+帧	1.1B	39GB(A100 40G)
+
+4s /示例	8×A800，72小时
+
+
+
+D.5Validating each components of
+
+our failure-case driven framework
+
+D.6验证我们的
+
+失败案例驱
+
+动框架的每
+
+个组件
+
+As in Table
+
+2, we compare in
+
+three aspects, data sampling
+
+strategy, number of generating
+
+cases and data engine
+
+validation.
+
+如表
+
+2所示，我们从
+
+三个方面进
+
+行比较，数据
+
+采样策略、生
+
+成案例的数
+
+量和数据引
+
+擎验证。
+
+Data Sampling Strategy. We
+
+evaluated different data sampling
+
+strategies, such as random
+
+sampling and failure-case targeted
+
+sampling. In the upper
+
+part of Table 2,
+
+we randomly selected various
+
+proportions of data samples
+
+from the training dataset
+
+and used the corresponding
+
+BEV layout and original
+
+scene captions to generate
+
+new data. In the
+
+lower part of Table
+
+2, we retrieved training
+
+data with similar patterns
+
+to failure cases from
+
+the validation set and
+
+generated diverse weather data
+
+using the powerful control
+
+capabilities of the generative
+
+model. The newly generated
+
+data was mixed with
+
+the original data to
+
+train the end-to-end model.
+
+It was observed that
+
+the end-to-end model, enhanced
+
+through failure-case guided data
+
+augmentation, achieved the best
+
+performance. This demonstrates that
+
+the end-to-end model is
+
+under-trained in these failure
+
+cases, and feeding it
+
+more failure-case related training
+
+data can achieve optimal
+
+generalization performance with fewer
+
+computational resources.
+
+数据
+
+采样策略。我
+
+们评估了不
+
+同的数据抽
+
+样策略，如随
+
+机抽样和失
+
+败案例目标
+
+抽样。在表2的
+
+上半部分，我
+
+们从训练数
+
+据集中随机
+
+选择各种比
+
+例的数据样
+
+本，并使用相
+
+应的BEV布局和
+
+原始场景字
+
+幕来生成新
+
+数据。在表2的
+
+下半部分，我
+
+们从验证集
+
+中检索了与
+
+故障案例模
+
+式相似的训
+
+练数据，并使
+
+用生成模型
+
+的强大控制
+
+功能生成了
+
+不同的天气
+
+数据。新生成
+
+的数据与原
+
+始数据混合
+
+，以训练端到
+
+端模型。据观
+
+察，通过故障
+
+案例引导的
+
+数据扩充增
+
+强的端到端
+
+模型实现了
+
+最佳性能。这
+
+表明，端到端
+
+模型在这些
+
+故障情况下
+
+训练不足，向
+
+其提供更多
+
+故障情况相
+
+关的训练数
+
+据可以用更
+
+少的计算资
+
+源实现最佳
+
+的泛化性能
+
+。
+
+Numbers of Cases. We
+
+investigated the quantity of
+
+data samples. We randomly
+
+sampled 14,065 and 28,130
+
+training samples (approximately 50%
+
+and 100% of the
+
+entire training set) from
+
+the training set. The
+
+results generated by the
+
+configuration of the generative
+
+model on these samples
+
+were used for data
+
+augmentation. As shown in
+
+the upper part of
+
+Table 2, the performance
+
+of the end-to-end model
+
+worsened as the number
+
+of samples increased. This
+
+indicates that using training
+
+data with a style
+
+similar to the original
+
+training set can only
+
+help the model to
+
+a limited extent. Thus,
+
+it prompted us to
+
+consider increasing the diversity
+
+of the training data.
+
+案件数量。我
+
+们调查了数
+
+据样本的数
+
+量。我们从训
+
+练集中随机
+
+抽取了14，065和28，130个
+
+训练样本(大
+
+约是整个训
+
+练集的50%和100%)。由
+
+生成模型在
+
+这些样本上
+
+的配置生成
+
+的结果被用
+
+于数据扩充
+
+。如表2的上半
+
+部分所示，端
+
+到端模型的
+
+性能随着样
+
+本数量的增
+
+加而恶化。这
+
+表明使用与
+
+原始训练集
+
+风格相似的
+
+训练数据只
+
+能在有限的
+
+程度上帮助
+
+模型。因此，这
+
+促使我们考
+
+虑增加训练
+
+数据的多样
+
+性。
+
+
+
+
+
+Data
+
+Engine. We tested various
+
+data generation engines, including
+
+Delphi and other state-of-the-art
+
+generative models Panacea [40],
+
+to compare their effectiveness
+
+in generating high-quality training
+
+data for model enhancement.
+
+From the three sets
+
+of comparison experiments, it
+
+can be seen that
+
+the
+
+数据引擎
+
+。我们测试了
+
+各种数据生
+
+成引擎，包括
+
+Delphi和其他最先
+
+进的生成模
+
+型万能药[40]，以
+
+比较它们在
+
+为模型增强
+
+生成高质量
+
+训练数据方
+
+面的有效性
+
+。从三组对比
+
+实验可以看
+
+出
+
+data generated by Delphi
+
+effectively improves the performance
+
+of the end-to-end model
+
+compared to other generative
+
+models. This is due
+
+to Delphi’s superior fine
+
+control capabilities in scene
+
+generation, leading to more
+
+diverse training data for
+
+model tuning.
+
+与其他生
+
+成模型相比
+
+，Delphi生成的数据
+
+有效地提高
+
+了端到端模
+
+型的性能。这
+
+是由于Delphi在场
+
+景生成方面
+
+卓越的精细
+
+控制能力，导
+
+致模型调优
+
+的训练数据
+
+更加多样化
+
+。
+
+[28]
+
+[29]

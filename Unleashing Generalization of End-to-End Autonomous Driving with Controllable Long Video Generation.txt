@@ -1,714 +1,4673 @@
-Unleashing Generalization of End-to-End Autonomous
-Driving with Controllable Long Video Generation
-Enhui Ma1,2,3∗ Lijun Zhou2∗ Tao Tang4,2 Zhan Zhang5,1 Dong Han6,1 Junpeng Jiang7,2
-Kun Zhan2 Peng Jia2 Xianpeng Lang2 Haiyang Sun2 Di Lin3 Kaicheng Yu1†
-1Westlake University 2Li Auto Inc. 3Tianjin University 4Shenzhen Campus, Sun Yat-sen University
-5Southeast University 6Harbin Engineering University 7Harbin Institute of Technology(Shenzhen)
+Unleashing Generalization of End-to-End
+
+Autonomous
+
+Driving with Controllable
+
+Long Video Generation
+
+Enhui
+
+Ma1,2,3∗ Lijun Zhou2∗ Tao
+
+Tang4,2 Zhan Zhang5,1 Dong
+
+Han6,1 Junpeng Jiang7,2
+
+Kun
+
+Zhan2 Peng Jia2 Xianpeng
+
+Lang2 Haiyang Sun2 Di
+
+Lin3 Kaicheng Yu1†
+
+1Westlake
+
+University 2Li Auto Inc.
+
+3Tianjin University 4Shenzhen Campus,
+
+Sun Yat-sen University
+
+5Southeast
+
+University 6Harbin Engineering University
+
+7Harbin Institute of Technology(Shenzhen)
+
 {maenhui, kyu}@westlake.edu.cn, zhoulijun@lixiang.com
-Figure 1: Overview of our method. We show that (a) our Delphi can generate up to 40 frames consecutive
-videos while (b) existing best only generate 8 frames. (c) With the failure-cased driven framework equipped
-with Delphi, (d) we can significantly boost the end-to-end model performance with much smaller cost.
+
+Figure
+
+1: Overview of our
+
+method. We show that
+
+(a) our Delphi can
+
+generate up to 40
+
+frames consecutive
+
+videos while
+
+(b) existing best only
+
+generate 8 frames. (c)
+
+With the failure-cased driven
+
+framework equipped
+
+with Delphi,
+
+(d) we can significantly
+
+boost the end-to-end model
+
+performance with much smaller
+
+cost.
+
 Abstract
-Using generative models to synthesize new data has become a de-facto standard in
-autonomous driving to address the data scarcity issue. Though existing approaches
-are able to boost perception models, we discover that these approaches fail to
-improve the performance of planning of end-to-end autonomous driving models as
-the generated videos are usually less than 8 frames and the spatial and temporal
-inconsistencies are not negligible. To this end, we propose Delphi, a novel diffusionbased long video generation method with a shared noise modeling mechanism
-across the multi-views to increase spatial consistency, and a feature-aligned module
-to achieves both precise controllability and temporal consistency. Our method
-can generate up to 40 frames of video without loss of consistency which is about
-5 times longer compared with state-of-the-art methods. Instead of randomly
-generating new data, we further design a sampling policy to let Delphi generate
-new data that are similar to those failure cases to improve the sample efficiency.
-This is achieved by building a failure-case driven framework with the help of
-pre-trained visual language models. Our extensive experiment demonstrates that
-our Delphi generates a higher quality of long videos surpassing previous state-ofthe-art methods. Consequentially, with only generating 4% of the training dataset
-∗Co-first authors
-†Corresponding Author
-Preprint. Under review.
-arXiv:2406.01349v3 [cs.CV] 6 Jun 2024
-size, our framework is able to go beyond perception and prediction tasks, for the
-first time to the best of our knowledge, boost the planning performance of the
-end-to-end autonomous driving model by a margin of 25%. Please see visual
-demos at https://westlake-autolab.github.io/delphi.github.io/.
-1 Introduction
-End-to-end autonomous driving has recently garnered increasing attention [13, 16, 43], which directly
-learns to plan motions from raw sensor data, reducing heavy reliance on hand-crafted rules and
-avoiding cascading modules. However, current end-to-end models face significant challenges in
-the scale and quality of training data. Insufficient data diversity can lead to model overfitting [44],
-such as the collected real-word trajectories mainly involve straight lines for the "go straight" action,
-when applied to more complex scenarios like "turn left on cross intersection", the model is prone to
-fail. While large-scale and high-quality annotated data is crucial for the safe and robust end-to-end
-autonomous driving system, unfortunately, collecting such data poses challenges, particularly in
-situations involving dangerous scenes where data collection can be difficult or unsafe.
-Although recent generative models [5, 40, 42] have gained remarkable progress in mitigating the
-problem of data scarcity for perception models, which is achieved by employing ControlNet [46] to
-control the geometric position of scene elements with injected BEV layouts and extend across the
-view dimension to generate multi-view images. When applied to end-to-end autonomous driving
-which requires long multi-view videos, two main challenges arise: spatial-temporal consistency
-and precise controllability. Existing generative methods [5, 40, 38, 39] simply utilize cross-frame
-attention with the previously generated frame to ensure consistency, which overlooks the differences
-in noise patterns between image generation and video generation, as well as the alignment of features
-in the cross-frame attention. As a result, temporal consistency can only be maintained in short video
-sequences, such as Panacea [40] with 8 frames and MagicDrive [5] with 7 frames. Furthermore,
-current methods only offer coarse-grained control over the generated videos, limited to modifying
-simple global attributes, such as changing weather with simple text prompts. They cannot finely
-control the overall architectural style of the scene or the specific appearance attributes of individual
-objects.
-To this end, we propose a novel multi-view long video generation method, dubbed Delphi, to address
-these limitations. First, we notice that existing approaches fall short in two aspects: i) adding
-independent noise to different views and does not consider the cross-view consistency; ii) exploiting
-a simple cross attention to fuse multiple feature spaces with different reception fields. We then
-propose two components, a noise reinitialization module to model the shared noise across frames and
-a feature-aligned temporal consistent module to address the second challenge.
-Leveraging Delphi as the data engine, we further propose a failure-case driven framework, which
-automatically enhances the generalization of end-to-end models. Specifically, this framework integrates several steps as shown in Figure 1: 1) evaluating the end-to-end model, collecting failure cases,
-2) analyzing the implicit data patterns using pre-trained VLMs, 3) retrieving similar patterned data
-from existing training data, 4) generating diverse training data with Delphi, and then updating the
-end-to-end model. To investigate the effectiveness of our method, we conducted extensive experiments on the large-scale public dataset nuScenes [2]. Firstly, comprehensive evaluations with various
-metrics demonstrate that our Delphi generate high-quality long multi-view videos with spatiotemporal
-consistency and precise controllability. Furthermore, the proposed failure-case driven framework
-achieves remarkable improvement in the generalization capability of end-to-end models at a low cost.
-Our contributions can be summarized as follows:
-• We introduce Delphi, a novel method that can generate up to 12 seconds (40 frames) temporally
-consistent multi-view videos in autonomous driving (AD) scenarios, which is 5x longer compared
-to the state-of-the-art video generation methods. In addition, Delphi encompasses the control
-ability including both object and scene level details to enrich the diversity of generated data.
-• We propose a failure-case driven framework to drastically increase sampling efficiency. We show
-that using a long-term video generation method that trained purely on the training dataset, we are
-able to improve the UniAD’s performance by 25% (collision rate reduces from 0.34 to 0.27) from
-with generating only 4% (972 cases) of the training dataset size.
-2
-• Compared to earlier works that only manage to improve the perception ability using synthetic
-data, we are the first, to the best of our knowledge, to showcase that a data engine can go beyond
-the perception task and automatically improve the planning ability of end-to-end AD methods.
-We hope this can shed light on alleviating the long-tail issue of the large-scale development of
-AD vehicles.
-2 Related work
-End-to-end Autonomous Driving. End-to-end models have garnered significant attention in the
-field of autonomous driving. These models simplify the traditional modular pipeline by integrating
-perception, prediction, decision, and planning into a single learning framework. TransFuser[25]
-fuses visual and lidar inputs with a transformer-based architecture to improve perception and driving
-decisions. ST-P3[12] leverages spatial-temporal feature learning to improve perception, prediction,
-and planning tasks. UniAD[13] effectively combines multiple perception and prediction tasks to
-improve planning performance. VAD [16] explores the potential of vectorized scene representation
-for planning and getting rid of dense maps. VADv2[3] utilizes probabilistic planning to manage
-uncertainties and transforms multi-view image sequences into environmental token embeddings to
-predict and sample vehicle control actions. In this paper, we have opted to utilize the well-known
-UniAD as our downstream model due to the computational resource constraints.
-Generative model to boost autonomous driving performance. Video generation stands as a
-pivotal technology in understanding the visual world. Early methods mainly include Variational
-Autoencoders (VAEs) [4, 14], flow-based models [18], and Generative Adversarial Networks (GANs)
-[23, 30, 34, 36]. Notably, the recent achievements of diffusion models in image generation [24, 28, 29]
-have stimulated interest in their application to video generation [6, 10]. Diffusion-based methods
-have significantly improved realism, controllability, and temporal consistency. With their controllable
-attributes, text-based conditional video generation has garnered increasing attention, leading to the
-emergence of numerous methods [28, 9, 31, 41, 48]. Especially popular models like diffusionbased models [28, 32, 8, 46], which enable users to generate images with controllability. Inspired
-by this innovation, some models [5, 42] employ ControlNet to control the geometric position of
-scene elements by injecting BEV layouts and extend this approach across the view dimension to
-generate multi-view images. The other models [40, 38, 47] further extend this to the temporal
-dimension to generate multi-view videos, which are all trained based on the pre-trained image
-models [28]. BEVGen [33] specializes in generating multi-view street images based on Bird’s Eye
-View (BEV) layouts. BEVControl [42] proposes a two-stage generation pipeline for creating image
-foregrounds and backgrounds from BEV layouts. DriveDreamer [38] and Panacea [40] introduce a
-layout-conditioned video generation system aimed at diversifying data sources for training perception
-models. GAIA-1 [11] and ADriver-I [15] integrate large language models into video generation; a
-concurrent work DriveDreamer-2 [47] proposes a traffic simulation pipeline employing only text
-prompts as input, which can be utilized to generate diverse traffic conditions for driving video
-generation, however, it requires one frame input and does not work in the setting of boosting planning
-task. All in all, these methods can only generate fairly short videos up to 8 frames, while our Delphi
-can generate much longer ones.
-3 Method
-In this section, we first present Delphi, an innovative method for generating long multi-view videos
-of autonomous driving. There are two core modules designed for generating temporally consistent
-videos: Noise Reinitialization Module (NRM) in Sec 3.1.1 and Feature-aligned Temporal Consistency
-Module (FTCM) in Sec 3.1.2. Finally, Sec. 3.2 presents a failure-case driven framework to show how
-we can leverage the long-term video generation ability to automatically enhance the generalization of
-an end-to-end model with only data from the training dataset.
-3.1 Delphi: A Controllable Long Video Generation Method
-Here, we present the architecture of Delphi in Figure 2(a). Existing models tend to overlook the noise
-formulation across time and spatial dimensions, leading to inferior long-video generation quality. In
-3
-Figure 2: (a) Architecture of Delphi. It takes multi-view videos z and the corresponding BEV (Bird’s Eye
-View) layout sequences as input. Each video consists of N frames and V views. The BEV layout sequences
-are first projected into camera space according to camera parameters, resulting in camera layouts that include
-both foreground and background layouts. Specifically, the foreground layout includes the bounding box’s corner
-coordinates, heading, instance id, and dense caption, while the background one includes different colored lines
-to represent road trends. The layout embeddings, processed by the encoder, are injected into the U-Net through
-cross-attention to achieve fine-grained layout control in the generation process. Additionally, we leverage
-VLM [1] to extract dense captions for the input scenes, which are encoded by Long-CLIP [45] to obtain text
-embeddings, which are then injected into the U-Net via text cross-attention to achieve text-based control. We
-further design two key modules, (b) Noise Reinitialization Module that encompass a share noise across different
-views and (c) Feature-aligned Temporal Consistency Module to ensure spatial and temporal consistency
-accordingly.
-contrast, we propose two key components to address these challenges: a noise reinitialization module
-and a feature-aligned temporal consistency module.
-3.1.1 Noise Reinitialization Module
-Multi-view videos naturally exhibit similarities across both time and view dimensions. However,
-existing approaches are categorized into two groups, i) concurrent single-view video generation
-methods [22, 27, 26] cannot be directly applied in outdoor multi-view scenarios; ii) multi-view
-generative models are adding independent noise that does not consider cross view consistencies [5,
-42, 40]. Here, we plan to address this issue by introducing a shared noise across these two dimensions.
-Specifically, as shown in Figure 2(b), we introduce shared motion noise m along the temporal
-dimension and shared panoramic noise p along the viewpoint dimension. This results in a noisy
-version of the multi-view video that is correlated across both time and view dimensions. The process
-of incorporating shared noise can be represented as follows:
-z
-v
-n =
-√
-αxˆ
-v
-n +
-√
-1 − αˆ(r
-v
-n + mv + pn), (1)
-where z
-v
-n ∈ R
-1×1×h×w represents the image latent variable of view v at frame n, m ∈ R
-V ×1×h×w
-are the shared motion noise of V views, and p ∈ R
-1×N×h×w are the shared panoramic noise of N
-frames. For simplicity, we omit the subscript t.
-3.1.2 Feature-aligned Temporal Consistency
-Existing methods [40, 5, 39], when generating the current frame, exploits a simple cross-attention
-mechanism to fuse previous frame information into the current view. However, they tend to overlook
-the fact that features located at different network depths possess varying receptive fields. Consequently,
-this coarse feature interaction method fails to capture all the information from the receptive fields
-from different levels of the previous frame, leading to sub-optimal video generation performance.
-4
-End-to-End
-Model
-Collision>0
-Failure
-Cases
-Perception Error
-Planning Error
-Rare Categories
-Large Objects
-Nearby
-Occlusion
-Scenarios
-Rare Interaction
-Behaviors
-Train Set VLM Similar Data
-An electric bike is observed crossing the road in the "FRONT" view.
-It is positioned approximately 10 meters ahead of the self-driving car,
-slightly to the left of the vehicle's direct line of sight. As the electric bike
-advances, its path intersects with the trajectory of the self-driving car
-Scene caption
-Delphi New Data
-Yes
-Evaluation
-Incremental
-Training
-Classify
-Classify
-Classify
-1. Collecting Failure Cases 2. Analyzing Data Pattern
-4. Updating Model 3. Retrieving Similar Scenes
-Existing Data
-Train Set
-Expand Caption
-Captioning
-......
-Scene caption 1
-Scene Object
-Edit
-Figure 3: Overview of Failure-case Driven Framework.
-To this end, we propose a more effective structure to fully establish feature interactions between
-aligned features at the same network depth in adjacent frames as shown in Figure 2 (c). We approach
-this by ensuring global consistency and optimizing local consistency, incorporating two main designs:
-Scene-aware Attention and Instance-aware Attention.
-Scene-aware Attention. To fully leverage the rich information from features at different network
-depths in the previous frame, we propose a scene-level cross-frame attention mechanism. Specifically,
-this module performs the attention calculation on features at the same network depth between adjacent
-frames. The computation process can be represented as follows:
-Attnscene(Q
-i
-n
-, Ki
-n−1
-, V i
-n−1
-) = softmax
-Qi
-nKi
-n−1
-T
-√
-dk
-!
-V
-i
-n−1
-, (2)
-where Qi
-n
-(query) is the latent feature map from the current frame n at a specific network depth i,
-Ki
-n−1
-(key) and V
-i
-n−1
-(value) are the latent feature maps from the previous frame n − 1 at the same
-network depth i, and dk is the dimensionality of the key. And i = 1, ..., I, where I indicates the total
-number of U-Net blocks. We omit the view channel for simplicity. By applying this scene-aware
-attention mechanism, the module effectively transfers the global style information from the previous
-frame to the current frame, ensuring temporal consistency across frames.
-Instance-aware Attention. To enhance the coherence of moving objects within the scene, we
-propose an Instance-aware Cross-frame Attention mechanism. Compared to scene-level attention,
-this module uses foreground bounding boxes as attention masks to compute feature interactions in
-local regions between adjacent frames. The computation process can be represented as follows:
-Attnins(Q
-i
-n
-, Ki
-n−1
-, V i
-n−1
-) = softmax 
-(Qi
-n
-· Mn)(Ki
-n−1
-· Mn−1)
-T
-√
-dk
-
-(V
-i
-n−1
-· Mn−1), (3)
-Qˆi
-n = Q
-i
-n + Zero[Attnins(Q
-i
-n
-, Ki
-n−1
-, V i
-n−1
-)]q, (4)
-where Mn and Mn−1 are the masks of foreground objects from the current frame and previous frame
-respectively, focusing on the region defined by the foreground bounding box, and Zero indicates the
-trainable convolution layers initialized with a value of 0.
-3.2 Failure-case Driven Framework
-In order to leverage the generated data, common approaches will randomly sample a subset of
-the training dataset and then apply video generation models to augment these data to enhance the
-performance of downstream tasks. We hypothesize that this random sample does not consider the
+
+Using generative
+
+models to synthesize new
+
+data has become a
+
+de-facto standard in
+
+autonomous
+
+driving to address the
+
+data scarcity issue. Though
+
+existing approaches
+
+are able
+
+to boost perception models,
+
+we discover that these
+
+approaches fail to
+
+improve
+
+the performance of planning
+
+of end-to-end autonomous driving
+
+models as
+
+the generated
+
+videos are usually less
+
+than 8 frames and
+
+the spatial and temporal
+
+inconsistencies are not negligible.
+
+To this end, we
+
+propose Delphi, a novel
+
+diffusion￾based long video generation
+
+method with a shared
+
+noise modeling mechanism
+
+across
+
+the multi-views to increase
+
+spatial consistency, and a
+
+feature-aligned module
+
+to achieves
+
+both precise controllability and
+
+temporal consistency. Our method
+
+can generate up to
+
+40 frames of video
+
+without loss of consistency
+
+which is about
+
 5
-Table 1: We compare Delphi with state-of-the-art methods on the nuScenes validation set. The results measure
-the spatial-temporal consistency and controllability of different methods. ↓/↑ means a smaller/larger value of the
-metric represents a better performance.
+
+times longer compared with
+
+state-of-the-art methods. Instead of
+
+randomly
+
+generating new data,
+
+we further design a
+
+sampling policy to let
+
+Delphi generate
+
+new data
+
+that are similar to
+
+those failure cases to
+
+improve the sample efficiency.
+
+This is achieved by
+
+building a failure-case driven
+
+framework with the help
+
+of
+
+pre-trained visual language
+
+models. Our extensive experiment
+
+demonstrates that
+
+our Delphi
+
+generates a higher quality
+
+of long videos surpassing
+
+previous state-of￾the-art methods. Consequentially,
+
+with only generating 4%
+
+of the training dataset
+
+∗Co-first authors
+
+†Corresponding Author
+
+Preprint. Under review.
+
+arXiv:2406.01349v3
+
+[cs.CV] 6 Jun 2024
+
+size, our framework is
+
+able to go beyond
+
+perception and prediction tasks,
+
+for the
+
+first time
+
+to the best of
+
+our knowledge, boost the
+
+planning performance of the
+
+end-to-end autonomous driving model
+
+by a margin of
+
+25%. Please see visual
+
+demos at https://westlake-autolab.github.io/delphi.github.io/.
+
+1
+
+Introduction
+
+End-to-end autonomous driving
+
+has recently garnered increasing
+
+attention [13, 16, 43],
+
+which directly
+
+learns to
+
+plan motions from raw
+
+sensor data, reducing heavy
+
+reliance on hand-crafted rules
+
+and
+
+avoiding cascading modules.
+
+However, current end-to-end models
+
+face significant challenges in
+
+the scale and quality
+
+of training data. Insufficient
+
+data diversity can lead
+
+to model overfitting [44],
+
+such as the collected
+
+real-word trajectories mainly involve
+
+straight lines for the
+
+"go straight" action,
+
+when
+
+applied to more complex
+
+scenarios like "turn left
+
+on cross intersection", the
+
+model is prone to
+
+fail. While large-scale and
+
+high-quality annotated data is
+
+crucial for the safe
+
+and robust end-to-end
+
+autonomous
+
+driving system, unfortunately, collecting
+
+such data poses challenges,
+
+particularly in
+
+situations involving
+
+dangerous scenes where data
+
+collection can be difficult
+
+or unsafe.
+
+Although recent
+
+generative models [5, 40,
+
+42] have gained remarkable
+
+progress in mitigating the
+
+problem of data scarcity
+
+for perception models, which
+
+is achieved by employing
+
+ControlNet [46] to
+
+control
+
+the geometric position of
+
+scene elements with injected
+
+BEV layouts and extend
+
+across the
+
+view dimension
+
+to generate multi-view images.
+
+When applied to end-to-end
+
+autonomous driving
+
+which requires
+
+long multi-view videos, two
+
+main challenges arise: spatial-temporal
+
+consistency
+
+and precise controllability.
+
+Existing generative methods [5,
+
+40, 38, 39] simply
+
+utilize cross-frame
+
+attention with
+
+the previously generated frame
+
+to ensure consistency, which
+
+overlooks the differences
+
+in
+
+noise patterns between image
+
+generation and video generation,
+
+as well as the
+
+alignment of features
+
+in
+
+the cross-frame attention. As
+
+a result, temporal consistency
+
+can only be maintained
+
+in short video
+
+sequences,
+
+such as Panacea [40]
+
+with 8 frames and
+
+MagicDrive [5] with 7
+
+frames. Furthermore,
+
+current methods
+
+only offer coarse-grained control
+
+over the generated videos,
+
+limited to modifying
+
+simple
+
+global attributes, such as
+
+changing weather with simple
+
+text prompts. They cannot
+
+finely
+
+control the overall
+
+architectural style of the
+
+scene or the specific
+
+appearance attributes of individual
+
+objects.
+
+To this end,
+
+we propose a novel
+
+multi-view long video generation
+
+method, dubbed Delphi, to
+
+address
+
+these limitations. First,
+
+we notice that existing
+
+approaches fall short in
+
+two aspects: i) adding
+
+independent noise to different
+
+views and does not
+
+consider the cross-view consistency;
+
+ii) exploiting
+
+a simple
+
+cross attention to fuse
+
+multiple feature spaces with
+
+different reception fields. We
+
+then
+
+propose two components,
+
+a noise reinitialization module
+
+to model the shared
+
+noise across frames and
+
+a feature-aligned temporal consistent
+
+module to address the
+
+second challenge.
+
+Leveraging Delphi
+
+as the data engine,
+
+we further propose a
+
+failure-case driven framework, which
+
+automatically enhances the generalization
+
+of end-to-end models. Specifically,
+
+this framework inte￾grates several
+
+steps as shown in
+
+Figure 1: 1) evaluating
+
+the end-to-end model, collecting
+
+failure cases,
+
+2) analyzing
+
+the implicit data patterns
+
+using pre-trained VLMs, 3)
+
+retrieving similar patterned data
+
+from existing training data,
+
+4) generating diverse training
+
+data with Delphi, and
+
+then updating the
+
+end-to-end
+
+model. To investigate the
+
+effectiveness of our method,
+
+we conducted extensive experi￾ments
+
+on the large-scale public
+
+dataset nuScenes [2]. Firstly,
+
+comprehensive evaluations with various
+
+metrics demonstrate that our
+
+Delphi generate high-quality long
+
+multi-view videos with spatiotemporal
+
+consistency and precise controllability.
+
+Furthermore, the proposed failure-case
+
+driven framework
+
+achieves remarkable
+
+improvement in the generalization
+
+capability of end-to-end models
+
+at a low cost.
+
+Our contributions can be
+
+summarized as follows:
+
+•
+
+We introduce Delphi, a
+
+novel method that can
+
+generate up to 12
+
+seconds (40 frames) temporally
+
+consistent multi-view videos in
+
+autonomous driving (AD) scenarios,
+
+which is 5x longer
+
+compared
+
+to the state-of-the-art
+
+video generation methods. In
+
+addition, Delphi encompasses the
+
+control
+
+ability including both
+
+object and scene level
+
+details to enrich the
+
+diversity of generated data.
+
+• We propose a
+
+failure-case driven framework to
+
+drastically increase sampling efficiency.
+
+We show
+
+that using
+
+a long-term video generation
+
+method that trained purely
+
+on the training dataset,
+
+we are
+
+able to
+
+improve the UniAD’s performance
+
+by 25% (collision rate
+
+reduces from 0.34 to
+
+0.27) from
+
+with generating
+
+only 4% (972 cases)
+
+of the training dataset
+
+size.
+
+2
+
+• Compared
+
+to earlier works that
+
+only manage to improve
+
+the perception ability using
+
+synthetic
+
+data, we are
+
+the first, to the
+
+best of our knowledge,
+
+to showcase that a
+
+data engine can go
+
+beyond
+
+the perception task
+
+and automatically improve the
+
+planning ability of end-to-end
+
+AD methods.
+
+We hope
+
+this can shed light
+
+on alleviating the long-tail
+
+issue of the large-scale
+
+development of
+
+AD vehicles.
+
+2 Related work
+
+End-to-end
+
+Autonomous Driving. End-to-end models
+
+have garnered significant attention
+
+in the
+
+field of
+
+autonomous driving. These models
+
+simplify the traditional modular
+
+pipeline by integrating
+
+perception,
+
+prediction, decision, and planning
+
+into a single learning
+
+framework. TransFuser[25]
+
+fuses visual
+
+and lidar inputs with
+
+a transformer-based architecture to
+
+improve perception and driving
+
+decisions. ST-P3[12] leverages spatial-temporal
+
+feature learning to improve
+
+perception, prediction,
+
+and planning
+
+tasks. UniAD[13] effectively combines
+
+multiple perception and prediction
+
+tasks to
+
+improve planning
+
+performance. VAD [16] explores
+
+the potential of vectorized
+
+scene representation
+
+for planning
+
+and getting rid of
+
+dense maps. VADv2[3] utilizes
+
+probabilistic planning to manage
+
+uncertainties and transforms multi-view
+
+image sequences into environmental
+
+token embeddings to
+
+predict
+
+and sample vehicle control
+
+actions. In this paper,
+
+we have opted to
+
+utilize the well-known
+
+UniAD
+
+as our downstream model
+
+due to the computational
+
+resource constraints.
+
+Generative model
+
+to boost autonomous driving
+
+performance. Video generation stands
+
+as a
+
+pivotal technology
+
+in understanding the visual
+
+world. Early methods mainly
+
+include Variational
+
+Autoencoders (VAEs)
+
+[4, 14], flow-based models
+
+[18], and Generative Adversarial
+
+Networks (GANs)
+
+[23, 30,
+
+34, 36]. Notably, the
+
+recent achievements of diffusion
+
+models in image generation
+
+[24, 28, 29]
+
+have
+
+stimulated interest in their
+
+application to video generation
+
+[6, 10]. Diffusion-based methods
+
+have significantly improved realism,
+
+controllability, and temporal consistency.
+
+With their controllable
+
+attributes,
+
+text-based conditional video generation
+
+has garnered increasing attention,
+
+leading to the
+
+emergence
+
+of numerous methods [28,
+
+9, 31, 41, 48].
+
+Especially popular models like
+
+diffusion￾based models [28, 32,
+
+8, 46], which enable
+
+users to generate images
+
+with controllability. Inspired
+
+by
+
+this innovation, some models
+
+[5, 42] employ ControlNet
+
+to control the geometric
+
+position of
+
+scene elements
+
+by injecting BEV layouts
+
+and extend this approach
+
+across the view dimension
+
+to
+
+generate multi-view images.
+
+The other models [40,
+
+38, 47] further extend
+
+this to the temporal
+
+dimension to generate multi-view
+
+videos, which are all
+
+trained based on the
+
+pre-trained image
+
+models [28].
+
+BEVGen [33] specializes in
+
+generating multi-view street images
+
+based on Bird’s Eye
+
+View (BEV) layouts. BEVControl
+
+[42] proposes a two-stage
+
+generation pipeline for creating
+
+image
+
+foregrounds and backgrounds
+
+from BEV layouts. DriveDreamer
+
+[38] and Panacea [40]
+
+introduce a
+
+layout-conditioned video
+
+generation system aimed at
+
+diversifying data sources for
+
+training perception
+
+models. GAIA-1
+
+[11] and ADriver-I [15]
+
+integrate large language models
+
+into video generation; a
+
+concurrent work DriveDreamer-2 [47]
+
+proposes a traffic simulation
+
+pipeline employing only text
+
+prompts as input, which
+
+can be utilized to
+
+generate diverse traffic conditions
+
+for driving video
+
+generation,
+
+however, it requires one
+
+frame input and does
+
+not work in the
+
+setting of boosting planning
+
+task. All in all,
+
+these methods can only
+
+generate fairly short videos
+
+up to 8 frames,
+
+while our Delphi
+
+can
+
+generate much longer ones.
+
+3 Method
+
+In this
+
+section, we first present
+
+Delphi, an innovative method
+
+for generating long multi-view
+
+videos
+
+of autonomous driving.
+
+There are two core
+
+modules designed for generating
+
+temporally consistent
+
+videos: Noise
+
+Reinitialization Module (NRM) in
+
+Sec 3.1.1 and Feature-aligned
+
+Temporal Consistency
+
+Module (FTCM)
+
+in Sec 3.1.2. Finally,
+
+Sec. 3.2 presents a
+
+failure-case driven framework to
+
+show how
+
+we can
+
+leverage the long-term video
+
+generation ability to automatically
+
+enhance the generalization of
+
+an end-to-end model with
+
+only data from the
+
+training dataset.
+
+3.1 Delphi:
+
+A Controllable Long Video
+
+Generation Method
+
+Here, we
+
+present the architecture of
+
+Delphi in Figure 2(a).
+
+Existing models tend to
+
+overlook the noise
+
+formulation
+
+across time and spatial
+
+dimensions, leading to inferior
+
+long-video generation quality. In
+
+3
+
+Figure 2: (a)
+
+Architecture of Delphi. It
+
+takes multi-view videos z
+
+and the corresponding BEV
+
+(Bird’s Eye
+
+View) layout
+
+sequences as input. Each
+
+video consists of N
+
+frames and V views.
+
+The BEV layout sequences
+
+are first projected into
+
+camera space according to
+
+camera parameters, resulting in
+
+camera layouts that include
+
+both foreground and background
+
+layouts. Specifically, the foreground
+
+layout includes the bounding
+
+box’s corner
+
+coordinates, heading,
+
+instance id, and dense
+
+caption, while the background
+
+one includes different colored
+
+lines
+
+to represent road
+
+trends. The layout embeddings,
+
+processed by the encoder,
+
+are injected into the
+
+U-Net through
+
+cross-attention to
+
+achieve fine-grained layout control
+
+in the generation process.
+
+Additionally, we leverage
+
+VLM
+
+[1] to extract dense
+
+captions for the input
+
+scenes, which are encoded
+
+by Long-CLIP [45] to
+
+obtain text
+
+embeddings, which
+
+are then injected into
+
+the U-Net via text
+
+cross-attention to achieve text-based
+
+control. We
+
+further design
+
+two key modules, (b)
+
+Noise Reinitialization Module that
+
+encompass a share noise
+
+across different
+
+views and
+
+(c) Feature-aligned Temporal Consistency
+
+Module to ensure spatial
+
+and temporal consistency
+
+accordingly.
+
+contrast, we propose two
+
+key components to address
+
+these challenges: a noise
+
+reinitialization module
+
+and a
+
+feature-aligned temporal consistency module.
+
+3.1.1 Noise Reinitialization Module
+
+Multi-view videos naturally exhibit
+
+similarities across both time
+
+and view dimensions. However,
+
+existing approaches are categorized
+
+into two groups, i)
+
+concurrent single-view video generation
+
+methods [22, 27, 26]
+
+cannot be directly applied
+
+in outdoor multi-view scenarios;
+
+ii) multi-view
+
+generative models
+
+are adding independent noise
+
+that does not consider
+
+cross view consistencies [5,
+
+42, 40]. Here, we
+
+plan to address this
+
+issue by introducing a
+
+shared noise across these
+
+two dimensions.
+
+Specifically, as
+
+shown in Figure 2(b),
+
+we introduce shared motion
+
+noise m along the
+
+temporal
+
+dimension and shared
+
+panoramic noise p along
+
+the viewpoint dimension. This
+
+results in a noisy
+
+version of the multi-view
+
+video that is correlated
+
+across both time and
+
+view dimensions. The process
+
+of incorporating shared noise
+
+can be represented as
+
+follows:
+
+z
+
+v
+
+n
+
+=
+
+√
+
+αxˆ
+
+v
+
+n +
+
+√
+
+1
+
+− αˆ(rn
+
+v +
+
+mv + pn), (1)
+
+where z
+
+v
+
+n
+
+∈ R
+
+1×1×h×w represents
+
+the image latent variable
+
+of view v at
+
+frame n, m ∈
+
+R
+
+V ×1×h×w
+
+are
+
+the shared motion noise
+
+of V views, and
+
+p ∈ R
+
+1×N×h×w
+
+are the shared panoramic
+
+noise of N
+
+frames.
+
+For simplicity, we omit
+
+the subscript t.
+
+3.1.2
+
+Feature-aligned Temporal Consistency
+
+Existing
+
+methods [40, 5, 39],
+
+when generating the current
+
+frame, exploits a simple
+
+cross-attention
+
+mechanism to fuse
+
+previous frame information into
+
+the current view. However,
+
+they tend to overlook
+
+the fact that features
+
+located at different network
+
+depths possess varying receptive
+
+fields. Consequently,
+
+this coarse
+
+feature interaction method fails
+
+to capture all the
+
+information from the receptive
+
+fields
+
+from different levels
+
+of the previous frame,
+
+leading to sub-optimal video
+
+generation performance.
+
+4
+
+End-to-End
+
+Model
+
+Collision>0
+
+Failure
+
+Cases
+
+Perception Error
+
+Planning Error
+
+Rare Categories
+
+Large Objects
+
+Nearby
+
+Occlusion
+
+Scenarios
+
+Rare
+
+Interaction
+
+Behaviors
+
+Train Set
+
+VLM Similar Data
+
+An
+
+electric bike is observed
+
+crossing the road in
+
+the "FRONT" view.
+
+It
+
+is positioned approximately 10
+
+meters ahead of the
+
+self-driving car,
+
+slightly to
+
+the left of the
+
+vehicle's direct line of
+
+sight. As the electric
+
+bike
+
+advances, its path
+
+intersects with the trajectory
+
+of the self-driving car
+
+Scene caption
+
+Delphi New
+
+Data
+
+Yes
+
+Evaluation
+
+Classify
+
+Classify
+
+Classify
+
+2. Analyzing
+
+Data Pattern 1. Collecting
+
+Failure Cases
+
+4. Updating
+
+Model 3. Retrieving Similar
+
+Scenes
+
+Existing Data
+
+Train
+
+Set
+
+Expand Caption
+
+Captioning
+
+......
+
+Scene caption 1
+
+Scene Object
+
+Edit
+
+Figure
+
+3: Overview of Failure-case
+
+Driven Framework.
+
+To this
+
+end, we propose a
+
+more effective structure to
+
+fully establish feature interactions
+
+between
+
+aligned features at
+
+the same network depth
+
+in adjacent frames as
+
+shown in Figure 2
+
+(c). We approach
+
+this
+
+by ensuring global consistency
+
+and optimizing local consistency,
+
+incorporating two main designs:
+
+Scene-aware Attention and Instance-aware
+
+Attention.
+
+Scene-aware Attention. To
+
+fully leverage the rich
+
+information from features at
+
+different network
+
+depths in
+
+the previous frame, we
+
+propose a scene-level cross-frame
+
+attention mechanism. Specifically,
+
+this
+
+module performs the attention
+
+calculation on features at
+
+the same network depth
+
+between adjacent
+
+frames. The
+
+computation process can be
+
+represented as follows:
+
+Attnscene(Q
+
+i
+
+n
+
+, Kn
+
+i
+
+−1
+
+, Vn
+
+i
+
+−1
+
+) =
+
+softmax 
+
+Qi
+
+nKi
+
+n−1
+
+T
+
+√
+
+dk
+
+!
+
+Vn
+
+i
+
+−1
+
+, (2)
+
+where Qi
+
+n
+
+(query) is the
+
+latent feature map from
+
+the current frame n
+
+at a specific network
+
+depth i,
+
+Kn
+
+i
+
+−1
+
+(key) and Vn
+
+i
+
+−1
+
+(value) are
+
+the latent feature maps
+
+from the previous frame
+
+n − 1 at
+
+the same
+
+network depth
+
+i, and dk is
+
+the dimensionality of the
+
+key. And i =
+
+1, ..., I, where
+
+I indicates the total
+
+number of U-Net blocks.
+
+We omit the view
+
+channel for simplicity. By
+
+applying this scene-aware
+
+attention
+
+mechanism, the module effectively
+
+transfers the global style
+
+information from the previous
+
+frame to the current
+
+frame, ensuring temporal consistency
+
+across frames.
+
+Instance-aware Attention.
+
+To enhance the coherence
+
+of moving objects within
+
+the scene, we
+
+propose
+
+an Instance-aware Cross-frame Attention
+
+mechanism. Compared to scene-level
+
+attention,
+
+this module uses
+
+foreground bounding boxes as
+
+attention masks to compute
+
+feature interactions in
+
+local
+
+regions between adjacent frames.
+
+The computation process can
+
+be represented as follows:
+
+Attnins(Q
+
+i
+
+n
+
+,
+
+Kn
+
+i
+
+−1
+
+,
+
+Vn
+
+i
+
+−1
+
+)
+
+= softmax 
+
+(Qi
+
+n
+
+· Mn)(Ki
+
+n−1
+
+· Mn−1)
+
+T
+
+√
+
+dk
+
+
+
+(Vn
+
+i
+
+−1
+
+· Mn−1), (3)
+
+Qˆi
+
+n = Q
+
+i
+
+n + Zero[Attnins(Q
+
+i
+
+n
+
+, Kn
+
+i
+
+−1
+
+, Vn
+
+i
+
+−1
+
+)]q, (4)
+
+where Mn and Mn−1
+
+are the masks of
+
+foreground objects from the
+
+current frame and previous
+
+frame
+
+respectively, focusing on
+
+the region defined by
+
+the foreground bounding box,
+
+and Zero indicates the
+
+trainable convolution layers initialized
+
+with a value of
+
+0.
+
+3.2 Failure-case Driven
+
+Framework
+
+In order to
+
+leverage the generated data,
+
+common approaches will randomly
+
+sample a subset of
+
+the training dataset and
+
+then apply video generation
+
+models to augment these
+
+data to enhance the
+
+performance of downstream tasks.
+
+We hypothesize that this
+
+random sample does not
+
+consider the
+
+5
+
+Incremental
+
+Training
+
+Table 1: We
+
+compare Delphi with state-of-the-art
+
+methods on the nuScenes
+
+validation set. The results
+
+measure
+
+the spatial-temporal consistency
+
+and controllability of different
+
+methods. ↓/↑ means a
+
+smaller/larger value of the
+
+metric represents a better
+
+performance.
+
 Method
-Spatial Consistency Temporal Consistency Sim-Real Gap
+
+Spatial Consistency
+
+Temporal Consistency Sim-Real Gap
+
 FID↓ CLIP↑
+
 FVD↓
-NDS↑ Avg. Col. Rate↓
-4 frames 8 frames 40 frames
-BEVGen [33] 25.54 71.23 N/A N/A Fail N/A N/A
-BEVControl [42] 24.85 82.70 N/A N/A Fail N/A N/A
-DriveDreamer [38] 26.8 N/A N/A 353.2 Fail N/A N/A
-MagicDrive [5] 16.20 N/A N/A N/A Fail N/A N/A
-MagicDrive* [5] 46.18 82.47 617.2 N/A Fail 34.56 3.87
-Panacea [40] 16.96 N/A N/A 139.0 Fail 32.10 N/A
-Panacea* [40] 55.32 84.23 – 446.9 Fail 29.41 1.35
-Drive-WM [39] 15.8 N/A N/A 122.7 Fail N/A N/A
-Delphi (Ours) 15.08 86.73 – 113.5 275.6 36.58 0.29
-∗ Results are computed using the official github release code or rendered videos on validation set.
-N/A indicates the model or the pre-trained weights is not open-sourced so we cannot faithfully reproduce.
-existing distribution of long-tail cases and is substantial for further optimization. We hence propose a
-simple but effective failure-case driven framework that exploits four steps to reduce the computational
-costs. As shown in Figure 3, we first evaluate the existing failure cases as a starting point, we then
-implement a visual language-based method to analyze the patterns of these data and retrieve similar
-scenes to gain a deeper understanding of the context, we then diversify the captions for scene and
-instance editing, to generate new data with different appearances. Finally, we train the downstream
-tasks with such additional data for a few epochs to increase the generalization ability.
-Note that, all of these operations are conducted on training set to avoid any potential leak of the
-validation information. Please see supplementary materials for detailed implementation of each
-component. In addition, we notice a concurrent work [20] that exploits a similar idea. However, their
-approach only works for 2D detection tasks while our method is capable of improving end-to-end
+
+NDS↑
+
+Avg. Col. Rate↓
+
+4
+
+frames 8 frames 40
+
+frames
+
+BEVGen [33] 25.54
+
+71.23 N/A N/A Fail
+
+N/A N/A
+
+BEVControl [42]
+
+24.85 82.70 N/A N/A
+
+Fail N/A N/A
+
+DriveDreamer
+
+[38] 26.8 N/A N/A
+
+353.2 Fail N/A N/A
+
+MagicDrive [5] 16.20 N/A
+
+N/A N/A Fail N/A
+
+N/A
+
+MagicDrive* [5] 46.18
+
+82.47 617.2 N/A Fail
+
+34.56 3.87
+
+Panacea [40]
+
+16.96 N/A N/A 139.0
+
+Fail 32.10 N/A
+
+Panacea*
+
+[40] 55.32 84.23 –
+
+446.9 Fail 29.41 1.35
+
+Drive-WM [39] 15.8 N/A
+
+N/A 122.7 Fail N/A
+
+N/A
+
+Delphi (Ours) 15.08
+
+86.73 – 113.5 275.6
+
+36.58 0.29
+
+∗ Results
+
+are computed using the
+
+official github release code
+
+or rendered videos on
+
+validation set.
+
+N/A indicates
+
+the model or the
+
+pre-trained weights is not
+
+open-sourced so we cannot
+
+faithfully reproduce.
+
+existing distribution
+
+of long-tail cases and
+
+is substantial for further
+
+optimization. We hence propose
+
+a
+
+simple but effective
+
+failure-case driven framework that
+
+exploits four steps to
+
+reduce the computational
+
+costs.
+
+As shown in Figure
+
+3, we first evaluate
+
+the existing failure cases
+
+as a starting point,
+
+we then
+
+implement a
+
+visual language-based method to
+
+analyze the patterns of
+
+these data and retrieve
+
+similar
+
+scenes to gain
+
+a deeper understanding of
+
+the context, we then
+
+diversify the captions for
+
+scene and
+
+instance editing,
+
+to generate new data
+
+with different appearances. Finally,
+
+we train the downstream
+
+tasks with such additional
+
+data for a few
+
+epochs to increase the
+
+generalization ability.
+
+Note that,
+
+all of these operations
+
+are conducted on training
+
+set to avoid any
+
+potential leak of the
+
+validation information. Please see
+
+supplementary materials for detailed
+
+implementation of each
+
+component.
+
+In addition, we notice
+
+a concurrent work [20]
+
+that exploits a similar
+
+idea. However, their
+
+approach
+
+only works for 2D
+
+detection tasks while our
+
+method is capable of
+
+improving end-to-end
+
 planning ability.
+
 4 Experiments
-We follow popular methods [40, 42], to use nuScenes [2] and use FID [7], FVD [35], and downstream
-model’s performances on newly generated data to evaluate the image, video, and sim-to-real gap. See
-the Appendix for more details.
-Dataset. We conduct extensive experiments on the popular nuScenes [2] validation dataset, which
-comprises 150 driving scenes marked by dense traffic and intricate street driving scenarios. Each
-scene contains roughly 40 frames. We utilize ten foreground categories (i.e., bus, car, bicycle, truck,
-trailer, motorcycle) to create detailed street foreground object layouts. Four background classes
-obtained from the map expansion pack are used to generate background layouts.
-Hyperparameters. We train our models on 8 A800 80GB GPUs. The diffusion U-Net is optimized
-using the AdamW [17] optimizer with a learning rate of 5e-5. We resize the original images from
-1600 × 900 to 512 × 512. During training, the video length is set to 10, and we generate video frames
-sequentially in a streaming manner. For inference, we use the PLMS [21] sampler configured with
-50 sampling steps. The spatial resolution of the video samples is set to 512 × 512, with a frame
-length of 40. The inference length is not restricted and could be 40 or longer. Our model is trained on
-the nuScenes dataset with 50,000 steps for the cross-view model and 20,000 steps for the temporal
+
+We follow
+
+popular methods [40, 42],
+
+to use nuScenes [2]
+
+and use FID [7],
+
+FVD [35], and downstream
+
+model’s performances on newly
+
+generated data to evaluate
+
+the image, video, and
+
+sim-to-real gap. See
+
+the
+
+Appendix for more details.
+
+Dataset. We conduct extensive
+
+experiments on the popular
+
+nuScenes [2] validation dataset,
+
+which
+
+comprises 150 driving
+
+scenes marked by dense
+
+traffic and intricate street
+
+driving scenarios. Each
+
+scene
+
+contains roughly 40 frames.
+
+We utilize ten foreground
+
+categories (i.e., bus, car,
+
+bicycle, truck,
+
+trailer, motorcycle)
+
+to create detailed street
+
+foreground object layouts. Four
+
+background classes
+
+obtained from
+
+the map expansion pack
+
+are used to generate
+
+background layouts.
+
+Hyperparameters. We
+
+train our models on
+
+8 A800 80GB GPUs.
+
+The diffusion U-Net is
+
+optimized
+
+using the AdamW
+
+[17] optimizer with a
+
+learning rate of 5e-5.
+
+We resize the original
+
+images from
+
+1600 ×
+
+900 to 512 ×
+
+512. During training, the
+
+video length is set
+
+to 10, and we
+
+generate video frames
+
+sequentially
+
+in a streaming manner.
+
+For inference, we use
+
+the PLMS [21] sampler
+
+configured with
+
+50 sampling
+
+steps. The spatial resolution
+
+of the video samples
+
+is set to 512
+
+× 512, with a
+
+frame
+
+length of 40.
+
+The inference length is
+
+not restricted and could
+
+be 40 or longer.
+
+Our model is trained
+
+on
+
+the nuScenes dataset
+
+with 50,000 steps for
+
+the cross-view model and
+
+20,000 steps for the
+
+temporal
+
 model.
-4.1 Comparing Delphi to state-of-the-art video generation methods
-We assess the quality of video generation through a comprehensive evaluation encompassing both
-quantitative and qualitative aspects, comparing our approach with previous methodologies. In Table 1,
-we report the metrics in three aspects on nuScenes validation set, spatial and temporal consistency,
-and sim-real gap. In short, our method surpasses the state-of-the-art by a clear margin, on short video
-generation tasks, and can generate videos up to 40 frames. In contrast, the other methods collapse,
-which proves the effectiveness of our method in long-term video generation. We show qualitative
+
+4.1 Comparing
+
+Delphi to state-of-the-art video
+
+generation methods
+
+We assess
+
+the quality of video
+
+generation through a comprehensive
+
+evaluation encompassing both
+
+quantitative
+
+and qualitative aspects, comparing
+
+our approach with previous
+
+methodologies. In Table 1,
+
+we report the metrics
+
+in three aspects on
+
+nuScenes validation set, spatial
+
+and temporal consistency,
+
+and
+
+sim-real gap. In short,
+
+our method surpasses the
+
+state-of-the-art by a clear
+
+margin, on short video
+
+generation tasks, and can
+
+generate videos up to
+
+40 frames. In contrast,
+
+the other methods collapse,
+
+which proves the effectiveness
+
+of our method in
+
+long-term video generation. We
+
+show qualitative
+
 6
-Figure 4: Visual comparison of local region generated by different generative models.
-Figure 5: The multi-view long video with spatiotemporal consistency generated by Delphi.
-results in Figure 4 and compare the video quality with previous methods on the same clip. Our
-method maintains consistent spatial and temporal appearance where the previous methods fail.
-Visualization of multi-view long videos generated by Delphi. We demonstrate the generated
-multi-view long video in Figure 5. It can be seen that our method has the powerful ability to generate
-long videos with spatiotemporal consistency.
-Visualization comparison of multi-view video generated by different models. We demonstrate
-visualization comparisons of multi-view video generated by different models in Figure 6. It can be
-seen that our method has the powerful ability to generate long videos with spatiotemporal consistency.
-4.2 Our failure-case driven framework boosts the end-to-end planning model
-To prove the effectiveness of our framework, we compare three factors in Table 2, the number of
-generated cases, data engine (video generation method), and the choice of data source. In summary,
-we discover that, by generating only 4% of the training set size data, our method can reduce the
-collision rate from 0.33 to 0.27 by a margin of 25%. However, under the same setting, the collision
-rate increases if we use other data engines such as Panacea to fine-tune the UniAD. Nonetheless,
-we also exploit random sampling for both data engines and our method constantly outperforms the
-baseline. We also show how our frameworks can fix failure cases in Figure 7.
-What if we sample the layouts from the validation set? Since our Delphi only sees the training
-set of nuScenes, a natural question is, can we include the validation set to see if we can further boost
-the performances of downstream tasks? Here, we collect failure cases from both the training and
-validation sets. Note that, since only layouts and captions are used in our framework, the validation
-video clips are never exposed in any training processes. We notice that the collision rate is reduced
-from 0.33 to 0.26 with merely generating 429 cases, which is only 1.5% of the training set size. This
+
+Figure
+
+4: Visual comparison of
+
+local region generated by
+
+different generative models.
+
+Figure
+
+5: The multi-view long
+
+video with spatiotemporal consistency
+
+generated by Delphi.
+
+results
+
+in Figure 4 and
+
+compare the video quality
+
+with previous methods on
+
+the same clip. Our
+
+method maintains consistent spatial
+
+and temporal appearance where
+
+the previous methods fail.
+
+Visualization of multi-view long
+
+videos generated by Delphi.
+
+We demonstrate the generated
+
+multi-view long video in
+
+Figure 5. It can
+
+be seen that our
+
+method has the powerful
+
+ability to generate
+
+long
+
+videos with spatiotemporal consistency.
+
+Visualization comparison of multi-view
+
+video generated by different
+
+models. We demonstrate
+
+visualization
+
+comparisons of multi-view video
+
+generated by different models
+
+in Figure 6. It
+
+can be
+
+seen that
+
+our method has the
+
+powerful ability to generate
+
+long videos with spatiotemporal
+
+consistency.
+
+4.2 Our failure-case
+
+driven framework boosts the
+
+end-to-end planning model
+
+To
+
+prove the effectiveness of
+
+our framework, we compare
+
+three factors in Table
+
+2, the number of
+
+generated cases, data engine
+
+(video generation method), and
+
+the choice of data
+
+source. In summary,
+
+we
+
+discover that, by generating
+
+only 4% of the
+
+training set size data,
+
+our method can reduce
+
+the
+
+collision rate from
+
+0.33 to 0.27 by
+
+a margin of 25%.
+
+However, under the same
+
+setting, the collision
+
+rate
+
+increases if we use
+
+other data engines such
+
+as Panacea to fine-tune
+
+the UniAD. Nonetheless,
+
+we
+
+also exploit random sampling
+
+for both data engines
+
+and our method constantly
+
+outperforms the
+
+baseline. We
+
+also show how our
+
+frameworks can fix failure
+
+cases in Figure 7.
+
+What if we sample
+
+the layouts from the
+
+validation set? Since our
+
+Delphi only sees the
+
+training
+
+set of nuScenes,
+
+a natural question is,
+
+can we include the
+
+validation set to see
+
+if we can further
+
+boost
+
+the performances of
+
+downstream tasks? Here, we
+
+collect failure cases from
+
+both the training and
+
+validation sets. Note that,
+
+since only layouts and
+
+captions are used in
+
+our framework, the validation
+
+video clips are never
+
+exposed in any training
+
+processes. We notice that
+
+the collision rate is
+
+reduced
+
+from 0.33 to
+
+0.26 with merely generating
+
+429 cases, which is
+
+only 1.5% of the
+
+training set size. This
+
 7
-Figure 6: Visualization comparison of multi-view video generated by different models.
-Figure 7: Visualization of four examples before and after. (a) Here, we show four hard examples from the
-validation set, “large objects in the front” and “unprotected left turn at intersection”. (b) Our framework is able
-to fix these four examples without using these data during training.
-Table 2: Performance comparison of the end-to-end models fine-tuned from the UniAD open source model
-by applying different data sampling strategies, numbers of data cases, data engines, and data sources in the
-failure-case driven framework.The baseline performance is presented in the first row of the table.
-Sampling Strategy Num of Cases Data Engine Data Source Col. Rate(%)↓
+
+Figure 6: Visualization
+
+comparison of multi-view video
+
+generated by different models.
+
+Figure 7: Visualization of
+
+four examples before and
+
+after. (a) Here, we
+
+show four hard examples
+
+from the
+
+validation set,
+
+“large objects in the
+
+front” and “unprotected left
+
+turn at intersection”. (b)
+
+Our framework is able
+
+to fix these four
+
+examples without using these
+
+data during training.
+
+Table
+
+2: Performance comparison of
+
+the end-to-end models fine-tuned
+
+from the UniAD open
+
+source model
+
+by applying
+
+different data sampling strategies,
+
+numbers of data cases,
+
+data engines, and data
+
+sources in the
+
+failure-case
+
+driven framework.The baseline performance
+
+is presented in the
+
+first row of the
+
+table.
+
+Sampling Strategy Num
+
+of Cases Data Engine
+
+Data Source Col. Rate(%)↓
+
 1s 2s 3s Avg.
-Baseline(UniAD) – – – 0.10 0.18 0.71 0.33
+
+Baseline(UniAD) – – –
+
+0.10 0.18 0.71 0.33
+
 Random Sampling
-14065 (50%) Panacea
+
+14065 (50%)
+
+Panacea
+
 Training Set
-0.03 0.23 0.79 0.35
-Delphi 0.08 0.20 0.58 0.29
-28130 (100%) Panacea 0.08 0.22 0.98 0.43
-Delphi 0.07 0.29 0.65 0.33
+
+0.03
+
+0.23 0.79 0.35
+
+Delphi
+
+0.08 0.20 0.58 0.29
+
+28130 (100%) Panacea 0.08
+
+0.22 0.98 0.43
+
+Delphi
+
+0.07 0.29 0.65 0.33
+
 Failure-case
+
 Driven Sampling
-972 (4%) Panacea Training Set 0.05 0.18 0.81 0.35
-Delphi 0.08 0.18 0.56 0.27
-429 (1.5%) Delphi Validation Set 0.07 0.10 0.61 0.26
-result might be interesting to industrial practitioners that a diffusion-based approach that only sees
-training dataset videos can effectively boost the performance of the validation set with layout and
+
+972
+
+(4%) Panacea Training Set
+
+0.05 0.18 0.81 0.35
+
+Delphi 0.08 0.18 0.56
+
+0.27
+
+429 (1.5%) Delphi
+
+Validation Set 0.07 0.10
+
+0.61 0.26
+
+result might
+
+be interesting to industrial
+
+practitioners that a diffusion-based
+
+approach that only sees
+
+training dataset videos can
+
+effectively boost the performance
+
+of the validation set
+
+with layout and
+
 captions.
+
 8
-Figure 8: Visualization of instance and scene editing. (a) shows the instance-level control result, such as the
-appearance attributes of all vehicles. (b) shows the scene-level control result, including weather and time.
+
+Figure 8: Visualization
+
+of instance and scene
+
+editing. (a) shows the
+
+instance-level control result, such
+
+as the
+
+appearance attributes
+
+of all vehicles. (b)
+
+shows the scene-level control
+
+result, including weather and
+
+time.
+
 4.3 Ablation Studies
-We perform ablation studies to showcase the effectiveness of our method.
-Table 3: Performance of end-to-end model with
-real and generated data. We train the second
-stage of UniAD [13] with the officially released
-weights of the first stage as a starting point.
-Method Col. Rate(%)↓
-1s 2s 3s Avg.
-Real 0.07 0.24 0.70 0.34
-Generated 0.17 0.37 0.97 0.50
-Real+Real 0.03 0.33 0.77 0.38
-Real+Generated 0.08 0.18 0.56 0.27
-Ablating Sim-Real Gap. To further evaluate the simto-real gap, we train the UniAD with different portions
-of synthetic data. At the top of Table 3, we train UniAD
-with purely generated video clips, and the collision rate
-increases from 0.34 to 0.50. This indicates that the
-synthetic data cannot yet fully replace the real data. By
-contrast, if we consider the incremental learning setting,
-while we train UniAD with additional data, using synthetic data results in a much better performance while
-using additional real data deteriorates the performance
-from 0.34 to 0.38.
-Table 4: The effectiveness of Delphi’s precise controllability on end-to-end models.
-Scene Instance Col. Rate(%)↓
-editing editing 1s 2s 3s Avg.
-0.10 0.20 0.71 0.34
-✓ 0.11 0.18 0.64 0.31
-✓ 0.05 0.20 0.62 0.29
-✓ ✓ 0.08 0.18 0.56 0.27
-Ablating Scene and Instance Editing. Table 4 demonstrates the effectiveness of data diversity for end-to-end models. Specifically, we edited existing scenes in two approaches:
-scene-level editing and instance-level editing. This fancy
-function allows us to generate a large amount of new data
-from a limited amount of existing data. As shown in Table 4,
-simultaneous editing of both the scene and instances yields
-the best performance. Leveraging powerful precise controllability, Delphi maximizes end-to-end model performance by
-generating richer and more diverse data.
-Table 5: Ablation study results for
-our proposed NRM and FTCM.
-Method FID ↓ FVD ↓ CLIP ↑
-Delphi 15.08 275.6 86.73
-w/o NRM 19.81 291.5 85.22
-w/o NRM & FTCM 22.85 346.96 82.91
-Ablating NRM and FTCM. In Table 5, we validate the two
-modules, the Noise Reinitialization Module (NRM) and the
-Feature-aligned Temporal Consistency Module (FTCM). We see
-an evident increase in all metrics to validate the effectiveness of
-our proposed method. In particular, the FTCM structure improves
-FID from 22.85 to 19.81 while the NRM further boosts it.
+
+We perform ablation studies
+
+to showcase the effectiveness
+
+of our method.
+
+Table
+
+3: Performance of end-to-end
+
+model with
+
+real and
+
+generated data. We train
+
+the second
+
+stage of
+
+UniAD [13] with the
+
+officially released
+
+weights of
+
+the first stage as
+
+a starting point.
+
+Method
+
+Col. Rate(%)↓
+
+1s 2s
+
+3s Avg.
+
+Real 0.07
+
+0.24 0.70 0.34
+
+Generated
+
+0.17 0.37 0.97 0.50
+
+Real+Real 0.03 0.33 0.77
+
+0.38
+
+Real+Generated 0.08 0.18
+
+0.56 0.27
+
+Ablating Sim-Real
+
+Gap. To further evaluate
+
+the sim￾to-real gap, we
+
+train the UniAD with
+
+different portions
+
+of synthetic
+
+data. At the top
+
+of Table 3, we
+
+train UniAD
+
+with purely
+
+generated video clips, and
+
+the collision rate
+
+increases
+
+from 0.34 to 0.50.
+
+This indicates that the
+
+synthetic data cannot yet
+
+fully replace the real
+
+data. By
+
+contrast, if
+
+we consider the incremental
+
+learning setting,
+
+while we
+
+train UniAD with additional
+
+data, using syn￾thetic data
+
+results in a much
+
+better performance while
+
+using
+
+additional real data deteriorates
+
+the performance
+
+from 0.34
+
+to 0.38.
+
+Table 4:
+
+The effectiveness of Delphi’s
+
+pre￾cise controllability on end-to-end
+
+models.
+
+Scene Instance Col.
+
+Rate(%)↓
+
+editing editing 1s
+
+2s 3s Avg.
+
+0.10
+
+0.20 0.71 0.34
+
+✓
+
+0.11 0.18 0.64 0.31
+
+✓ 0.05 0.20 0.62
+
+0.29
+
+✓ ✓ 0.08
+
+0.18 0.56 0.27
+
+Ablating
+
+Scene and Instance Editing.
+
+Table 4 demon￾strates the
+
+effectiveness of data diversity
+
+for end-to-end mod￾els. Specifically,
+
+we edited existing scenes
+
+in two approaches:
+
+scene-level
+
+editing and instance-level editing.
+
+This fancy
+
+function allows
+
+us to generate a
+
+large amount of new
+
+data
+
+from a limited
+
+amount of existing data.
+
+As shown in Table
+
+4,
+
+simultaneous editing of
+
+both the scene and
+
+instances yields
+
+the best
+
+performance. Leveraging powerful precise
+
+control￾lability, Delphi maximizes end-to-end
+
+model performance by
+
+generating
+
+richer and more diverse
+
+data.
+
+Table 5: Ablation
+
+study results for
+
+our
+
+proposed NRM and FTCM.
+
+Method FID ↓ FVD
+
+↓ CLIP ↑
+
+Delphi
+
+15.08 275.6 86.73
+
+w/o
+
+NRM 19.81 291.5 85.22
+
+w/o NRM & FTCM
+
+22.85 346.96 82.91
+
+Ablating
+
+NRM and FTCM. In
+
+Table 5, we validate
+
+the two
+
+modules, the
+
+Noise Reinitialization Module (NRM)
+
+and the
+
+Feature-aligned Temporal
+
+Consistency Module (FTCM). We
+
+see
+
+an evident increase
+
+in all metrics to
+
+validate the effectiveness of
+
+our proposed method. In
+
+particular, the FTCM structure
+
+improves
+
+FID from 22.85
+
+to 19.81 while the
+
+NRM further boosts it.
+
 5 Conclusion
-In summary, we propose a novel video generation method for autonomous driving scenarios that
-can synthesize up to 40 frames of videos on nuScenes dataset. Surprisingly, we show that with
-a diffusion model trained only with training split, we are able to improve the performance of the
-end-to-end planning model by a sample efficient failure-case driven framework. We hope to shed
-light on addressing the data scarcity problem for both researchers and practitioners in this field, and
-make a solid step towards making autonomous driving vehicles safe on the road.
+
+In summary,
+
+we propose a novel
+
+video generation method for
+
+autonomous driving scenarios that
+
+can synthesize up to
+
+40 frames of videos
+
+on nuScenes dataset. Surprisingly,
+
+we show that with
+
+a diffusion model trained
+
+only with training split,
+
+we are able to
+
+improve the performance of
+
+the
+
+end-to-end planning model
+
+by a sample efficient
+
+failure-case driven framework. We
+
+hope to shed
+
+light
+
+on addressing the data
+
+scarcity problem for both
+
+researchers and practitioners in
+
+this field, and
+
+make
+
+a solid step towards
+
+making autonomous driving vehicles
+
+safe on the road.
+
 9
-Limitation and Societal Impact. Our Delphi takes BEV layout as input to ensure the control
-ability, i.e. we are only capable of enriching the appearances and cannot change the layout during the
-synthesis processes. This leads to a limitation that our framework can be only used in an open-loop
-setting[2] but not the close-loop one. Yet, another limitation is when the end-to-end model performs
-perfectly in the training dataset, our failure-case driven sampling does not work. In terms of societal
-impact, we believe our method can be used to boost the performance of end-to-end models and may
-help the deployment of large-scale autonomous driving vehicles in the future.
+
+Limitation and Societal
+
+Impact. Our Delphi takes
+
+BEV layout as input
+
+to ensure the control
+
+ability, i.e. we are
+
+only capable of enriching
+
+the appearances and cannot
+
+change the layout during
+
+the
+
+synthesis processes. This
+
+leads to a limitation
+
+that our framework can
+
+be only used in
+
+an open-loop
+
+setting[2] but
+
+not the close-loop one.
+
+Yet, another limitation is
+
+when the end-to-end model
+
+performs
+
+perfectly in the
+
+training dataset, our failure-case
+
+driven sampling does not
+
+work. In terms of
+
+societal
+
+impact, we believe
+
+our method can be
+
+used to boost the
+
+performance of end-to-end models
+
+and may
+
+help the
+
+deployment of large-scale autonomous
+
+driving vehicles in the
+
+future.
+
 References
-[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni
-Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. Gpt-4
-technical report. arXiv preprint arXiv:2303.08774, 2023.
-[2] Holger Caesar, Varun Bankiti, Alex H Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu,
-Anush Krishnan, Yu Pan, Giancarlo Baldan, and Oscar Beijbom. nuscenes: A multimodal
-dataset for autonomous driving. In Proceedings of the IEEE/CVF conference on computer
-vision and pattern recognition, pages 11621–11631, 2020.
-[3] Shaoyu Chen, Bo Jiang, Hao Gao, Bencheng Liao, Qing Xu, Qian Zhang, Chang Huang, Wenyu
-Liu, and Xinggang Wang. Vadv2: End-to-end vectorized autonomous driving via probabilistic
-planning. arXiv preprint arXiv:2402.13243, 2024.
-[4] Emily Denton and Rob Fergus. Stochastic video generation with a learned prior. In International
-conference on machine learning, pages 1174–1183. PMLR, 2018.
-[5] Ruiyuan Gao, Kai Chen, Enze Xie, Lanqing Hong, Zhenguo Li, Dit-Yan Yeung, and Qiang
-Xu. Magicdrive: Street view generation with diverse 3d geometry control. arXiv preprint
+
+[1] Josh
+
+Achiam, Steven Adler, Sandhini
+
+Agarwal, Lama Ahmad, Ilge
+
+Akkaya, Florencia Leoni
+
+Aleman,
+
+Diogo Almeida, Janko Altenschmidt,
+
+Sam Altman, Shyamal Anadkat,
+
+et al. Gpt-4
+
+technical
+
+report. arXiv preprint arXiv:2303.08774,
+
+2023.
+
+[2] Holger Caesar,
+
+Varun Bankiti, Alex H
+
+Lang, Sourabh Vora, Venice
+
+Erin Liong, Qiang Xu,
+
+Anush Krishnan, Yu Pan,
+
+Giancarlo Baldan, and Oscar
+
+Beijbom. nuscenes: A multimodal
+
+dataset for autonomous driving.
+
+In Proceedings of the
+
+IEEE/CVF conference on computer
+
+vision and pattern recognition,
+
+pages 11621–11631, 2020.
+
+[3]
+
+Shaoyu Chen, Bo Jiang,
+
+Hao Gao, Bencheng Liao,
+
+Qing Xu, Qian Zhang,
+
+Chang Huang, Wenyu
+
+Liu,
+
+and Xinggang Wang. Vadv2:
+
+End-to-end vectorized autonomous driving
+
+via probabilistic
+
+planning. arXiv
+
+preprint arXiv:2402.13243, 2024.
+
+[4]
+
+Emily Denton and Rob
+
+Fergus. Stochastic video generation
+
+with a learned prior.
+
+In International
+
+conference on
+
+machine learning, pages 1174–1183.
+
+PMLR, 2018.
+
+[5] Ruiyuan
+
+Gao, Kai Chen, Enze
+
+Xie, Lanqing Hong, Zhenguo
+
+Li, Dit-Yan Yeung, and
+
+Qiang
+
+Xu. Magicdrive: Street
+
+view generation with diverse
+
+3d geometry control. arXiv
+
+preprint
+
 arXiv:2310.02601, 2023.
-[6] William Harvey, Saeid Naderiparizi, Vaden Masrani, Christian Weilbach, and Frank Wood.
-Flexible diffusion modeling of long videos. Advances in Neural Information Processing Systems,
-35:27953–27965, 2022.
-[7] Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter.
-Gans trained by a two time-scale update rule converge to a local nash equilibrium. Advances in
-neural information processing systems, 30, 2017.
-[8] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances
-in neural information processing systems, 33:6840–6851, 2020.
-[9] Jonathan Ho, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao, Alexey Gritsenko,
-Diederik P Kingma, Ben Poole, Mohammad Norouzi, David J Fleet, et al. Imagen video: High
-definition video generation with diffusion models. arXiv preprint arXiv:2210.02303, 2022.
-[10] Tobias Höppe. Diffusion models for video prediction and infilling: Training a conditional video
-diffusion model for arbitrary video completion tasks, 2022.
-[11] Anthony Hu, Lloyd Russell, Hudson Yeo, Zak Murez, George Fedoseev, Alex Kendall, Jamie
-Shotton, and Gianluca Corrado. Gaia-1: A generative world model for autonomous driving.
-arXiv preprint arXiv:2309.17080, 2023.
-[12] Shengchao Hu, Li Chen, Penghao Wu, Hongyang Li, Junchi Yan, and Dacheng Tao. St-p3:
-End-to-end vision-based autonomous driving via spatial-temporal feature learning. In European
-Conference on Computer Vision (ECCV), 2022.
-[13] Yihan Hu, Jiazhi Yang, Li Chen, Keyu Li, Chonghao Sima, Xizhou Zhu, Siqi Chai, Senyao Du,
-Tianwei Lin, Wenhai Wang, et al. Planning-oriented autonomous driving. In Proceedings of
-the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 17853–17862,
+
+[6]
+
+William Harvey, Saeid Naderiparizi,
+
+Vaden Masrani, Christian Weilbach,
+
+and Frank Wood.
+
+Flexible
+
+diffusion modeling of long
+
+videos. Advances in Neural
+
+Information Processing Systems,
+
+35:27953–27965,
+
+2022.
+
+[7] Martin Heusel,
+
+Hubert Ramsauer, Thomas Unterthiner,
+
+Bernhard Nessler, and Sepp
+
+Hochreiter.
+
+Gans trained by
+
+a two time-scale update
+
+rule converge to a
+
+local nash equilibrium. Advances
+
+in
+
+neural information processing
+
+systems, 30, 2017.
+
+[8]
+
+Jonathan Ho, Ajay Jain,
+
+and Pieter Abbeel. Denoising
+
+diffusion probabilistic models. Advances
+
+in neural information processing
+
+systems, 33:6840–6851, 2020.
+
+[9]
+
+Jonathan Ho, William Chan,
+
+Chitwan Saharia, Jay Whang,
+
+Ruiqi Gao, Alexey Gritsenko,
+
+Diederik P Kingma, Ben
+
+Poole, Mohammad Norouzi, David
+
+J Fleet, et al.
+
+Imagen video: High
+
+definition
+
+video generation with diffusion
+
+models. arXiv preprint arXiv:2210.02303,
+
+2022.
+
+[10] Tobias Höppe.
+
+Diffusion models for video
+
+prediction and infilling: Training
+
+a conditional video
+
+diffusion
+
+model for arbitrary video
+
+completion tasks, 2022.
+
+[11]
+
+Anthony Hu, Lloyd Russell,
+
+Hudson Yeo, Zak Murez,
+
+George Fedoseev, Alex Kendall,
+
+Jamie
+
+Shotton, and Gianluca
+
+Corrado. Gaia-1: A generative
+
+world model for autonomous
+
+driving.
+
+arXiv preprint arXiv:2309.17080,
+
 2023.
-[14] Aapo Hyvärinen and Peter Dayan. Estimation of non-normalized statistical models by score
-matching. Journal of Machine Learning Research, 6(4), 2005.
+
+[12] Shengchao Hu,
+
+Li Chen, Penghao Wu,
+
+Hongyang Li, Junchi Yan,
+
+and Dacheng Tao. St-p3:
+
+End-to-end vision-based autonomous driving
+
+via spatial-temporal feature learning.
+
+In European
+
+Conference on
+
+Computer Vision (ECCV), 2022.
+
+[13] Yihan Hu, Jiazhi
+
+Yang, Li Chen, Keyu
+
+Li, Chonghao Sima, Xizhou
+
+Zhu, Siqi Chai, Senyao
+
+Du,
+
+Tianwei Lin, Wenhai
+
+Wang, et al. Planning-oriented
+
+autonomous driving. In Proceedings
+
+of
+
+the IEEE/CVF Conference
+
+on Computer Vision and
+
+Pattern Recognition, pages 17853–17862,
+
+2023.
+
+[14] Aapo Hyvärinen
+
+and Peter Dayan. Estimation
+
+of non-normalized statistical models
+
+by score
+
+matching. Journal
+
+of Machine Learning Research,
+
+6(4), 2005.
+
 10
-[15] Fan Jia, Weixin Mao, Yingfei Liu, Yucheng Zhao, Yuqing Wen, Chi Zhang, Xiangyu Zhang,
-and Tiancai Wang. Adriver-i: A general world model for autonomous driving. arXiv preprint
-arXiv:2311.13549, 2023.
-[16] Bo Jiang, Shaoyu Chen, Qing Xu, Bencheng Liao, Jiajie Chen, Helong Zhou, Qian Zhang,
-Wenyu Liu, Chang Huang, and Xinggang Wang. Vad: Vectorized scene representation for
-efficient autonomous driving. 2023 IEEE/CVF International Conference on Computer Vision
-(ICCV), pages 8306–8316, 2023.
-[17] Diederik P Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint
+
+[15]
+
+Fan Jia, Weixin Mao,
+
+Yingfei Liu, Yucheng Zhao,
+
+Yuqing Wen, Chi Zhang,
+
+Xiangyu Zhang,
+
+and Tiancai
+
+Wang. Adriver-i: A general
+
+world model for autonomous
+
+driving. arXiv preprint
+
+arXiv:2311.13549,
+
+2023.
+
+[16] Bo Jiang,
+
+Shaoyu Chen, Qing Xu,
+
+Bencheng Liao, Jiajie Chen,
+
+Helong Zhou, Qian Zhang,
+
+Wenyu Liu, Chang Huang,
+
+and Xinggang Wang. Vad:
+
+Vectorized scene representation for
+
+efficient autonomous driving. 2023
+
+IEEE/CVF International Conference on
+
+Computer Vision
+
+(ICCV), pages
+
+8306–8316, 2023.
+
+[17] Diederik
+
+P Kingma and Jimmy
+
+Ba. Adam: A method
+
+for stochastic optimization. arXiv
+
+preprint
+
 arXiv:1412.6980, 2014.
-[18] Manoj Kumar, Mohammad Babaeizadeh, Dumitru Erhan, Chelsea Finn, Sergey Levine, Laurent
-Dinh, and Durk Kingma. Videoflow: A flow-based generative model for video. arXiv preprint
+
+[18]
+
+Manoj Kumar, Mohammad Babaeizadeh,
+
+Dumitru Erhan, Chelsea Finn,
+
+Sergey Levine, Laurent
+
+Dinh,
+
+and Durk Kingma. Videoflow:
+
+A flow-based generative model
+
+for video. arXiv preprint
+
 arXiv:1903.01434, 2(5):3, 2019.
-[19] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. Blip-2: Bootstrapping languageimage pre-training with frozen image encoders and large language models. arXiv preprint
-arXiv:2301.12597, 2023.
-[20] Mingfu Liang, Jong-Chyi Su, Samuel Schulter, Sparsh Garg, Shiyu Zhao, Ying Wu, and
-Manmohan Chandraker. Aide: An automatic data engine for object detection in autonomous
-driving. arXiv preprint arXiv:2403.17373, 2024.
-[21] Luping Liu, Yi Ren, Zhijie Lin, and Zhou Zhao. Pseudo numerical methods for diffusion models
-on manifolds. arXiv preprint arXiv:2202.09778, 2022.
-[22] Zhengxiong Luo, Dayou Chen, Yingya Zhang, Yan Huang, Liang Wang, Yujun Shen, Deli Zhao,
-Jingren Zhou, and Tieniu Tan. Videofusion: Decomposed diffusion models for high-quality
-video generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
-Recognition, pages 10209–10218, 2023.
-[23] Michael Mathieu, Camille Couprie, and Yann LeCun. Deep multi-scale video prediction beyond
-mean square error. arXiv preprint arXiv:1511.05440, 2015.
-[24] Alex Nichol, Prafulla Dhariwal, Aditya Ramesh, Pranav Shyam, Pamela Mishkin, Bob McGrew,
-Ilya Sutskever, and Mark Chen. Glide: Towards photorealistic image generation and editing
-with text-guided diffusion models. arXiv preprint arXiv:2112.10741, 2021.
-[25] Aditya Prakash, Kashyap Chitta, and Andreas Geiger. Multimodal fusion transformer for
-end-to-end autonomous driving. In Proceedings of the IEEE/CVF Conference on Computer
-Vision and Pattern Recognition (CVPR), 2021.
-[26] Haonan Qiu, Menghan Xia, Yong Zhang, Yingqing He, Xintao Wang, Ying Shan, and Ziwei
-Liu. Freenoise: Tuning-free longer video diffusion via noise rescheduling. arXiv preprint
+
+[19]
+
+Junnan Li, Dongxu Li,
+
+Silvio Savarese, and Steven
+
+Hoi. Blip-2: Bootstrapping language￾image
+
+pre-training with frozen image
+
+encoders and large language
+
+models. arXiv preprint
+
+arXiv:2301.12597,
+
+2023.
+
+[20] Mingfu Liang,
+
+Jong-Chyi Su, Samuel Schulter,
+
+Sparsh Garg, Shiyu Zhao,
+
+Ying Wu, and
+
+Manmohan
+
+Chandraker. Aide: An automatic
+
+data engine for object
+
+detection in autonomous
+
+driving.
+
+arXiv preprint arXiv:2403.17373, 2024.
+
+[21] Luping Liu, Yi
+
+Ren, Zhijie Lin, and
+
+Zhou Zhao. Pseudo numerical
+
+methods for diffusion models
+
+on manifolds. arXiv preprint
+
+arXiv:2202.09778, 2022.
+
+[22] Zhengxiong
+
+Luo, Dayou Chen, Yingya
+
+Zhang, Yan Huang, Liang
+
+Wang, Yujun Shen, Deli
+
+Zhao,
+
+Jingren Zhou, and
+
+Tieniu Tan. Videofusion: Decomposed
+
+diffusion models for high-quality
+
+video generation. In Proceedings
+
+of the IEEE/CVF Conference
+
+on Computer Vision and
+
+Pattern
+
+Recognition, pages 10209–10218,
+
+2023.
+
+[23] Michael Mathieu,
+
+Camille Couprie, and Yann
+
+LeCun. Deep multi-scale video
+
+prediction beyond
+
+mean square
+
+error. arXiv preprint arXiv:1511.05440,
+
+2015.
+
+[24] Alex Nichol,
+
+Prafulla Dhariwal, Aditya Ramesh,
+
+Pranav Shyam, Pamela Mishkin,
+
+Bob McGrew,
+
+Ilya Sutskever,
+
+and Mark Chen. Glide:
+
+Towards photorealistic image generation
+
+and editing
+
+with text-guided
+
+diffusion models. arXiv preprint
+
+arXiv:2112.10741, 2021.
+
+[25] Aditya
+
+Prakash, Kashyap Chitta, and
+
+Andreas Geiger. Multimodal fusion
+
+transformer for
+
+end-to-end autonomous
+
+driving. In Proceedings of
+
+the IEEE/CVF Conference on
+
+Computer
+
+Vision and Pattern
+
+Recognition (CVPR), 2021.
+
+[26]
+
+Haonan Qiu, Menghan Xia,
+
+Yong Zhang, Yingqing He,
+
+Xintao Wang, Ying Shan,
+
+and Ziwei
+
+Liu. Freenoise:
+
+Tuning-free longer video diffusion
+
+via noise rescheduling. arXiv
+
+preprint
+
 arXiv:2310.15169, 2023.
-[27] Weiming Ren, Harry Yang, Ge Zhang, Cong Wei, Xinrun Du, Stephen Huang, and Wenhu
-Chen. Consisti2v: Enhancing visual consistency for image-to-video generation. arXiv preprint
+
+[27]
+
+Weiming Ren, Harry Yang,
+
+Ge Zhang, Cong Wei,
+
+Xinrun Du, Stephen Huang,
+
+and Wenhu
+
+Chen. Consisti2v:
+
+Enhancing visual consistency for
+
+image-to-video generation. arXiv preprint
+
 arXiv:2402.04324, 2024.
-[28] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. Highresolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF
-conference on computer vision and pattern recognition, pages 10684–10695, 2022.
-[29] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman.
-Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In
-Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages
+
+[28] Robin
+
+Rombach, Andreas Blattmann, Dominik
+
+Lorenz, Patrick Esser, and
+
+Björn Ommer. High￾resolution image
+
+synthesis with latent diffusion
+
+models. In Proceedings of
+
+the IEEE/CVF
+
+conference on
+
+computer vision and pattern
+
+recognition, pages 10684–10695, 2022.
+
+[29] Nataniel Ruiz, Yuanzhen
+
+Li, Varun Jampani, Yael
+
+Pritch, Michael Rubinstein, and
+
+Kfir Aberman.
+
+Dreambooth: Fine
+
+tuning text-to-image diffusion models
+
+for subject-driven generation. In
+
+Proceedings of the IEEE/CVF
+
+Conference on Computer Vision
+
+and Pattern Recognition, pages
+
 22500–22510, 2023.
-[30] Masaki Saito, Eiichi Matsumoto, and Shunta Saito. Temporal generative adversarial nets with
-singular value clipping. In Proceedings of the IEEE international conference on computer
-vision, pages 2830–2839, 2017.
+
+[30] Masaki
+
+Saito, Eiichi Matsumoto, and
+
+Shunta Saito. Temporal generative
+
+adversarial nets with
+
+singular
+
+value clipping. In Proceedings
+
+of the IEEE international
+
+conference on computer
+
+vision,
+
+pages 2830–2839, 2017.
+
 11
-[31] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu,
-Harry Yang, Oron Ashual, Oran Gafni, et al. Make-a-video: Text-to-video generation without
-text-video data. arXiv preprint arXiv:2209.14792, 2022.
-[32] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. arXiv
-preprint arXiv:2010.02502, 2020.
-[33] Alexander Swerdlow, Runsheng Xu, and Bolei Zhou. Street-view image generation from a
-bird’s-eye view layout. arXiv preprint arXiv:2301.04634, 2023.
-[34] Sergey Tulyakov, Ming-Yu Liu, Xiaodong Yang, and Jan Kautz. Mocogan: Decomposing
-motion and content for video generation. In Proceedings of the IEEE conference on computer
-vision and pattern recognition, pages 1526–1535, 2018.
-[35] Thomas Unterthiner, Sjoerd Van Steenkiste, Karol Kurach, Raphael Marinier, Marcin Michalski,
-and Sylvain Gelly. Towards accurate generative models of video: A new metric & challenges.
+
+[31] Uriel Singer, Adam
+
+Polyak, Thomas Hayes, Xi
+
+Yin, Jie An, Songyang
+
+Zhang, Qiyuan Hu,
+
+Harry
+
+Yang, Oron Ashual, Oran
+
+Gafni, et al. Make-a-video:
+
+Text-to-video generation without
+
+text-video
+
+data. arXiv preprint arXiv:2209.14792,
+
+2022.
+
+[32] Jiaming Song,
+
+Chenlin Meng, and Stefano
+
+Ermon. Denoising diffusion implicit
+
+models. arXiv
+
+preprint arXiv:2010.02502,
+
+2020.
+
+[33] Alexander Swerdlow,
+
+Runsheng Xu, and Bolei
+
+Zhou. Street-view image generation
+
+from a
+
+bird’s-eye view
+
+layout. arXiv preprint arXiv:2301.04634,
+
+2023.
+
+[34] Sergey Tulyakov,
+
+Ming-Yu Liu, Xiaodong Yang,
+
+and Jan Kautz. Mocogan:
+
+Decomposing
+
+motion and content
+
+for video generation. In
+
+Proceedings of the IEEE
+
+conference on computer
+
+vision
+
+and pattern recognition, pages
+
+1526–1535, 2018.
+
+[35] Thomas
+
+Unterthiner, Sjoerd Van Steenkiste,
+
+Karol Kurach, Raphael Marinier,
+
+Marcin Michalski,
+
+and Sylvain
+
+Gelly. Towards accurate generative
+
+models of video: A
+
+new metric & challenges.
+
 arXiv preprint arXiv:1812.01717, 2018.
-[36] Carl Vondrick, Hamed Pirsiavash, and Antonio Torralba. Generating videos with scene dynamics.
-Advances in neural information processing systems, 29, 2016.
-[37] Shihao Wang, Yingfei Liu, Tiancai Wang, Ying Li, and Xiangyu Zhang. Exploring object-centric
-temporal modeling for efficient multi-view 3d object detection. arXiv preprint arXiv:2303.11926,
+
+[36] Carl Vondrick, Hamed
+
+Pirsiavash, and Antonio Torralba.
+
+Generating videos with scene
+
+dynamics.
+
+Advances in neural
+
+information processing systems, 29,
+
+2016.
+
+[37] Shihao Wang,
+
+Yingfei Liu, Tiancai Wang,
+
+Ying Li, and Xiangyu
+
+Zhang. Exploring object-centric
+
+temporal
+
+modeling for efficient multi-view
+
+3d object detection. arXiv
+
+preprint arXiv:2303.11926,
+
 2023.
-[38] Xiaofeng Wang, Zheng Zhu, Guan Huang, Xinze Chen, and Jiwen Lu. Drivedreamer: Towards
-real-world-driven world models for autonomous driving. arXiv preprint arXiv:2309.09777,
+
+[38]
+
+Xiaofeng Wang, Zheng Zhu,
+
+Guan Huang, Xinze Chen,
+
+and Jiwen Lu. Drivedreamer:
+
+Towards
+
+real-world-driven world models
+
+for autonomous driving. arXiv
+
+preprint arXiv:2309.09777,
+
 2023.
-[39] Yuqi Wang, Jiawei He, Lue Fan, Hongxin Li, Yuntao Chen, and Zhaoxiang Zhang. Driving
-into the future: Multiview visual forecasting and planning with world model for autonomous
-driving. arXiv preprint arXiv:2311.17918, 2023.
-[40] Yuqing Wen, Yucheng Zhao, Yingfei Liu, Fan Jia, Yanhui Wang, Chong Luo, Chi Zhang,
-Tiancai Wang, Xiaoyan Sun, and Xiangyu Zhang. Panacea: Panoramic and controllable video
-generation for autonomous driving. arXiv preprint arXiv:2311.16813, 2023.
-[41] Jay Zhangjie Wu, Yixiao Ge, Xintao Wang, Weixian Lei, Yuchao Gu, Wynne Hsu, Ying Shan,
-Xiaohu Qie, and Mike Zheng Shou. Tune-a-video: One-shot tuning of image diffusion models
-for text-to-video generation. arXiv preprint arXiv:2212.11565, 2022.
-[42] Kairui Yang, Enhui Ma, Jibin Peng, Qing Guo, Di Lin, and Kaicheng Yu. Bevcontrol: Accurately
-controlling street-view elements with multi-perspective consistency via bev sketch layout. arXiv
-preprint arXiv:2308.01661, 2023.
-[43] Zetong Yang, Li Chen, Yanan Sun, and Hongyang Li. Visual point cloud forecasting enables
-scalable autonomous driving. arXiv preprint arXiv:2312.17655, 2023.
-[44] Jiang-Tian Zhai, Ze Feng, Jinhao Du, Yongqiang Mao, Jiang-Jiang Liu, Zichang Tan, Yifu
-Zhang, Xiaoqing Ye, and Jingdong Wang. Rethinking the open-loop evaluation of end-to-end
-autonomous driving in nuscenes. arXiv preprint arXiv:2305.10430, 2023.
-[45] Beichen Zhang, Pan Zhang, Xiaoyi Dong, Yuhang Zang, and Jiaqi Wang. Long-clip: Unlocking
-the long-text capability of clip. arXiv preprint arXiv:2403.15378, 2024.
-[46] Lvmin Zhang and Maneesh Agrawala. Adding conditional control to text-to-image diffusion
-models. arXiv preprint arXiv:2302.05543, 2023.
-[47] Guosheng Zhao, Xiaofeng Wang, Zheng Zhu, Xinze Chen, Guan Huang, Xiaoyi Bao, and Xingang Wang. Drivedreamer-2: Llm-enhanced world models for diverse driving video generation.
-arXiv preprint arXiv:2403.06845, 2024.
-[48] Daquan Zhou, Weimin Wang, Hanshu Yan, Weiwei Lv, Yizhe Zhu, and Jiashi Feng. Magicvideo:
-Efficient video generation with latent diffusion models. arXiv preprint arXiv:2211.11018, 2022.
+
+[39]
+
+Yuqi Wang, Jiawei He,
+
+Lue Fan, Hongxin Li,
+
+Yuntao Chen, and Zhaoxiang
+
+Zhang. Driving
+
+into the
+
+future: Multiview visual forecasting
+
+and planning with world
+
+model for autonomous
+
+driving.
+
+arXiv preprint arXiv:2311.17918, 2023.
+
+[40] Yuqing Wen, Yucheng
+
+Zhao, Yingfei Liu, Fan
+
+Jia, Yanhui Wang, Chong
+
+Luo, Chi Zhang,
+
+Tiancai
+
+Wang, Xiaoyan Sun, and
+
+Xiangyu Zhang. Panacea: Panoramic
+
+and controllable video
+
+generation
+
+for autonomous driving. arXiv
+
+preprint arXiv:2311.16813, 2023.
+
+[41]
+
+Jay Zhangjie Wu, Yixiao
+
+Ge, Xintao Wang, Weixian
+
+Lei, Yuchao Gu, Wynne
+
+Hsu, Ying Shan,
+
+Xiaohu
+
+Qie, and Mike Zheng
+
+Shou. Tune-a-video: One-shot tuning
+
+of image diffusion models
+
+for text-to-video generation. arXiv
+
+preprint arXiv:2212.11565, 2022.
+
+[42]
+
+Kairui Yang, Enhui Ma,
+
+Jibin Peng, Qing Guo,
+
+Di Lin, and Kaicheng
+
+Yu. Bevcontrol: Accurately
+
+controlling
+
+street-view elements with multi-perspective
+
+consistency via bev sketch
+
+layout. arXiv
+
+preprint arXiv:2308.01661,
+
+2023.
+
+[43] Zetong Yang,
+
+Li Chen, Yanan Sun,
+
+and Hongyang Li. Visual
+
+point cloud forecasting enables
+
+scalable autonomous driving. arXiv
+
+preprint arXiv:2312.17655, 2023.
+
+[44]
+
+Jiang-Tian Zhai, Ze Feng,
+
+Jinhao Du, Yongqiang Mao,
+
+Jiang-Jiang Liu, Zichang Tan,
+
+Yifu
+
+Zhang, Xiaoqing Ye,
+
+and Jingdong Wang. Rethinking
+
+the open-loop evaluation of
+
+end-to-end
+
+autonomous driving in
+
+nuscenes. arXiv preprint arXiv:2305.10430,
+
+2023.
+
+[45] Beichen Zhang,
+
+Pan Zhang, Xiaoyi Dong,
+
+Yuhang Zang, and Jiaqi
+
+Wang. Long-clip: Unlocking
+
+the
+
+long-text capability of clip.
+
+arXiv preprint arXiv:2403.15378, 2024.
+
+[46] Lvmin Zhang and
+
+Maneesh Agrawala. Adding conditional
+
+control to text-to-image diffusion
+
+models. arXiv preprint arXiv:2302.05543,
+
+2023.
+
+[47] Guosheng Zhao,
+
+Xiaofeng Wang, Zheng Zhu,
+
+Xinze Chen, Guan Huang,
+
+Xiaoyi Bao, and Xin￾gang
+
+Wang. Drivedreamer-2: Llm-enhanced world
+
+models for diverse driving
+
+video generation.
+
+arXiv preprint
+
+arXiv:2403.06845, 2024.
+
+[48] Daquan
+
+Zhou, Weimin Wang, Hanshu
+
+Yan, Weiwei Lv, Yizhe
+
+Zhu, and Jiashi Feng.
+
+Magicvideo:
+
+Efficient video generation
+
+with latent diffusion models.
+
+arXiv preprint arXiv:2211.11018, 2022.
+
 12
+
 A Method
-A.1 Detailed implementation of failure case driven framework
-Collecting Failure Cases. Initially, we assess the performance of the base end-to-end model on the
-validation set . For this evaluation, we utilize the UniAD [13] base model as our starting point. We
-employ a metric, wherein a collision occurring within 3 seconds on the path planned by the algorithm
-qualifies a scenario as a failure case. Additionally, to gain further insights, we visualize both the
-perception results of the 3D boxes and the planning outcomes derived from the end-to-end model.
-Through this process, we identify and select failure cases for further analysis.
-Analyzing data pattern. We initially anticipated that large visual-language models would be
-able to automatically pinpoint the reasons behind algorithm failures. However, our investigations
-revealed that a straightforward inquiry was insufficient for this purpose. Consequently, we devised a
-multi-round inquiry method leveraging VLM [1]. This approach enables a more precise analysis of
-the factors contributing to algorithm failures, as well as a detailed description of the key elements
+
+A.1
+
+Detailed implementation of failure
+
+case driven framework
+
+Collecting
+
+Failure Cases. Initially, we
+
+assess the performance of
+
+the base end-to-end model
+
+on the
+
+validation set
+
+. For this evaluation,
+
+we utilize the UniAD
+
+[13] base model as
+
+our starting point. We
+
+employ a metric, wherein
+
+a collision occurring within
+
+3 seconds on the
+
+path planned by the
+
+algorithm
+
+qualifies a scenario
+
+as a failure case.
+
+Additionally, to gain further
+
+insights, we visualize both
+
+the
+
+perception results of
+
+the 3D boxes and
+
+the planning outcomes derived
+
+from the end-to-end model.
+
+Through this process, we
+
+identify and select failure
+
+cases for further analysis.
+
+Analyzing data pattern. We
+
+initially anticipated that large
+
+visual-language models would be
+
+able to automatically pinpoint
+
+the reasons behind algorithm
+
+failures. However, our investigations
+
+revealed that a straightforward
+
+inquiry was insufficient for
+
+this purpose. Consequently, we
+
+devised a
+
+multi-round inquiry
+
+method leveraging VLM [1].
+
+This approach enables a
+
+more precise analysis of
+
+the factors contributing to
+
+algorithm failures, as well
+
+as a detailed description
+
+of the key elements
+
 leading to such failures.
-Specifically, we feed the visualization outcomes from the preceding step into VLM and prompt it
-to discern whether the primary cause of failure stems from perception or planning issues. In cases
-where perception is the culprit, the reasons can be further categorized into various factors such as
-nighttime darkness, challenges in recognizing large nearby objects, or the inability to identify rare
-object categories. On the other hand, if planning is identified as the source of failure, VLM can
-differentiate between scenarios like occlusion or infrequent interactions, including running a red light
-or crossing the road. Ultimately, based on the previously established reasons for failure, we prompt
-VLM to offer a precise account of the specific factors that led to the failure.
-Retrieving similar scenes. Using the detailed image description, we employ BLIP-2 [19] to identify
-and retrieve scenes from the train set that closely correspond to the reasons behind the failure. This
-process involves quantifying the cosine similarity between embeddings extracted from both the image
-and the designated text input using BLIP-2. Based on this similarity measure, we then select and
-retrieve only the top-k most relevant images.
-Updating Model. Based on the identified potential failure scenarios, we created an extensive and
-varied image dataset utilizing Delphi. We obtained scene captions from VLM using corresponding
-sample tokens and employed these captions as input to generate analogous images with Delphi.
-To augment data diversity, we employed a LLM to adjust the captions inputted into Delphi. This
-approach facilitated the alteration of scene descriptions to encompass various scene conditions and
-instance conditions, such as sunny, rainy, cloudy, Night, suburban, changing the color of the cars.
-Consequently, feeding these revised captions into Delphi resulted in the generation of a broader range
+
+Specifically, we feed the
+
+visualization outcomes from the
+
+preceding step into VLM
+
+and prompt it
+
+to
+
+discern whether the primary
+
+cause of failure stems
+
+from perception or planning
+
+issues. In cases
+
+where
+
+perception is the culprit,
+
+the reasons can be
+
+further categorized into various
+
+factors such as
+
+nighttime
+
+darkness, challenges in recognizing
+
+large nearby objects, or
+
+the inability to identify
+
+rare
+
+object categories. On
+
+the other hand, if
+
+planning is identified as
+
+the source of failure,
+
+VLM can
+
+differentiate between
+
+scenarios like occlusion or
+
+infrequent interactions, including running
+
+a red light
+
+or
+
+crossing the road. Ultimately,
+
+based on the previously
+
+established reasons for failure,
+
+we prompt
+
+VLM to
+
+offer a precise account
+
+of the specific factors
+
+that led to the
+
+failure.
+
+Retrieving similar scenes.
+
+Using the detailed image
+
+description, we employ BLIP-2
+
+[19] to identify
+
+and
+
+retrieve scenes from the
+
+train set that closely
+
+correspond to the reasons
+
+behind the failure. This
+
+process involves quantifying the
+
+cosine similarity between embeddings
+
+extracted from both the
+
+image
+
+and the designated
+
+text input using BLIP-2.
+
+Based on this similarity
+
+measure, we then select
+
+and
+
+retrieve only the
+
+top-k most relevant images.
+
+Updating Model. Based on
+
+the identified potential failure
+
+scenarios, we created an
+
+extensive and
+
+varied image
+
+dataset utilizing Delphi. We
+
+obtained scene captions from
+
+VLM using corresponding
+
+sample
+
+tokens and employed these
+
+captions as input to
+
+generate analogous images with
+
+Delphi.
+
+To augment data
+
+diversity, we employed a
+
+LLM to adjust the
+
+captions inputted into Delphi.
+
+This
+
+approach facilitated the
+
+alteration of scene descriptions
+
+to encompass various scene
+
+conditions and
+
+instance conditions,
+
+such as sunny, rainy,
+
+cloudy, Night, suburban, changing
+
+the color of the
+
+cars.
+
+Consequently, feeding these
+
+revised captions into Delphi
+
+resulted in the generation
+
+of a broader range
+
 of images.
-However, we discovered that directly utilizing the generated failure scenes for training could result in
-overfitting. While the trained model excelled in the selected failure instances, its performance suffered
-in previously successful cases. Therefore, to mitigate this issue, we integrated our generated data
-with the complete train set for each fine-tuning session. This strategy proved effective in optimizing
+
+However, we
+
+discovered that directly utilizing
+
+the generated failure scenes
+
+for training could result
+
+in
+
+overfitting. While the
+
+trained model excelled in
+
+the selected failure instances,
+
+its performance suffered
+
+in
+
+previously successful cases. Therefore,
+
+to mitigate this issue,
+
+we integrated our generated
+
+data
+
+with the complete
+
+train set for each
+
+fine-tuning session. This strategy
+
+proved effective in optimizing
+
 the model’s overall performance.
-Ultimately, we trained the end-to-end model using this combined dataset, yielding a refined model
-that marked the commencement of the subsequent iteration of the improvement cycle.
+
+Ultimately, we trained the
+
+end-to-end model using this
+
+combined dataset, yielding a
+
+refined model
+
+that marked
+
+the commencement of the
+
+subsequent iteration of the
+
+improvement cycle.
+
 B Experiments
+
 B.1 Metrics
-Metrics about Quality and Controllability of Generated Video. We evaluate the quality of the
-generated videos from two aspects: quality and controllability. Specifically, for quality, we use
-Frechet Inception Distance (FID) [7] to assess the realism of single-frame single-view images in
-the generated videos, Frechet Video Distance (FVD) [35] to evaluate the temporal consistency of
+
+Metrics about
+
+Quality and Controllability of
+
+Generated Video. We evaluate
+
+the quality of the
+
+generated videos from two
+
+aspects: quality and controllability.
+
+Specifically, for quality, we
+
+use
+
+Frechet Inception Distance
+
+(FID) [7] to assess
+
+the realism of single-frame
+
+single-view images in
+
+the
+
+generated videos, Frechet Video
+
+Distance (FVD) [35] to
+
+evaluate the temporal consistency
+
+of
+
 13
-single-view videos, and CLIP scores (CLIP) [42] to assess the spatial consistency of single-frame
-multi-view images. For controllability, we utilize the popular BEV detection model StreamPETR [37]
-and end-to-end model [13] to evaluate the generated data and report the NDS score and the Average
-Collision Rate(Avg. Col. Rate) respectively, which comprehensively reflects the geometric alignment
-between the generated images and the BEV layout annotations. By using these evaluation metrics,
-we can ensure that the generated results maintain high standards in both quality and controllability.
-Metrics about Effectiveness of the Generated Video for End-to-End Model. To evaluate the
-effectiveness of our proposed failure-case driven framework based upon the Delphi for the end-to-end
-model, we utilize the generated diverse training data to augment the end-to-end model’s origin
-training data. Specifically, we evaluate the performance of the end-to-end model by applying data
-augmentation on the nuScenes validation set and report the average collision rate.
-B.2 More Experimental Details
-Experimental Setting of the end-to-end model. During the training phase, we utilize the model
-available on the UniAD official repository as our foundation for fine-tuning. To enhance the training
-process, we have decreased the learning rate by a factor of 10, setting it to 2e-5. Additionally, we
-maintain consistency with the hyperparameters recommended on the UniAD repository, including
-the optimizer settings.
-Computation Efficiency and Hardware Requirements We report the model complexity of our
-two model variants in Table 6. We will further provide the generated data on the nuScenes training
-set for the convenience of data augmentation.
-Table 6: Model efficiency and hardware requirements.
-Model Parameter Inference Memeory&GPU Inference Time Train config
-multi-view single-frame 0.5B 22GB(RTX3090) 4s / example 8×A100, 24 hours
-multi-view multi-frame 1.1B 39GB(A100 40G) 4s / example 8×A800, 72 hours
-B.3 Validating each components of our failure-case driven framework
-As in Table 2, we compare in three aspects, data sampling strategy, number of generating cases and
+
+single-view videos,
+
+and CLIP scores (CLIP)
+
+[42] to assess the
+
+spatial consistency of single-frame
+
+multi-view images. For controllability,
+
+we utilize the popular
+
+BEV detection model StreamPETR
+
+[37]
+
+and end-to-end model
+
+[13] to evaluate the
+
+generated data and report
+
+the NDS score and
+
+the Average
+
+Collision Rate(Avg.
+
+Col. Rate) respectively, which
+
+comprehensively reflects the geometric
+
+alignment
+
+between the generated
+
+images and the BEV
+
+layout annotations. By using
+
+these evaluation metrics,
+
+we
+
+can ensure that the
+
+generated results maintain high
+
+standards in both quality
+
+and controllability.
+
+Metrics about
+
+Effectiveness of the Generated
+
+Video for End-to-End Model.
+
+To evaluate the
+
+effectiveness
+
+of our proposed failure-case
+
+driven framework based upon
+
+the Delphi for the
+
+end-to-end
+
+model, we utilize
+
+the generated diverse training
+
+data to augment the
+
+end-to-end model’s origin
+
+training
+
+data. Specifically, we evaluate
+
+the performance of the
+
+end-to-end model by applying
+
+data
+
+augmentation on the
+
+nuScenes validation set and
+
+report the average collision
+
+rate.
+
+B.2 More Experimental
+
+Details
+
+Experimental Setting of
+
+the end-to-end model. During
+
+the training phase, we
+
+utilize the model
+
+available
+
+on the UniAD official
+
+repository as our foundation
+
+for fine-tuning. To enhance
+
+the training
+
+process, we
+
+have decreased the learning
+
+rate by a factor
+
+of 10, setting it
+
+to 2e-5. Additionally, we
+
+maintain consistency with the
+
+hyperparameters recommended on the
+
+UniAD repository, including
+
+the
+
+optimizer settings.
+
+Computation Efficiency
+
+and Hardware Requirements We
+
+report the model complexity
+
+of our
+
+two model
+
+variants in Table 6.
+
+We will further provide
+
+the generated data on
+
+the nuScenes training
+
+set
+
+for the convenience of
+
+data augmentation.
+
+Table 6:
+
+Model efficiency and hardware
+
+requirements.
+
+Model Parameter Inference
+
+Memeory&GPU Inference Time Train
+
+config
+
+multi-view single-frame 0.5B
+
+22GB(RTX3090) 4s / example
+
+8×A100, 24 hours
+
+multi-view
+
+multi-frame 1.1B 39GB(A100 40G)
+
+4s / example 8×A800,
+
+72 hours
+
+B.3 Validating
+
+each components of our
+
+failure-case driven framework
+
+As
+
+in Table 2, we
+
+compare in three aspects,
+
+data sampling strategy, number
+
+of generating cases and
+
 data engine validation.
-Data Sampling Strategy. We evaluated different data sampling strategies, such as random sampling
-and failure-case targeted sampling. In the upper part of Table 2, we randomly selected various
-proportions of data samples from the training dataset and used the corresponding BEV layout and
-original scene captions to generate new data. In the lower part of Table 2, we retrieved training data
-with similar patterns to failure cases from the validation set and generated diverse weather data using
-the powerful control capabilities of the generative model. The newly generated data was mixed with
-the original data to train the end-to-end model. It was observed that the end-to-end model, enhanced
-through failure-case guided data augmentation, achieved the best performance. This demonstrates that
-the end-to-end model is under-trained in these failure cases, and feeding it more failure-case related
-training data can achieve optimal generalization performance with fewer computational resources.
-Numbers of Cases. We investigated the quantity of data samples. We randomly sampled 14,065
-and 28,130 training samples (approximately 50% and 100% of the entire training set) from the
-training set. The results generated by the configuration of the generative model on these samples
-were used for data augmentation. As shown in the upper part of Table 2, the performance of the
-end-to-end model worsened as the number of samples increased. This indicates that using training
-data with a style similar to the original training set can only help the model to a limited extent. Thus,
-it prompted us to consider increasing the diversity of the training data.
-Data Engine. We tested various data generation engines, including Delphi and other state-of-the-art
-generative models Panacea [40], to compare their effectiveness in generating high-quality training
-data for model enhancement. From the three sets of comparison experiments, it can be seen that the
+
+Data
+
+Sampling Strategy. We evaluated
+
+different data sampling strategies,
+
+such as random sampling
+
+and failure-case targeted sampling.
+
+In the upper part
+
+of Table 2, we
+
+randomly selected various
+
+proportions
+
+of data samples from
+
+the training dataset and
+
+used the corresponding BEV
+
+layout and
+
+original scene
+
+captions to generate new
+
+data. In the lower
+
+part of Table 2,
+
+we retrieved training data
+
+with similar patterns to
+
+failure cases from the
+
+validation set and generated
+
+diverse weather data using
+
+the powerful control capabilities
+
+of the generative model.
+
+The newly generated data
+
+was mixed with
+
+the
+
+original data to train
+
+the end-to-end model. It
+
+was observed that the
+
+end-to-end model, enhanced
+
+through
+
+failure-case guided data augmentation,
+
+achieved the best performance.
+
+This demonstrates that
+
+the
+
+end-to-end model is under-trained
+
+in these failure cases,
+
+and feeding it more
+
+failure-case related
+
+training data
+
+can achieve optimal generalization
+
+performance with fewer computational
+
+resources.
+
+Numbers of Cases.
+
+We investigated the quantity
+
+of data samples. We
+
+randomly sampled 14,065
+
+and
+
+28,130 training samples (approximately
+
+50% and 100% of
+
+the entire training set)
+
+from the
+
+training set.
+
+The results generated by
+
+the configuration of the
+
+generative model on these
+
+samples
+
+were used for
+
+data augmentation. As shown
+
+in the upper part
+
+of Table 2, the
+
+performance of the
+
+end-to-end
+
+model worsened as the
+
+number of samples increased.
+
+This indicates that using
+
+training
+
+data with a
+
+style similar to the
+
+original training set can
+
+only help the model
+
+to a limited extent.
+
+Thus,
+
+it prompted us
+
+to consider increasing the
+
+diversity of the training
+
+data.
+
+Data Engine. We
+
+tested various data generation
+
+engines, including Delphi and
+
+other state-of-the-art
+
+generative models
+
+Panacea [40], to compare
+
+their effectiveness in generating
+
+high-quality training
+
+data for
+
+model enhancement. From the
+
+three sets of comparison
+
+experiments, it can be
+
+seen that the
+
 14
-data generated by Delphi effectively improves the performance of the end-to-end model compared to
-other generative models. This is due to Delphi’s superior fine control capabilities in scene generation,
-leading to more diverse training data for model tuning.
+
+data generated by Delphi
+
+effectively improves the performance
+
+of the end-to-end model
+
+compared to
+
+other generative
+
+models. This is due
+
+to Delphi’s superior fine
+
+control capabilities in scene
+
+generation,
+
+leading to more
+
+diverse training data for
+
+model tuning.
+
 15
