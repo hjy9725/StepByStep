@@ -8,37 +8,7 @@
 
 
 
-Generative model to
 
-boost autonomous driving performance.
-
-Video generation stands as
-
-a pivotal technology in
-
-understanding the visual world.
-
-Early methods mainly include
-
-Variational Autoencoders (VAEs) [4,
-
-14], flow-based models [18],
-
-and Generative Adversarial Networks
-
-(GANs) [23, 30, 34,
-
-36]. Notably, the recent
-
-achievements of diffusion models
-
-in image generation [24,
-
-28, 29] have stimulated
-
-interest in their application
-
-to video generation [6,
 
 10]. Diffusion-based methods have
 
@@ -163,30 +133,6 @@ up to 8 frames,
 while our Delphi can
 
 generate much longer ones.
-
-提升自动
-
-驾驶性能的
-
-生成模型。视
-
-频生成是理
-
-解视觉世界
-
-的关键技术
-
-。早期的方法
-
-主要包括变
-
-分自动编码
-
-器(VAEs) [4，14]，基于流的
-
-模型[18]，以及生
-
-成对抗网络
 
 (GANs) [23，30，34，36]。值得注意的
 
