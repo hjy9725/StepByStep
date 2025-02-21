@@ -7,59 +7,11 @@
 
 
 
-Leveraging Delphi as
-
-the data engine, we
-
-further propose a failure-case
-
-driven framework, which automatically
-
-enhances the generalization of
-
-end-to-end models. Specifically, this
-
-framework inte- grates several
-
-steps as shown in
-
 Figure 1: 1) evaluating
 
 the end-to-end model, collecting
 
 failure cases,
-
-利用Delphi作为数
-
-据引擎，我们
-
-进一步提出
-
-了一个失败
-
-案例驱动的
-
-框架，它自动
-
-增强了端到
-
-端模型的泛
-
-化能力。具体
-
-来说，这个框
-
-架集成了几
-
-个步骤，如图
-
-1所示:1)评估端
-
-到端模型，收
-
-集失败案例
-
-，
 
 2)
 
