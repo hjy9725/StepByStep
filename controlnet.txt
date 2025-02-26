@@ -1,0 +1,12635 @@
+Input Canny edge
+
+Input
+
+Canny edge
+
+Adding Conditional
+
+Control to Text-to-Image
+
+Diffusion
+
+Models
+
+向文本到图
+
+像扩散模型
+
+添加条件控
+
+制
+
+Lvmin Zhang,
+
+Anyi Rao, and Maneesh
+
+Agrawala Stanford University
+
+斯坦福大
+
+学张、饶安怡
+
+和
+
+Maneesh Agrawala
+
+{lvmin, anyirao,
+
+maneesh}@cs.stanford.edu
+
+maneesh}@cs.stanford.edu 安伊拉奥
+
+的吕敏
+
+Default
+
+默认
+
+“masterpiece of fairy tale,
+
+giant deer, golden antlers”
+
+“童话杰作，巨
+
+鹿，金
+
+鹿角”
+
+“…, quaint
+
+city Galic” “……古
+
+雅的城市加
+
+利茨”
+
+Input
+
+human pose Default “chef
+
+in kitchen” “Lincoln statue”
+
+输入人
+
+体姿态 默认
+
+《厨房里的厨
+
+师》《林肯雕像
+
+》
+
+Figure 1:
+
+Controlling Stable Diffusion with
+
+learned conditions. ControlNet allows
+
+users to add conditions
+
+like Canny edges
+
+(top),
+
+human pose (bottom), etc.,
+
+to control the image
+
+generation of large pretrained
+
+diffusion models. The default
+
+results
+
+use the prompt
+
+“a high-quality, detailed, and
+
+professional image”. Users can
+
+optionally give prompts like
+
+the “chef in
+
+kitchen”.
+
+图 1:用学习条
+
+件控制稳定
+
+扩散。ControlNet 允许用
+
+户添加诸如
+
+Canny edges(上图)、人体姿
+
+势(下图)等条
+
+件。，
+
+以控制大
+
+型预训练扩
+
+散模型的图
+
+像生成。默认
+
+结果使用提
+
+示“高质量、详
+
+细且专业的
+
+图像”。用户可
+
+以随意给出
+
+类似“厨房里
+
+的厨师”的提
+
+示。
+
+Abstra
+
+ct
+
+摘要
+
+We present ControlNet, a
+
+neural network architecture to
+
+add spatial conditioning controls
+
+to large, pretrained text￾to-image
+
+diffusion models. ControlNet locks
+
+the
+
+production- ready large
+
+diffusion models, and reuses
+
+their
+
+deep and ro-
+
+bust encoding layers pretrained
+
+with billions
+
+of images
+
+as a strong backbone
+
+to learn a diverse
+
+set of 
+
+conditional
+
+controls. The neural architecture
+
+is connected
+
+with “zero
+
+convolutions” (zero-initialized convolution
+
+layers)
+
+that progressively grow the
+
+parameters from zero
+
+and ensure that no
+
+harmful noise could affect
+
+the
+
+finetuning. We test
+
+various conditioning con- trols,
+
+e.g.,
+
+edges, depth, segmentation,
+
+human pose, etc., with
+
+Stable 
+
+Diffusion, using
+
+single or multiple conditions,
+
+with or 
+
+without
+
+prompts. We show that
+
+the training of Control￾Nets
+
+is robust with small
+
+(<50k) and large (>1m)
+
+datasets.
+
+Extensive results show
+
+that ControlNet may facilitate
+
+wider
+
+applications to control
+
+image diffusion models.
+
+我们
+
+提出了
+
+ControlNet，这是
+
+一种神经网
+
+络架构，
+
+用于
+
+将空间条件
+
+控制添加到
+
+大型预训练
+
+的文本到图
+
+像扩
+
+散模型
+
+中。ControlNet 锁定了生
+
+产就绪的大
+
+型扩散模
+
+型
+
+，并重用其经
+
+过数十亿幅
+
+图像预处理
+
+的深度和广
+
+度编
+
+码层，作
+
+为学习各种
+
+条件控制的
+
+强大骨干。神
+
+经架构
+
+与“零
+
+卷积”(零初始
+
+化卷积层)相
+
+连，这些卷积
+
+层从零
+
+开始
+
+逐渐增加参
+
+数，确保有害
+
+噪声不会影
+
+响调谐。我们
+
+测试了各种
+
+条件控制，如
+
+边缘、深度、分
+
+割、人体姿态
+
+等。，具有稳定
+
+的扩散，使用
+
+单个或多个
+
+条件，有或没
+
+有提示。我们
+
+证明了控制
+
+网的训练对
+
+于小的(<
+
+50k)和
+
+大
+
+的(> 1m)数据集是
+
+鲁棒的。大量
+
+的结果表
+
+明
+
+，ControlNet
+
+可以促进更
+
+广泛的应用
+
+，以控制图像
+
+扩散模型。
+
+a
+
+r
+
+X
+
+i
+
+v:2
+
+3
+
+0
+
+2.0
+
+5
+
+5
+
+4
+
+3
+
+v
+
+3
+
+[
+
+c
+
+s.C
+
+V
+
+]
+
+2
+
+6
+
+N
+
+o
+
+v
+
+a
+
+r
+
+X
+
+i
+
+v:2
+
+3
+
+0
+
+2.0
+
+5
+
+5
+
+4
+
+3
+
+v
+
+3
+
+[
+
+c
+
+s.C
+
+V
+
+]
+
+2
+
+6
+
+N
+
+1.Introduction
+
+2.介
+
+绍
+
+Many of us
+
+have experienced flashes of
+
+visual
+
+inspiration that we
+
+wish to capture in
+
+a unique image. With
+
+the advent of text-to-image
+
+diffusion models [54, 62,
+
+72],
+
+we can now
+
+create visually stunning images
+
+by typing in a
+
+text prompt. Yet, text-to-image
+
+models are limited in
+
+the
+
+control they provide
+
+over the spatial composition
+
+of the
+
+image; precisely
+
+expressing complex layouts, poses,
+
+shapes
+
+and forms can
+
+be difficult via text
+
+prompts alone.
+
+Generating an
+
+image that accurately matches
+
+our mental
+
+imagery often
+
+requires nu- merous trial-and-error
+
+cycles of
+
+editing a
+
+prompt, inspecting the resulting
+
+images and then
+
+re-editing
+
+the prompt.
+
+我们中的
+
+许多人都经
+
+历过视觉灵
+
+感的闪现，我
+
+们希
+
+望用独
+
+特的图像捕
+
+捉它们。随着
+
+文本到图像
+
+扩散模型
+
+的
+
+出现[54，62，72]，我们现
+
+在可以通过
+
+键入文本提
+
+示来创建视
+
+觉上令人惊
+
+叹的图像。然
+
+而，文本到图
+
+像
+
+模型在它
+
+们对图像的
+
+空间构成提
+
+供的控制方
+
+面是有限
+
+的
+
+；仅通过文本
+
+提示很难精
+
+确表达复杂
+
+的布局、姿
+
+势
+
+、形状和形式
+
+。生成与我们
+
+的心理意象
+
+精确匹配的
+
+图像通常需
+
+要编辑提示
+
+、检查生成的
+
+图像，然后重
+
+新
+
+编辑提示
+
+的大量反复
+
+试验循环。
+
+Can we enable
+
+finer grained spatial control
+
+by letting
+
+users provide
+
+additional images that directly
+
+specify their
+
+desired image
+
+composition? In computer vision
+
+and machine
+
+learning, these
+
+additional images (e.g., edge
+
+maps, human
+
+pose skeletons,
+
+segmentation maps, depth, normals,
+
+etc.)
+
+are often treated
+
+as conditioning on the
+
+image generation
+
+process. Image-to-image
+
+translation models [34, 98]
+
+learn
+
+我
+
+们是否可以
+
+通过让用户
+
+提供额外的
+
+图像来直接
+
+指
+
+定他们想
+
+要的图像组
+
+成，从而实现
+
+更精细的空
+
+间控
+
+制？在计
+
+算机视觉和
+
+机器学习中
+
+，这些附加图
+
+像(例
+
+如，边缘
+
+图、人体姿态
+
+骨架、分割图
+
+、深度、法线
+
+等
+
+。)通常被视为
+
+图像生成过
+
+程的条件。图
+
+像到图像的
+
+翻译模型[34，98]学
+
+习
+
+the mapping
+
+from conditioning images to
+
+target images.
+
+The research
+
+community has also taken
+
+steps to control
+
+text-
+
+to-image models with spatial
+
+masks [6, 20], image
+
+editing instructions [10], personalization
+
+via finetuning [21,
+
+75],
+
+etc. While a few
+
+problems (e.g., generating image
+
+variations, inpainting) can be
+
+resolved with training-free
+
+techniques
+
+like constraining the denoising
+
+diffusion
+
+process or edit-
+
+ing attention layer activations,
+
+a wider
+
+variety of
+
+problems like depth-to-image, pose-to-image,
+
+etc., require end-to-end learning
+
+and data-driven solutions.
+
+从条件图
+
+像到目标图
+
+像的映射。研
+
+究界也采取
+
+措施，
+
+通过空
+
+间遮罩[6，20]、图像
+
+编辑指令[10]、通
+
+过微调
+
+实现
+
+个性化[21，75]等来
+
+控制文本到
+
+图像的模型
+
+。虽
+
+然一些问
+
+题(例如，生成
+
+图像变化、修
+
+补)可以用像
+
+约
+
+束去噪扩
+
+散过程或编
+
+辑注意层激
+
+活这样的免
+
+训练技术
+
+来
+
+解决，但是更
+
+多种问题，像
+
+深度到图像
+
+、姿态到图
+
+像
+
+等。，需要端到
+
+端的学习和
+
+数据驱动的
+
+解决方案。
+
+Learning conditional
+
+controls for large text-to-image
+
+dif- fusion models in
+
+an end-to-end way is
+
+challenging.
+
+The amount of
+
+training data for a
+
+specific condition may be
+
+sig- nificantly smaller than
+
+the data available for
+
+general
+
+text-to- image training.
+
+For instance, the largest
+
+datasets
+
+for various specific
+
+problems (e.g., object shape/normal,
+
+human pose extraction, etc.)
+
+are usually about 100K
+
+in
+
+size, which is
+
+50,000 times smaller than
+
+the LAION-5B
+
+[79] dataset
+
+that was used to
+
+train Stable Diffusion [82].
+
+The direct finetun- ing
+
+or continued training of
+
+a large
+
+pretrained model
+
+with limited data may
+
+cause overfitting
+
+and catastrophic
+
+forget- ting [31, 75].
+
+Researchers have
+
+shown that
+
+such forgetting can be
+
+alleviated by restricting
+
+the
+
+number or rank of
+
+train- able parameters [14,
+
+25, 31,
+
+92]. For
+
+our problem, designing deeper
+
+or more
+
+customized neural
+
+architectures might be necessary
+
+for
+
+handling in-the-wild conditioning
+
+images with complex
+
+shapes
+
+and diverse high-level semantics.
+
+以
+
+端到端的方
+
+式学习大型
+
+文本到图像
+
+扩散模型的
+
+条
+
+件控制是
+
+具有挑战性
+
+的。特定条件
+
+下的训练数
+
+据量可
+
+能明
+
+显小于一般
+
+文本到图像
+
+训练的可用
+
+数据量。例
+
+如
+
+，各种特定问
+
+题的最大数
+
+据集(例如，对
+
+象形状/法
+
+线
+
+、人体姿势提
+
+取等)。)的大小
+
+通常约为 100K，比
+
+用
+
+于 训
+
+练 稳
+
+定 扩 散
+
+[82] 的 LAION-5B [79]
+
+数
+
+据 集 小
+
+50，000
+
+倍。数
+
+据有限的大
+
+型预训练模
+
+型的直接调
+
+整或
+
+持 续 训
+
+练
+
+可 能 会 导
+
+致
+
+过 度 调 整
+
+和
+
+灾 难 性 遗
+
+忘
+
+[31，75]。研究人员
+
+表明，这种遗
+
+忘可以通过
+
+限制可
+
+训练
+
+参数的数量
+
+或等级来缓
+
+解[14，25，31，92]。对
+
+于我们
+
+的问题，设计
+
+更深入或更
+
+定制的神经
+
+架构对于
+
+处
+
+理具有复杂
+
+形状和不同
+
+高级语义的
+
+野外条件图
+
+像可
+
+能是必
+
+要的。
+
+This paper presents
+
+ControlNet, an end-to-end neural
+
+network architecture that learns
+
+conditional controls for large
+
+pretrained text-to-image diffusion models
+
+(Stable
+
+Diffusion in our
+
+implementation). ControlNet preserves
+
+the
+
+quality and capabilities of
+
+the large model by
+
+locking its
+
+parameters, and
+
+also making a trainable
+
+copy of its
+
+encoding
+
+layers. This architecture treats
+
+the large pretrained
+
+model
+
+as a strong backbone
+
+for learning diverse conditional
+
+controls. The trainable copy
+
+and the original, locked
+
+model are connected with
+
+zero convolution layers, with
+
+weights initialized to zeros
+
+so that they progressively
+
+grow
+
+during the training.
+
+This architecture ensures that
+
+harmful
+
+noise is not
+
+added to the deep
+
+features of the large
+
+diffusion
+
+model at the
+
+beginning of training, and
+
+protects the large￾scale pretrained
+
+backbone in the trainable
+
+copy from being
+
+damaged
+
+by such noise.
+
+本文介
+
+绍了
+
+ControlNet，这是一
+
+种端到端的
+
+神经网
+
+络架
+
+构，它学习大
+
+型预训练的
+
+文本到图像
+
+扩散模型(在
+
+我们的实现
+
+中是稳定扩
+
+散)的条件控
+
+制。ControlNet 通
+
+过锁定
+
+其参数，并制
+
+作其编码层
+
+的可训练副
+
+本，保留了
+
+大
+
+型模型的质
+
+量和功能。这
+
+种架构将大
+
+型预训练模
+
+型视
+
+为学习
+
+各种条件控
+
+制的强大支
+
+柱。可训练副
+
+本和原始锁
+
+定模型通过
+
+零卷积层连
+
+接，权重初始
+
+化为零，以便
+
+它们
+
+在训练
+
+期间逐渐增
+
+长。这种架构
+
+确保了在训
+
+练开始时有
+
+害噪声不会
+
+被添加到大
+
+扩散模型的
+
+深度特征中
+
+，并且保
+
+护了
+
+可训练副本
+
+中的大规模
+
+预训练主干
+
+免受这种噪
+
+声的
+
+破坏。
+
+Our experiments show
+
+that ControlNet can control
+
+Sta￾ble Diffusion with various
+
+conditioning inputs, including
+
+Canny
+
+edges, Hough lines, user
+
+scribbles, human key points,
+
+segmentation maps, shape normals,
+
+depths, etc. (Figure 1).
+
+We test our approach
+
+using a single conditioning
+
+image,
+
+with or without
+
+text prompts, and we
+
+demonstrate how our
+
+approach
+
+supports the composition of
+
+multiple conditions.
+
+Additionally, we
+
+report that the training
+
+of ControlNet is
+
+robust
+
+and scalable on datasets
+
+of different sizes, and
+
+that
+
+for some tasks
+
+like depth-to-image conditioning, training
+
+Con- trolNets on a
+
+single NVIDIA RTX 3090Ti
+
+GPU can
+
+achieve
+
+我
+
+们的实验表
+
+明，ControlNet
+
+可以控制
+
+具有各种条
+
+件输入的稳
+
+定扩散，包括
+
+Canny 边缘、Hough 线、用户
+
+涂鸦、人体关
+
+键点、分割图
+
+、形状法线、深
+
+度等。(图
+
+一)。我
+
+们使用单个
+
+条件图像测
+
+试我们的方
+
+法，有或没
+
+有
+
+文本提示，并
+
+且我们展示
+
+了我们的方
+
+法如何支持
+
+多个
+
+条件的
+
+组合。此外，我
+
+们报告称，ControlNet 的
+
+训练
+
+在不同
+
+大小的数据
+
+集上是鲁棒
+
+的和可扩展
+
+的，并且对于
+
+深
+
+度 到 图 像
+
+调
+
+节 等 一 些
+
+任
+
+务 ， 在 单
+
+个
+
+NVIDIA RTX
+
+3090Ti GPU
+
+上训练 control net 可以
+
+实现
+
+results competitive with industrial
+
+models trained on large
+
+computation clusters. Finally, we
+
+conduct ablative studies
+
+to
+
+investigate the contribution of
+
+each component of our
+
+model, and compare our
+
+models to several strong
+
+conditional image generation baselines
+
+with user studies.
+
+结果与
+
+在大型计算
+
+集群上训练
+
+的工业模型
+
+相当。最
+
+后，我
+
+们进行烧蚀
+
+研究，以调查
+
+我们的模型
+
+的每个组
+
+成
+
+部分的贡献
+
+，并比较我们
+
+的模型与用
+
+户研究的几
+
+个
+
+强条件图
+
+像生成基线
+
+。
+
+In
+
+summary, (1) we propose
+
+ControlNet, a neural network
+
+architecture that can add
+
+spatially localized input
+
+conditions
+
+to a pretrained text-to-image
+
+diffusion model
+
+via efficient
+
+finetuning, (2) we present
+
+pretrained
+
+ControlNets to control
+
+Stable Diffusion, conditioned on
+
+Canny edges, Hough lines,
+
+user scribbles, human key
+
+points, segmentation maps, shape
+
+normals, depths, and
+
+cartoon
+
+line drawings, and (3)
+
+we val- idate the
+
+method
+
+with ablative experiments
+
+comparing to several alternative
+
+architectures, and conduct user
+
+studies focused on several
+
+previous baselines across different
+
+tasks.
+
+总之，(1)我们提
+
+出了 ControlNet，这是一
+
+种神经网络
+
+架构，可以通
+
+过有效的调
+
+整将空间本
+
+地化的输入
+
+条件添加
+
+到
+
+预训练的文
+
+本到图像扩
+
+散模型中，(2)我
+
+们提出了预
+
+训
+
+练 的 control net
+
+来 控
+
+制 稳 定
+
+的 扩
+
+散 ， 以
+
+Canny 边
+
+缘、Hough 线
+
+、用户涂鸦、人
+
+类关键点、分
+
+割图、形状法
+
+线、深度和卡
+
+通线条画为
+
+条件，以及(3)我
+
+们通过与几
+
+种
+
+替代架构
+
+进行比较的
+
+消融实验来
+
+验证该方法
+
+，并针对不同
+
+任务中的几
+
+个先前基线
+
+进行用户研
+
+究。
+
+3.Related Work
+
+4.相关著作
+
+4.1.
+
+Finetuning Neural Networks
+
+4.2.
+
+微调神经网
+
+络
+
+One way to
+
+finetune a neural network
+
+is to directly
+
+continue
+
+training it with the
+
+additional training data. But
+
+this
+
+approach can lead
+
+to overfitting, mode collapse,
+
+and
+
+catastrophic for- getting.
+
+Extensive research has focused
+
+on developing fine- tuning
+
+strategies that avoid such
+
+issues.
+
+优化神经
+
+网络的一种
+
+方法是直接
+
+用额外的训
+
+练数据继
+
+续
+
+训练它。但这
+
+种方法会导
+
+致过拟合、模
+
+式崩溃和灾
+
+难性遗忘。广
+
+泛的研究集
+
+中于开发避
+
+免此类问题
+
+的微
+
+调策略
+
+。
+
+HyperNetwork is an approach
+
+that originated in the
+
+Natural Language Processing (NLP)
+
+community [25], with
+
+the
+
+aim of training a
+
+small recurrent neural network
+
+to
+
+influence the weights
+
+of a larger one.
+
+It has been applied
+
+to
+
+image gener- ation
+
+with generative adversarial networks
+
+(GANs) [4, 18]. Heathen
+
+et al. [26] and
+
+Kurumuz [43]
+
+implement HyperNet-
+
+works for Stable Diffusion
+
+[72] to
+
+change the
+
+artistic style of its
+
+output images.
+
+超网络是一
+
+种起源于自
+
+然语言处理
+
+(NLP)社区的方法
+
+[25]，目的是训练
+
+一个小的递
+
+归神经网络
+
+来影响一个
+
+较大的神经
+
+网络的权重
+
+。它已经被应
+
+用于生成对
+
+抗网
+
+络(GANs)的图
+
+像生成[4，18]。异教
+
+徒等人[26]和
+
+Kurumuz [43] 实
+
+现 了
+
+稳 定 扩
+
+散 的
+
+HyperNet￾works[72]，以改变
+
+其输出图像
+
+的艺术风格
+
+。
+
+Adapter methods are
+
+widely used in NLP
+
+for
+
+customiz- ing a
+
+pretrained transformer model to
+
+other tasks
+
+by em-
+
+bedding new module layers
+
+into it [30, 84].
+
+In
+
+computer vision, adapters
+
+are used for incremental
+
+learning
+
+[74] and domain
+
+adaptation [70]. This technique
+
+is often
+
+used with
+
+CLIP [66] for transferring
+
+pretrained backbone
+
+models to
+
+different tasks [23, 66,
+
+85, 94]. More recently,
+
+adapters have yielded successful
+
+results in vision
+
+transformers
+
+[49, 50] and ViT-Adapter
+
+[14]. In
+
+concurrent work
+
+with ours, T2I- Adapter
+
+[56] adapts
+
+Stable Diffusion
+
+to external conditions.
+
+适配器方法
+
+广泛应用于
+
+NLP
+
+中，通过将新
+
+模块层嵌入
+
+其 中 ， 为
+
+其 他
+
+任 务 定
+
+制 预
+
+训 练 的
+
+变 压
+
+器 模 型
+
+[30，84]。在计
+
+算机视觉中
+
+，适配器用于
+
+增量学习
+
+[74]和
+
+领域适应[70]。这
+
+种技术通常
+
+与 CLIP [66]一
+
+起使用
+
+，用于将预训
+
+练的主干模
+
+型转移到不
+
+同的任务
+
+[23，66，85，94]。最
+
+近，适配器在
+
+视觉变压器
+
+[49，50]和 ViT 适配器[14]中
+
+取得了成功
+
+。在与我们
+
+同
+
+时进行的工
+
+作中，T2I- Adapter [56]使稳定
+
+扩散适
+
+应外
+
+部条件。
+
+Additive Learning circumvents forgetting
+
+by freezing
+
+the original
+
+model weights and adding
+
+a small number of
+
+new pa- rameters using
+
+learned weight masks [51,
+
+74],
+
+pruning [52], or
+
+hard attention [80]. Side-Tuning
+
+[92]
+
+uses a side
+
+branch model to learn
+
+extra functionality by
+
+linearly
+
+blending the outputs of
+
+a frozen model and
+
+an
+
+added network, with
+
+a predefined blending weight
+
+schedule.
+
+加法
+
+学习通过冻
+
+结原始模型
+
+权重并使用
+
+学习到的权
+
+重
+
+掩码[51，74]、剪枝
+
+[52]或硬注意[80]添
+
+加少量新参
+
+数来规避遗
+
+忘。侧调[92]使用
+
+侧支模型，通
+
+过线性混
+
+合
+
+冻结模型和
+
+添加网络的
+
+输出，以及预
+
+定义的混合
+
+权
+
+重表，学习
+
+额外的功能
+
+。
+
+Low-Rank Adaptation (LoRA)
+
+prevents catastrophic
+
+for- getting
+
+[31] by learning the
+
+offset of parameters with
+
+low- rank matrices, based
+
+on the observation that
+
+many
+
+over-
+
+低秩自适应
+
+(LoRA)通过学习低
+
+秩矩阵的参
+
+数偏移来防
+
+止灾难性遗
+
+忘[31],其基于许
+
+多过度遗忘
+
+的观察
+
+neural
+
+network block
+
+neural network
+
+block
+
+parameterized models reside
+
+in a low intrinsic
+
+dimension
+
+subspace [2, 47].
+
+参数
+
+化模型驻留
+
+在低固有维
+
+度子空间[2，47]。 x
+
+x
+
+Zero-Initialized
+
+Layers are used by
+
+ControlNet for
+
+con- necting
+
+network blocks. Research on
+
+neural networks
+
+has extensively
+
+discussed the initialization and
+
+manipulation of network weights
+
+[36, 37, 44, 45,
+
+46, 76,
+
+83, 95].
+
+For exam-
+
+零
+
+初始化层由
+
+ControlNet 用于连接网
+
+络块。对神经
+
+网
+
+络的研究
+
+已经广泛讨
+
+论了网络权
+
+重的初始化
+
+和操作
+
+[36，37，44，45，46，76，83，95]。为了
+
+考试-
+
+ple, Gaussian
+
+initialization of weights can
+
+be less risky than
+
+y
+
+ple，权重的
+
+高斯初始化
+
+比 y
+
+initializing
+
+with zeros [1]. More
+
+recently, Nichol et al.
+
+[59]
+
+用零[1]初始
+
+化。最近，Nichol 等人
+
+[59]
+
+c
+
+x
+
+zero convolution
+
++
+
+neural network block (locked)
+
+trainable copy
+
+zero convolution
+
++
+
+x
+
+zero convolution
+
++
+
+neural network block
+
+(locked) trainable copy
+
+zero
+
+convolution
+
++
+
+c
+
+yc
+
+ControlNet
+
+y染色体 控制
+
+网络
+
+discussed
+
+how to scale the
+
+initial weight of convolution
+
+lay- ers in a
+
+diffusion model to improve
+
+the training, and
+
+their
+
+implementation of “zero module”
+
+is an extreme case
+
+to scale weights to
+
+zero. Stability’s model cards
+
+[83] also
+
+mention the
+
+use of zero weights
+
+in neural layers.
+
+Manipulating
+
+the initial convolution weights
+
+is also discussed
+
+in
+
+ProGAN [36], StyleGAN [37],
+
+and Noise2Noise [46].
+
+讨论了
+
+如何在扩散
+
+模型中调整
+
+卷积层的初
+
+始权重以改
+
+善训练，并且
+
+它们的“零模
+
+块”的实现是
+
+将权重调整
+
+为零的极端
+
+情况。稳定性
+
+的模型卡[83]也
+
+提到了在神
+
+经层中使用
+
+零权重。ProGAN
+
+[36]、StyleGAN [37]和
+
+Noise2Noise [46]中
+
+也讨论了如
+
+何操纵初始
+
+卷积权
+
+重。
+
+4.3. Image Diffusion
+
+4.4. 图
+
+像扩散
+
+Image Diffusion
+
+Models were first introduced
+
+by
+
+Sohl- Dickstein et
+
+al. [81] and have
+
+been recently applied
+
+to
+
+image generation [17, 42].
+
+The Latent Diffusion Models
+
+(LDM) [72] performs the
+
+diffusion steps in the
+
+latent
+
+image space [19],
+
+which reduces the computation
+
+cost.
+
+Text-to- image diffusion
+
+models achieve state-of-the-art
+
+image
+
+gen- eration results by
+
+encoding text inputs into
+
+latent vectors via pretrained
+
+language models like CLIP
+
+[66]. Glide [58] is
+
+a text-guided diffusion model
+
+supporting image genera- tion
+
+and editing. Disco Diffusion
+
+[5] processes text prompts
+
+with clip guidance. Stable
+
+Diffusion [82] is a
+
+large-scale implementation of latent
+
+diffusion [72]. Imagen [78]
+
+directly diffuses pixels using
+
+a
+
+pyramid structure without
+
+using latent images. Commercial
+
+products include DALL-E2 [62]
+
+and Midjourney [54].
+
+图像
+
+扩散模型首
+
+先由
+
+Sohl- Dickstein 等人[81]提
+
+出，最近已应
+
+用于图像生
+
+成[17，42]。潜在扩散
+
+模型
+
+(LDM)
+
+[72]在潜在
+
+图像空间[19]中
+
+执行扩散步
+
+骤，这
+
+降低了
+
+计算成本。文
+
+本到图像扩
+
+散模型通过
+
+像 CLIP
+
+[66]这样的预
+
+训练语言模
+
+型将文本输
+
+入编码为潜
+
+在向
+
+量，从而
+
+实现最先进
+
+的图像生成
+
+结果。Glide [58]是
+
+一个
+
+支持图像生
+
+成和编辑的
+
+文本引导扩
+
+散模型。Disco
+
+Diffusion
+
+[5]使用
+
+剪辑指导处
+
+理文本提示
+
+。稳定扩散
+
+[82]是
+
+潜在扩散[72]的
+
+大规模实现
+
+。Imagen [78]使用
+
+金字塔
+
+结构直接扩
+
+散像素，而不
+
+使用潜像。商
+
+业产品
+
+包括
+
+DALL-E2 [62]和 Midjourney [54]。
+
+Controlling Image Diffusion Models
+
+facilitate
+
+personal- ization, customization,
+
+or task-specific image
+
+generation.
+
+The image diffusion process
+
+directly provides
+
+some control
+
+over color variation [53]
+
+and inpainting [67,
+
+7].
+
+Text-guided control methods focus
+
+on adjusting
+
+prompts, manipulating
+
+CLIP features, and modifying
+
+cross￾attention [7, 10, 20,
+
+27,
+
+控制图像
+
+扩散模型有
+
+助于个性化
+
+、定制化或特
+
+定任务的
+
+图
+
+像生成。图像
+
+扩散过程直
+
+接提供了对
+
+颜色变化[53]和
+
+修补[67，7]的一些
+
+控制。文本引
+
+导的控制方
+
+法侧重于
+
+调
+
+整
+
+提 示 、 操
+
+纵
+
+剪 辑 特 征
+
+和
+
+修 改 交 叉
+
+注
+
+意
+
+[7，10，20，27，
+
+40, 41,
+
+58, 64, 67]. MakeAScene
+
+[20] encodes
+
+segmentation masks
+
+into tokens to control
+
+image
+
+generation. SpaText [6]
+
+maps segmentation masks into
+
+localized token embeddings. GLIGEN
+
+[48] learns new
+
+parameters
+
+in attention layers of
+
+diffusion models for
+
+grounded
+
+generating. Textual Inver- sion
+
+[21] and
+
+DreamBooth [75]
+
+can personalize content in
+
+the generated
+
+image by
+
+finetuning the image diffusion
+
+model using a small
+
+set of user-provided example
+
+images. Prompt- based image
+
+editing [10, 33, 86]
+
+provides practical tools to
+
+manipulate
+
+images with prompts.
+
+Voynov et al. [88]
+
+propose an
+
+optimization method
+
+that fits the diffusion
+
+process with
+
+sketches. Concurrent
+
+works [8, 9, 32,
+
+56] examine a wide
+
+variety of ways to
+
+control diffusion models.
+
+40,
+
+41, 58, 64, 67].MakeAScene
+
+[20]将分段掩
+
+码编
+
+码成标
+
+记，以控制图
+
+像生成。SpaText [6]将分
+
+段掩码
+
+映射
+
+到本地化的
+
+令牌嵌入中
+
+。GLIGEN
+
+[48]在接地发电
+
+的 扩 散 模
+
+型
+
+的 注 意 层
+
+中
+
+学 习 新 的
+
+参
+
+数 。 textual
+
+inversion[21]和
+
+DreamBooth [75]可以通
+
+过使用一小
+
+组用户提供
+
+的示例图像
+
+来调整图像
+
+扩散模型，从
+
+而个性
+
+化 生
+
+成
+
+图 像 中 的
+
+内
+
+容 。 基 于
+
+提
+
+示 的 图 像
+
+编
+
+辑
+
+[10，33，86]提供了使
+
+用提示操作
+
+图像的实用
+
+工
+
+具。Voynov 等人[88]提
+
+出了一种优
+
+化方法，用草
+
+图来
+
+拟合扩
+
+散过程。并行
+
+工作[8，9，32，56]检查了
+
+控制扩
+
+散模
+
+型的各种方
+
+法。
+
+(a) Before
+
+(b) Aer (a)在(b) A
+
+er  之前
+
+Figure
+
+2: A neural block
+
+takes a feature map
+
+x as input
+
+and
+
+outputs another feature map
+
+y, as shown in
+
+(a). To
+
+add a
+
+ControlNet to such a
+
+block we lock the
+
+original
+
+block and create
+
+a trainable copy and
+
+connect them
+
+together using
+
+zero convolution layers, i.e.,
+
+1 × 1
+
+convolution
+
+with both weight and
+
+bias initialized to zero.
+
+Here c is a
+
+conditioning vector that we
+
+wish to add to
+
+the
+
+network, as shown
+
+in (b).
+
+图
+
+2:一个神经块
+
+以一个特征
+
+图 x
+
+为输入，输
+
+出另一个
+
+特
+
+征图 y，如(A)所示
+
+。为了将控制
+
+网添加到这
+
+样的块
+
+中，我
+
+们锁定原始
+
+块并创建可
+
+训练副本，并
+
+使用零卷
+
+积
+
+层将它们连
+
+接在一起，即
+
+1 × 1 卷积，权重和
+
+偏差
+
+都初始
+
+化为零。这里
+
+c 是我们希望
+
+添加到网络
+
+中的条
+
+件向
+
+量，如(b)所示。
+
+4.5.
+
+Image-to-Image Translation
+
+4.6. 图
+
+像到图像的
+
+翻译
+
+Conditional GANs [15, 34,
+
+63, 90, 93, 97,
+
+98, 99] and
+
+trans-
+
+formers [13, 19, 68]
+
+can learn the mapping
+
+between
+
+different image domains,
+
+e.g., Taming Transformer [19]
+
+is
+
+a vision transformer
+
+approach; Palette [77] is
+
+a conditional
+
+diffu- sion
+
+model trained from scratch;
+
+PITI [89] is a
+
+pretraining- based conditional diffusion
+
+model for image-to￾image trans-
+
+lation. Manipulating pretrained GANs
+
+can
+
+handle specific image-to-image
+
+tasks, e.g., StyleGANs can
+
+be controlled by extra
+
+encoders [71], with more
+
+applications studied in [3,
+
+22, 38, 39, 55,
+
+60, 65, 71].
+
+条件
+
+gan[15，34，63，90，93，97，98，99]和
+
+变换器
+
+[13，19，68]可以
+
+学习不同图
+
+像域之间的
+
+映射，例如
+
+驯
+
+服变换器[19]是
+
+一种视觉变
+
+换器方法；调
+
+色板[77]
+
+是从零
+
+开始训练的
+
+条件扩散模
+
+型；PITI
+
+[89]是一个基
+
+于预训练的
+
+图像到图像
+
+转换的条件
+
+扩散模型。操
+
+纵预
+
+训练的
+
+GANs 可以处理特
+
+定的图像到
+
+图像任务，例
+
+如，StyleGANs 可以由额
+
+外的编码器
+
+控制[71]，更多应
+
+用在[3，22，38，39，55，60，65，71]中进行
+
+研究。
+
+5.Method
+
+6.方法
+
+ControlNet is
+
+a neural network architecture
+
+that can en￾hance large
+
+pretrained text-to-image diffusion models
+
+with
+
+spatially localized, task-specific
+
+image conditions. We first
+
+introduce the basic structure
+
+of a ControlNet in
+
+Section 3.1
+
+and then
+
+describe how we apply
+
+a ControlNet to the
+
+image
+
+diffusion model Stable
+
+Diffusion [72] in Section
+
+3.2. We
+
+elaborate on
+
+our training in Section
+
+3.3 and detail several
+
+extra considerations during inference
+
+such as composing
+
+multiple
+
+ControlNets in Section 3.4.
+
+ControlNet 是
+
+一种神经网
+
+络架构，可以
+
+增强大型预
+
+训练文本到
+
+图像扩散模
+
+型，具有空间
+
+本地化、特定
+
+任
+
+务的图像
+
+条件。我们首
+
+先在第 3.1
+
+节中
+
+介绍控制网
+
+的
+
+基本结构
+
+，然后在第 3.2 节
+
+中描述我们
+
+如何将控制
+
+网
+
+应用于图
+
+像扩散模型
+
+稳定扩散[72]。我
+
+们在 3.3 节中
+
+详
+
+细阐述了我
+
+们的训练，并
+
+在
+
+3.4 节中详细
+
+说明了推
+
+理
+
+过程中的几
+
+个额外的考
+
+虑，例如组成
+
+多个控制网
+
+。
+
+6.1.
+
+ControlNet
+
+6.2. 控制网络
+
+ControlNet
+
+injects additional conditions into
+
+the blocks of
+
+a
+
+neural network (Figure 2).
+
+Herein, we use the
+
+term network
+
+block to
+
+refer to a set
+
+of neural layers that
+
+are commonly
+
+put together
+
+to form a single
+
+unit of a neural
+
+network, e.g.,
+
+resnet block,
+
+conv-bn-relu block, multi-head attention
+
+block,
+
+transformer block, etc.
+
+Suppose F(·; Θ) is
+
+such a trained
+
+neural
+
+block, with parameters Θ,
+
+that transforms an input
+
+feature map x, into
+
+another feature map y
+
+as
+
+ControlNet 将
+
+附加条件注
+
+入到神经网
+
+络的块中(图
+
+2)。在本文中，我
+
+们使用术语
+
+网络块来指
+
+代通常放在
+
+一
+
+起
+
+以 形 成
+
+神 经
+
+网 络 的
+
+单 个
+
+单 元 的
+
+一 组
+
+神 经 层
+
+， 例
+
+如，resnet 块、conv-bn-relu 块、多
+
+头注意力块
+
+、变压
+
+器块等
+
+。假设
+
+F(；θ)是具有
+
+参数 θ 的经过
+
+训练的神经
+
+块，它将输入
+
+特征图 x
+
+转换
+
+成另一个特
+
+征图 y
+
+y =
+
+F(x; Θ). (1)
+
+y
+
+= F(x；Θ).
+
+(1)
+
+In
+
+our setting, x and
+
+y are usually 2D
+
+feature maps, i.e., x
+
+∈
+
+在我们
+
+的设置中，x 和
+
+y 通常是
+
+2D 特征
+
+映射，即 x ∈
+
+R
+
+h×w×c with {h,
+
+w, c} as the
+
+height, width, and number
+
+of
+
+Rh×w×c，以{h，w，c}作
+
+为高度、宽度
+
+和
+
+channels in
+
+the map, respectively (Figure
+
+2a).
+
+分别是地
+
+图中的频道
+
+(图 2a)。
+
+To
+
+add a ControlNet to
+
+such a pre-trained neural
+
+block,
+
+we lock (freeze)
+
+the parameters Θ of
+
+the original block and
+
+simultaneously clone the block
+
+to a trainable copy
+
+with
+
+parameters Θc (Figure
+
+2b). The trainable copy
+
+takes an
+
+external conditioning
+
+vector c as input.
+
+When this
+
+structure is
+
+applied to large models
+
+like Stable Diffusion,
+
+the
+
+locked parameters preserve the
+
+production-ready model
+
+trained with
+
+billions of images, while
+
+the trainable copy
+
+reuses
+
+such large- scale pretrained
+
+model to establish a
+
+deep,
+
+robust, and strong
+
+backbone for handling diverse
+
+input
+
+conditions.
+
+为了将控
+
+制网络添加
+
+到这种预训
+
+练的神经块
+
+，我们
+
+锁定(冻
+
+结)原始块的
+
+参数
+
+θ，同时将
+
+该块克隆到
+
+具有
+
+参数 θc 的
+
+可训练副本
+
+(图
+
+2b)。可训练副
+
+本将外部条
+
+件向量 c 作为
+
+输入。当这种
+
+结构应用于
+
+像稳定扩散
+
+这
+
+样的大型
+
+模型时，锁定
+
+的参数保留
+
+了用数十亿
+
+图像训
+
+练的
+
+生产就绪模
+
+型，而可训练
+
+的副本重用
+
+这样的大规
+
+模预训练模
+
+型，以建立用
+
+于处理各种
+
+输入条件的
+
+深
+
+度、稳健和
+
+强大的主干
+
+。
+
+The trainable
+
+copy is connected to
+
+the locked model
+
+with
+
+zero convolution layers, denoted
+
+Z(·; ·). Specifically,
+
+Z(·;
+
+·) is a 1
+
+× 1 convolution layer
+
+with both weight and
+
+bias ini- tialized to
+
+zeros. To build up
+
+a ControlNet, we
+
+use
+
+two instances of zero
+
+convolutions with parameters Θz1
+
+and Θz2
+
+可训练副本
+
+连接到具有
+
+零卷积层的
+
+锁定模型，表
+
+示
+
+为
+
+Z(；).具体来
+
+说，Z(；)是 1 × 1
+
+卷积层
+
+，权重和
+
+偏差
+
+都初始化为
+
+零。为了建立
+
+一个控制网
+
+，我们使用
+
+两
+
+个零卷积实
+
+例，参数分别
+
+为 θZ1
+
+和 θz2
+
+respectively. The
+
+complete ControlNet then computes
+
+分别是
+
+。完整的控制
+
+网络然后计
+
+算
+
+yc = F(x;
+
+Θ) + Z(F(x +
+
+Z(c; Θz1); Θc);
+
+Θz2),
+
+(2)
+
+YC = F(x；θ)+Z(F(x+Z(c；θZ1)；θc)；
+
+θz2)，
+
+(2)
+
+Prompt ct
+
+即时 ct
+
+TextTime EncoderEncoder
+
+Input zt
+
+Condition cf
+
+zero convolution
+
++
+
+Prompt&Time
+
+SD Encoder Block A
+
+64×64
+
+SD Encoder Block
+
+B 32×32
+
+SD Encoder
+
+Block C 16×16
+
+SD
+
+Encoder Block D 8×8
+
+SD Middle Block 8×8
+
+SD Decoder Block D
+
+8×8
+
+×3
+
+×3
+
+SD
+
+Encoder Block A 64×64
+
+(trainable copy)
+
+SD Encoder
+
+Block B 32×32×3(trainable copy)
+
+×3
+
+×3 SD Encoder
+
+Block C ×3
+
+TextTime
+
+EncoderEncoder
+
+Input zt
+
+Condition
+
+cf
+
+zero convolution
+
++
+
+Prompt&Time
+
+SD Encoder Block
+
+A 64×64
+
+SD Encoder
+
+Block B 32×32
+
+SD
+
+Encoder Block C 16×16
+
+SD Encoder Block D
+
+8×8
+
+SD Middle Block
+
+8×8
+
+SD Decoder Block
+
+D 8×8
+
+×3
+
+×3
+
+SD Encoder Block A
+
+64×64 (trainable copy)
+
+SD
+
+Encoder Block B 32×
+
+×323
+
+(trainable copy)
+
+×3
+
+Time t 时间
+
+t
+
+where
+
+yc
+
+yc 在哪
+
+里
+
+is the output of
+
+the ControlNet block. In
+
+the first
+
+×3 SD
+
+Encoder Block D ×3
+
+8×8 (trainable copy)
+
+SD
+
+Middle Block 8×8 (trainable
+
+copy) zero convolution
+
+×3
+
+zero convolution ×3
+
+SD
+
+Decoder Block C 16×16
+
+SD Decoder Block B
+
+32×32
+
+SD Decoder Block
+
+A 64×64
+
+×3 zero
+
+convolution×3
+
+×3 zero convolution
+
+×3
+
+×3 zero convolution
+
+×3
+
+16×16 (trainable copy)
+
+×3
+
+SD Encoder Block
+
+D ×3
+
+8×8 (trainable
+
+copy)
+
+SD Middle Block
+
+8×8 (trainable copy) zero
+
+convolution
+
+×3
+
+zero convolution
+
+×3
+
+SD Decoder Block
+
+C 16×16
+
+SD Decoder
+
+Block B 32×32
+
+SD
+
+Decoder Block A 64×64
+
+×3 zero convolution×3
+
+×3
+
+zero convolution ×3
+
+×3
+
+zero convolution ×3
+
+是
+
+ControlN
+
+et 块
+
+的输出。首先
+
+training step,
+
+since both the weight
+
+and bias parameters of
+
+a zero convolution layer
+
+are initialized to zero,
+
+both of the
+
+Z(·;
+
+·) terms in Equation
+
+(2) evaluate to zero,
+
+and
+
+训练步骤，因
+
+为零卷积层
+
+的权重和偏
+
+置参数都被
+
+初始
+
+化为零
+
+，所以 Z(；)等式(2)中
+
+的项评估为
+
+零，并且
+
+yc = y. (3)
+
+yc = y。 (3)
+
+In this way, harmful
+
+noise cannot influence the
+
+hidden states
+
+这样
+
+，有害噪声就
+
+不会影响隐
+
+藏状态
+
+Output
+
+ϵθ (zt, t, ct,
+
+cf )
+
+输出
+
+ϵθ
+
+(zt，t，ct，cf)
+
+(a) Stable Diffusion
+
+(b)稳定的
+
+Di usion ff
+
+(c)
+
+ControlNet
+
+(d) 控制
+
+网络
+
+of
+
+the neural network layers
+
+in the trainable copy
+
+when the
+
+training starts.
+
+Moreover, since Z(c; Θz1)
+
+= 0 and the
+
+train- able copy also
+
+receives the input image
+
+x, the
+
+trainable copy
+
+is fully functional and
+
+retains the
+
+capabilities of
+
+the large, pretrained model
+
+allowing it to
+
+serve
+
+as a strong backbone
+
+for further learning. Zero
+
+convolutions protect this back-
+
+bone by eliminating
+
+random
+
+noise as gradients in
+
+the initial training steps.
+
+We
+
+detail the gradient
+
+calculation for zero convolutions
+
+in
+
+supplementary materials.
+
+可训练
+
+副本中的神
+
+经网络层。而
+
+且，由于
+
+Z(c；θZ1)=
+
+0，并且
+
+可训练副本
+
+也接收输入
+
+图像 x，则可训
+
+练副本
+
+是完
+
+全功能性的
+
+，并且保留了
+
+大的预训练
+
+模型的能
+
+力
+
+，从而允许它
+
+充当进一步
+
+学习的强大
+
+骨干。零卷积
+
+通过在初始
+
+训练步骤中
+
+消除作为梯
+
+度的随机噪
+
+声来保
+
+护这
+
+个骨架。我们
+
+详述补充材
+
+料中零卷积
+
+的梯度计
+
+算
+
+。
+
+6.3.
+
+ControlNet for Text-to-Image
+
+Diffusion
+
+6.4. 文本到图像
+
+扩散的控制
+
+网
+
+We use
+
+Stable Diffusion [72] as
+
+an example to show
+
+how ControlNet can add
+
+conditional control to a
+
+large
+
+pretrained diffusion model.
+
+Stable Diffusion is essentially
+
+a
+
+U-Net [73] with
+
+an encoder, a middle
+
+block, and a skip￾connected
+
+de- coder. Both the
+
+encoder and decoder
+
+contain
+
+12 blocks, and the
+
+full model contains 25
+
+blocks,
+
+including the middle
+
+block. Of the 25
+
+blocks, 8 blocks are
+
+down-sampling or up-sampling convolution
+
+layers, while
+
+the other
+
+17 blocks are main
+
+blocks that each contain
+
+4
+
+resnet layers and
+
+2 Vi- sion Transformers
+
+(ViTs). Each
+
+ViT contains
+
+several cross- attention and
+
+self-attention
+
+mechanisms. For example,
+
+in Figure 3a, the
+
+“SD Encoder
+
+Block A”
+
+contains 4 resnet lay-
+
+ers and 2 ViTs,
+
+while the
+
+“×3” indicates
+
+that this block is
+
+repeated three times.
+
+Text
+
+prompts are encoded using
+
+the
+
+我们以稳
+
+定扩散[72]为例
+
+，说明 ControlNet 如何将
+
+条件控制添
+
+加到大型预
+
+训练扩散模
+
+型中。稳定扩
+
+散本
+
+质上是
+
+一个 U-Net [73]，带有一
+
+个编码器、一
+
+个中间
+
+块和
+
+一个跳跃连
+
+接的解码器
+
+。编码器和解
+
+码器都包含
+
+12
+
+个块，完整模
+
+型包含 25 个块
+
+，包括中间块
+
+。在这 25
+
+个模块
+
+中，8 个模块是
+
+下采样或上
+
+采样卷积层
+
+，而其他
+
+17 个模
+
+块是主模块
+
+，每个模块包
+
+含
+
+4 个 resnet 层和
+
+2
+
+个
+
+Vi sion transformer(vit)。每个
+
+ViT 包含几
+
+个交
+
+叉注意
+
+和自我注意
+
+机制。例如，在
+
+图 3a
+
+中，“标清编
+
+码 器 模 块
+
+A” 包
+
+含 4 个
+
+resnet 层 和 2
+
+个
+
+vit ，
+
+而“×3”表示该模
+
+块重复三次
+
+。文本提示使
+
+用
+
+Figure
+
+3: Stable Diffusion’s U-net
+
+architecture connected
+
+图 3:稳定扩
+
+散的
+
+U-net 架构连
+
+接
+
+with a
+
+ControlNet on the encoder
+
+blocks and middle
+
+block.
+
+The locked, gray blocks
+
+show the structure of
+
+Stable Diffu- sion V1.5
+
+(or V2.1, as they
+
+use the same U￾net
+
+architecture). The trainable blue
+
+blocks and the white
+
+zero convolution layers are
+
+added to build a
+
+ControlNet.
+
+编码器模
+
+块和中间模
+
+块上带有控
+
+制网络。锁定
+
+的灰色
+
+块显
+
+示了稳定扩
+
+散 1.5
+
+版(或 2.1 版，因
+
+为它们使用
+
+相
+
+同的
+
+U-net 架构
+
+)的结构。添加
+
+可训练的蓝
+
+色块和白色
+
+零卷积层来
+
+构建控制网
+
+。
+
+CLIP text
+
+encoder [66], and diffusion
+
+timesteps are
+
+encoded with
+
+a time encoder using
+
+positional encoding.
+
+剪辑文本编
+
+码器[66]和扩散
+
+时间步长由
+
+时间编码器
+
+使
+
+用位置编
+
+码来编码。
+
+The ControlNet structure is
+
+applied to each encoder
+
+level of the U-net
+
+(Figure 3b). In particular,
+
+we use
+
+ControlNet to
+
+create a trainable copy
+
+of the 12 encoding
+
+blocks and 1 middle
+
+block of Stable Diffusion.
+
+The 12
+
+encoding blocks
+
+are in 4 resolutions
+
+(64 × 64, 32
+
+×
+
+32, 16 ×
+
+16, 8 × 8)
+
+with each one replicated
+
+3 times.
+
+The outputs
+
+are added to the
+
+12 skip-connections and 1
+
+middle block of the
+
+U-net. Since Stable Diffusion
+
+is a
+
+typical U-net
+
+structure, this ControlNet architecture
+
+is
+
+likely to be
+
+applicable with other models.
+
+ControlNet 结
+
+构应用于 U-net 的
+
+每个编码器
+
+级别
+
+(图 3b)。特别
+
+是，我们使用
+
+ControlNet 来创建 12
+
+个
+
+编
+
+码块和 1 个稳
+
+定扩散中间
+
+块的可训练
+
+副本。12
+
+个编
+
+码
+
+块采用 4 种分
+
+辨率(64
+
+× 64、32 × 32、16
+
+×
+
+16、8 × 8)，每种分
+
+辨率复制
+
+3 次
+
+。输出被添加
+
+到 U
+
+形网络的
+
+12
+
+个跳跃连接
+
+和 1 个中间模
+
+块。由于稳定
+
+扩
+
+散是典型
+
+的
+
+U 网结构，这
+
+种 ControlNet 体系结构
+
+很可
+
+能适用
+
+于其他模型
+
+。
+
+The way we
+
+connect the ControlNet is
+
+computationally
+
+efficient — since
+
+the locked copy parameters
+
+are frozen,
+
+no gradient
+
+computation is required in
+
+the originally
+
+locked encoder
+
+for the finetuning. This
+
+approach speeds
+
+up train-
+
+ing and saves GPU
+
+memory. As tested on
+
+a
+
+single NVIDIA A100
+
+PCIE 40GB, optimizing Stable
+
+Diffusion with Control- Net
+
+requires only about 23%
+
+more
+
+GPU memory and
+
+34%
+
+我们连接控
+
+制网络的方
+
+式在计算上
+
+是高效的——因
+
+为锁定的复
+
+制参数被冻
+
+结，所以在最
+
+初锁定的编
+
+码器
+
+中不需
+
+要梯度计算
+
+来进行微调
+
+。这种方法加
+
+快了训练
+
+速
+
+度，节省了
+
+GPU 内
+
+存。根据在单
+
+个 NVIDIA A100
+
+PCIE 40GB 上的测试
+
+，使用 Control-
+
+Net 优化稳
+
+定扩
+
+散只需
+
+要增加大约
+
+23%的 GPU
+
+内存和 34%的
+
+内存
+
+0 t
+
+f 2
+
+0 t
+
+f 2
+
+more time
+
+in each training iteration,
+
+compared to
+
+optimizing Stable
+
+Diffusion without ControlNet.
+
+与不使
+
+用控制网优
+
+化稳定扩散
+
+相比，每次训
+
+练迭代需
+
+要
+
+更多时间。
+
+Image diffusion models
+
+learn to progressively denoise
+
+images and generate samples
+
+from the training domain.
+
+The denoising process can
+
+occur in pixel space
+
+or in a
+
+latent
+
+space encoded from training
+
+data. Stable Diffusion
+
+uses
+
+latent images as the
+
+training domain as working
+
+in
+
+this space has
+
+been shown to stabilize
+
+the training process
+
+[72].
+
+Specif- ically, Stable Diffusion
+
+uses a pre-processing
+
+method
+
+similar
+
+图
+
+像扩散模型
+
+学习渐进地
+
+对图像去噪
+
+，并从训练域
+
+生成样本。去
+
+噪过程可以
+
+发生在像素
+
+空间或从训
+
+练数
+
+据编码
+
+的潜在空间
+
+中。稳定扩散
+
+使用潜像作
+
+为训练
+
+域，因
+
+为在该空间
+
+中工作已被
+
+证明能够稳
+
+定训练过程
+
+[72]。具体来说，稳
+
+定扩散使用
+
+类似的预处
+
+理方法
+
+to VQ-GAN [19] to
+
+convert 512 × 512
+
+pixel-space
+
+images into smaller
+
+64 × 64 latent
+
+images. To add
+
+ControlNet
+
+to Stable Diffusion, we
+
+first convert each
+
+input
+
+conditioning
+
+以将
+
+512 × 512
+
+像素空间的
+
+图像转换成
+
+更小的 64 ×
+
+64
+
+潜像
+
+。为了将 ControlNet 添加
+
+到稳定扩散
+
+中，我们
+
+首先
+
+转换每个输
+
+入调理
+
+image (e.g., edge, pose,
+
+depth, etc.) from an
+
+input size of
+
+512
+
+× 512 into a
+
+64 × 64 feature
+
+space vector that
+
+matches
+
+the size of Stable
+
+Diffusion. In particular, we
+
+use
+
+a tiny network
+
+E(·) of four convolution
+
+layers with 4 ×
+
+4
+
+kernels and 2
+
+× 2 strides (activated
+
+by ReLU, using 16,
+
+32, 64, 128, channels
+
+respectively, initialized with
+
+Gaussian
+
+weights and trained jointly
+
+with the full model)
+
+to
+
+encode an image-space
+
+condition ci into a
+
+feature space
+
+conditioning vector
+
+cf as,
+
+图像
+
+(例如，边缘、姿
+
+态、深度等。)从
+
+512 ×
+
+512 的
+
+输入大小
+
+转换成匹配
+
+稳定扩散大
+
+小的 64
+
+× 64 特征空
+
+间向量。特别
+
+地，我们使用
+
+具有 4
+
+× 4 个内核
+
+和 2
+
+×
+
+2 个步长的
+
+四个卷积层
+
+的微小网络
+
+E ()(由
+
+ReLU 激
+
+活，分别
+
+使用 16、32、64、128
+
+个通道
+
+，用高斯权重
+
+初始化，并与
+
+完整模型联
+
+合训练)来将
+
+图像空间条
+
+件 ci
+
+编码成特
+
+征空间条件
+
+向量 cf，
+
+cf = E(ci). (4)
+
+cf = E(ci) 。
+
+(4)
+
+The conditioning vector
+
+cf is passed into
+
+the ControlNet.
+
+条件向
+
+量 cf
+
+被传入控
+
+制网络。
+
+6.5. Training
+
+6.6.
+
+培养
+
+Given an input image
+
+z0, image diffusion algorithms
+
+progressively add noise to
+
+the image and produce
+
+a
+
+noisy image zt,
+
+where t represents the
+
+number of times
+
+noise
+
+is added. Given a
+
+set of conditions including
+
+time
+
+step t, text
+
+prompts ct, as well
+
+as a task-specific
+
+condition
+
+cf, image diffusion algorithms
+
+learn a network
+
+ϵθ
+
+to predict the noise
+
+added to the noisy
+
+image zt with
+
+给定输入图
+
+像
+
+z0，图像扩散
+
+算法渐进地
+
+向图像添
+
+加
+
+噪声，并产生
+
+噪声图像 zt，其
+
+中 t
+
+表示添加
+
+噪声
+
+的次数
+
+。给定一组条
+
+件，包括时间
+
+步长 t、文本提
+
+示
+
+ct
+
+以及特定
+
+于任务的条
+
+件 cf，图像扩散
+
+算法学习网
+
+络 ϵθ 来预测添
+
+加到噪声图
+
+像
+
+zt 的噪声
+
+L =
+
+Ez ,t,c ,c ,ϵ∼N
+
+(0,1)
+
+h
+
+∥ϵ −
+
+ϵθ(zt, t, ct,
+
+cf))∥
+
+2
+
+i
+
+, (5)
+
+L =
+
+Ez，t，c，c ,ϵ∼
+
+ϵϵ n(0,1)h∥ θ(zt，t，c
+
+t，cf))∑2i，
+
+(5)
+
+Test input training
+
+step 100 step 1000
+
+step 2000
+
+测
+
+试输入训练
+
+步骤 100
+
+步骤 1000 步
+
+骤 2000
+
+step 6100 step 6133
+
+step 8000 step 12000
+
+步骤 6100 步骤
+
+6133 步骤
+
+8000 步骤 12000
+
+Figure
+
+4: The sudden convergence
+
+phenomenon. Due to
+
+the
+
+zero convolutions, ControlNet always
+
+predicts high￾quality images during
+
+the entire training. At
+
+a certain step
+
+in
+
+the training process (e.g.,
+
+the 6133 steps marked
+
+in
+
+bold), the model
+
+suddenly learns to follow
+
+the input
+
+condition.
+
+图
+
+4:突然的收敛
+
+现象。由于零
+
+卷积，ControlNet
+
+在整
+
+个
+
+训练过程中
+
+总是预测高
+
+质量的图像
+
+。在训练过程
+
+中
+
+的某一步
+
+(例如，用粗体
+
+标记的 6133
+
+步)，模
+
+型突然学
+
+会
+
+遵循输入条
+
+件。
+
+(a) Input
+
+Canny map (b) W/o
+
+CFG (c) W/o CFG-RW
+
+(d) Full (w/o prompt)
+
+(a)输入 Canny 图 (b)不
+
+含
+
+CFG (c)不带 CFG-RW (d)
+
+Full(不带
+
+提示)
+
+Figure 5: Effect
+
+of Classifier-Free Guidance (CFG)
+
+and
+
+the proposed CFG
+
+Resolution Weighting (CFG-RW).
+
+图
+
+5:无分
+
+类制导(CFG)和建
+
+议的 CFG 分辨率
+
+加权(CFG￾RW)的效果
+
+。
+
+where
+
+L is the overall
+
+learning objective of the
+
+entire dif￾fusion model. This
+
+learning objective is directly
+
+used in
+
+finetuning diffusion
+
+models with ControlNet.
+
+其中
+
+L 是整个
+
+扩散-融合模
+
+型的总体学
+
+习目标。该学
+
+习
+
+目标直接
+
+用于通过 ControlNet
+
+调
+
+整扩散模型
+
+。
+
+In the training
+
+process, we randomly replace
+
+50% text
+
+prompts ct
+
+with empty strings. This
+
+approach increases
+
+ControlNet’s ability
+
+to directly recognize semantics
+
+in the
+
+input conditioning
+
+images (e.g., edges, poses,
+
+depth, etc.)
+
+as a
+
+replacement for the prompt.
+
+在训练过程
+
+中，我们随机
+
+将 50%的文本提
+
+示 ct 替换
+
+为空
+
+字符串。这种
+
+方法提高了
+
+ControlNet 直接识别输
+
+入调节图像
+
+中的语义(例
+
+如，边缘、姿态
+
+、深度等)的
+
+能
+
+力。)作为提示
+
+符的替换。
+
+During
+
+the training process, since
+
+zero convolutions do
+
+not
+
+add noise to the
+
+network, the model should
+
+always be
+
+able to
+
+predict high-quality images. We
+
+observe that the
+
+model
+
+does not gradually learn
+
+the control conditions but
+
+abruptly succeeds in following
+
+the input conditioning image;
+
+usually in less than
+
+10K optimization steps. As
+
+shown in Fig￾ure 4,
+
+we call this the
+
+“sudden convergence phenomenon”.
+
+在
+
+训练过程中
+
+，由于零卷积
+
+不会给网络
+
+增加噪声，
+
+因
+
+此模型应该
+
+总是能够预
+
+测高质量的
+
+图像。我们观
+
+察
+
+到，模型不
+
+是逐渐学习
+
+控制条件，而
+
+是突然成功
+
+地跟随
+
+输入
+
+调节图像；通
+
+常用不到 10K
+
+的
+
+优化步骤。如
+
+图 4 所
+
+示，我们
+
+称之为“突然
+
+收敛现象”。
+
+6.7. Inference
+
+6.8. 推
+
+理
+
+We can further control
+
+how the extra conditions
+
+of Con￾trolNet affect the
+
+denoising diffusion process in
+
+several ways.
+
+我们可以
+
+进一步控制
+
+控制网络的
+
+额外条件如
+
+何以几
+
+种方
+
+式影响去噪
+
+扩散过程。
+
+Multiple condition (pose&depth) “boy”
+
+“astronaut”
+
+Figure 6: Composition
+
+of multiple conditions. We
+
+present
+
+the application to
+
+use depth and pose
+
+simultaneously.
+
+多
+
+重条件(姿势
+
+和深度)“男孩
+
+” 《宇航员》图 6:多
+
+个条
+
+件的构
+
+成。我们提出
+
+了同时使用
+
+深度和姿态
+
+的应用程序
+
+。
+
+Classifier-free guidance resolution
+
+weighting. Stable Dif- fusion
+
+depends on a technique
+
+called Classifier-Free Guid- ance
+
+(CFG) [29] to generate
+
+high-quality images. CFG is
+
+formulated as ϵprd =
+
+ϵuc
+
++ βcfg(ϵc −
+
+ϵuc) where ϵprd, ϵuc,
+
+无分类制导
+
+分辨率加权
+
+。稳定的扩散
+
+依赖于一种
+
+称
+
+为无分类
+
+导向(CFG) [29]的技术
+
+来生成高质
+
+量的图
+
+像。CFG
+
+的
+
+公式为 ϵ ϵ ϵ
+
+ϵ prd = uc+βcfg(
+
+c- uc，其
+
+中
+
+ϵprd、ϵuc、
+
+ϵc,
+
+βcfg are the model’s
+
+final output, unconditional output,
+
+ϵc，βcfg 是模型的最
+
+终输出，无条
+
+件输出，
+
+conditional output,
+
+and a user-specified weight
+
+respectively. When a conditioning
+
+image is added via
+
+ControlNet, it can be
+
+added to both ϵuc
+
+and ϵc, or only
+
+to
+
+the ϵc. In
+
+challenging cases, e.g., when
+
+no prompts are
+
+given,
+
+adding it to both
+
+ϵuc and ϵc will
+
+completely remove
+
+CFG guidance
+
+(Figure 5b); using only
+
+ϵc will make the
+
+guidance very strong (Figure
+
+5c). Our solution is
+
+to first
+
+add the
+
+conditioning image to ϵc
+
+and
+
+条件
+
+输出和用户
+
+指定的权重
+
+。当通过 ControlNet 添加
+
+调节图像时
+
+，它可以同时
+
+添加到
+
+ϵuc 和 ϵc，或
+
+者在有
+
+挑战
+
+性的情况下
+
+，仅添加到
+
+ϵc.，例
+
+如，当没有给
+
+出
+
+提示时，将
+
+它同时添加
+
+到 ϵuc 和
+
+ϵc 将完全
+
+删除 CFG 指
+
+导(图
+
+5b)；仅使用 ϵc 将使
+
+引导非常强
+
+(图 5c)。我们
+
+的解
+
+决方案是首
+
+先将调节图
+
+像添加到 ϵc
+
+Sketch Normal
+
+map Depth map Canny[11]
+
+edge M-LSD[24] line HED[91]
+
+edge ADE20k[96] seg. Human
+
+pose
+
+草
+
+图法线贴图
+
+深度图 Canny[11]edge M-LSD[24]line
+
+HED[91]edge ade 20k[96]seg。 人体
+
+姿势
+
+Figure 7: Controlling Stable
+
+Diffusion with various conditions
+
+without prompts. The top
+
+row is input conditions,
+
+while
+
+all other rows
+
+are outputs. We use
+
+the empty string as
+
+input prompts. All models
+
+are trained with general-domain
+
+data. The
+
+model has
+
+to recognize semantic contents
+
+in the input condition
+
+images to generate images.
+
+图 7:在没
+
+有提示的情
+
+况下控制各
+
+种条件下的
+
+稳定扩散。顶
+
+行是输入条
+
+件，而所有其
+
+他行是输出
+
+。我们使用空
+
+字符
+
+串作为
+
+输入提示。所
+
+有模型都是
+
+用通用领域
+
+数据训练的
+
+。该模型必须
+
+识别输入条
+
+件图像中的
+
+语义内容以
+
+生成图
+
+像。
+
+Method Result Quality ↑Condition
+
+Fidelity ↑
+
+方
+
+法结果质量
+
+↑条件保真度
+
+↑
+
+PITI
+
+[89](sketch) 1.10 ± 0.05
+
+1.02 ± 0.01
+
+Sketch-Guided
+
+[88] (β = 1.6)
+
+3.21 ± 0.62 2.31
+
+± 0.57
+
+Sketch-Guided [88]
+
+(β = 3.2) 2.52
+
+± 0.44 3.28 ±
+
+0.72
+
+ControlNet-lite 3.93 ±
+
+0.59 4.09 ± 0.46
+
+ControlNet 4.22 ± 0.43
+
+4.28 ± 0.45
+
+PITI
+
+[89](素描) 1.10 0.05 1.02
+
+0.01
+
+草图导
+
+向[88] (β =
+
+1.6) 3.21 0.62 2.31
+
+0.57
+
+草图导向
+
+[88] (β =
+
+3.2) 2.52 0.44 3.28
+
+0.72
+
+ControlNet-lite 3.93 0.59
+
+4.09 0.46
+
+控制网络 4.22
+
+0.43 4.28 0.45
+
+Table
+
+1: Average User Ranking
+
+(AUR) of result quality
+
+and condition fidelity. We
+
+report the user preference
+
+ranking (1 to 5
+
+indicates worst to best)
+
+of different
+
+methods.
+
+表
+
+1:结果质量和
+
+条件可靠性
+
+的平均用户
+
+排名(AUR)。我
+
+们报
+
+告了不同方
+
+法的用户偏
+
+好等级(1 到 5 表
+
+示最差到
+
+最
+
+好)。
+
+then multiply a
+
+weight wi to each
+
+connection between
+
+Stable Diffusion
+
+and ControlNet according to
+
+the resolution
+
+of each
+
+block wi = 64/hi,
+
+where hi is the
+
+size of i
+
+th
+
+block, e.g., h1 =
+
+8, h2 = 16,
+
+..., h13 = 64.
+
+By
+
+reducing the CFG
+
+guid- ance strength ,
+
+we can achieve the
+
+result shown in Figure
+
+5d, and we call
+
+this CFG
+
+Resolution Weighting.
+
+然后根据
+
+每个块的分
+
+辨率，给稳定
+
+扩散和控制
+
+网之间的
+
+每
+
+个连接乘以
+
+一个权重 wi =
+
+64/hi，其
+
+中 hi 是第 I
+
+个
+
+块
+
+的大小，例如
+
+h1 = 8，h2
+
+= 16，...，h13 = 64。通
+
+过降低 CFG 导
+
+向强度，我们
+
+可以获得图
+
+5d 所示的结果
+
+，
+
+我们称之为
+
+CFG 分辨率加权
+
+。
+
+Composing multiple
+
+ControlNets. To apply multiple
+
+con- ditioning images (e.g.,
+
+Canny edges, and pose)
+
+to a
+
+single instance
+
+of Stable Diffusion, we
+
+can directly add the
+
+outputs of the corresponding
+
+ControlNets to the Stable
+
+Diffusion model (Figure 6).
+
+No extra weighting or
+
+linear
+
+interpolation is necessary
+
+for such composition.
+
+组成多个控
+
+制网。为了将
+
+多个调节图
+
+像(例如
+
+Canny 边
+
+缘
+
+和姿态)应用
+
+于稳定扩散
+
+的单个实例
+
+，我们可以直
+
+接
+
+将相应控
+
+制网络的输
+
+出添加到稳
+
+定扩散模型
+
+中(图
+
+6)。
+
+这种合
+
+成不需要额
+
+外的加权或
+
+线性插值。
+
+7.Experiments
+
+8.实
+
+验
+
+We implement ControlNets with
+
+Stable Diffusion to
+
+test various conditions, including
+
+Canny Edge [11], Depth
+
+我们实现
+
+了具有稳定
+
+扩散的控制
+
+网来测试各
+
+种条
+
+件，包括
+
+Canny 边缘[11]，深度
+
+Map
+
+[69], Normal Map [87],
+
+M-LSD lines [24], HED
+
+soft
+
+地
+
+图[69]，法线地图
+
+[87]，M-LSD 线[24]，HED 软
+
+edge [91], ADE20K segmentation
+
+[96], Openpose [12],
+
+and
+
+user sketches. See also
+
+the supplementary material for
+
+ex- amples of each
+
+conditioning along with detailed
+
+training and inference parameters.
+
+边缘[91]、ADE20K 分
+
+割[96]、Openpose [12]和用户
+
+草
+
+图。另请参阅
+
+补充材料，了
+
+解每个条件
+
+的示例以及
+
+详细的训练
+
+和推理参数
+
+。
+
+8.1. Qualitative Results
+
+8.2.
+
+定性结果
+
+Figure 1 shows
+
+the generated images in
+
+several prompt
+
+settings. Figure
+
+7 shows our results
+
+with various
+
+conditions without
+
+prompts, where the ControlNet
+
+robustly interprets content semantics
+
+in diverse input
+
+conditioning
+
+images.
+
+图
+
+1 显示了在几
+
+种提示设置
+
+下生成的图
+
+像。图 7
+
+显
+
+示了
+
+我们在没有
+
+提示的各种
+
+条件下的结
+
+果，其中
+
+ControlNet 在不
+
+同的输入条
+
+件图像中稳
+
+健地解释内
+
+容
+
+语义。
+
+8.3. Ablative Study
+
+8.4. 消融
+
+研究
+
+We study
+
+alternative structures of ControlNets
+
+by (1)
+
+replacing the
+
+zero convolutions with standard
+
+convolution
+
+layers initialized with
+
+Gaussian weights, and (2)
+
+replacing
+
+each block’s trainable
+
+copy with one single
+
+convolution
+
+layer, which we
+
+call ControlNet-lite. See also
+
+the
+
+supplementary material for
+
+the full details of
+
+these
+
+ablative structures.
+
+我们通
+
+过(1)用用高斯
+
+权重初始化
+
+的标准卷积
+
+层替
+
+换零卷
+
+积，以及(2)用一
+
+个单独的卷
+
+积层替换每
+
+个块
+
+的可训
+
+练副本，来研
+
+究控制网的
+
+替代结构，我
+
+们称之
+
+为 ControlNet-lite。关
+
+于这些消融
+
+结构的全部
+
+细
+
+节，也可参
+
+见补充材料
+
+。
+
+We present 4
+
+prompt settings to test
+
+with possible be￾haviors of
+
+real-world users: (1) no
+
+prompt; (2) insufficient
+
+prompts
+
+that do not fully
+
+cover objects in conditioning
+
+im￾ages, e.g., the default
+
+prompt of this paper
+
+“a high-quality,
+
+detailed, and
+
+professional image”; (3) conflicting
+
+prompts
+
+that change the
+
+semantics of conditioning images;
+
+(4) perfect
+
+prompts that
+
+describe necessary content semantics,
+
+e.g., “a
+
+nice house”.
+
+Figure 8a shows that
+
+ControlNet succeeds
+
+in
+
+我们提出
+
+4 种
+
+提示设置来
+
+测试现实世
+
+界用户可能
+
+的
+
+行为:(1)没有
+
+提示；(2)不充分
+
+的提示没有
+
+完全覆盖
+
+调
+
+节图像中的
+
+对象，例如，本
+
+文的默认提
+
+示“高质
+
+量、详
+
+细和专业的
+
+图像”；(3)改变条
+
+件图像语义
+
+的
+
+约束提示
+
+；(4)描述必要内
+
+容语义的完
+
+美提示，例
+
+如
+
+，“一所漂亮的
+
+房子”。图 8a
+
+显示
+
+了 ControlNet
+
+在以下方
+
+面的成功
+
+(a)
+
+(
+
+一
+
+)
+
+co
+
+ndi
+
+tio
+
+n
+
+情
+
+况
+
+No prompt
+
+没有提
+
+示
+
+Insu
+
+cient ffi prompt
+
+Insu
+
+cient ffi 提示
+
+(w/o
+
+mentioning
+
+“house”)
+
+(未提
+
+及“房屋”)
+
+“high-quality
+
+and
+
+detailed masterpiece”
+
+“高质
+
+量和细致的
+
+杰
+
+作” zero conv
+
+input
+
++
+
+origin copy
+
++
+
+zero conv
+
+output (proposed)
+
+(b) condition
+
+conv
+
+input
+
++
+
+origin copy
+
++
+
+conv
+
+output (w/o zero
+
+conv)
+
+(c)
+
+input condition
+
+origin conv
+
++
+
+output
+
+(initialize lightweight
+
+layers from
+
+scratch)
+
+zero conv
+
+input
+
++
+
+origin copy
+
++
+
+zero conv
+
+output (proposed)
+
+(b) condition
+
+conv
+
+input
+
++
+
+origin copy
+
++
+
+conv
+
+output (w/o zero
+
+conv)
+
+(c)
+
+input condition
+
+origin conv
+
++
+
+output
+
+(initialize lightweight
+
+layers from
+
+scratch)
+
+Co
+
+nfl
+
+icti
+
+ng
+
+pr
+
+ompt
+
+冲突提
+
+示
+
+“deli
+
+cious
+
+cake
+
+”
+
+“美味
+
+的蛋
+
+糕”
+
+Perfe
+
+ct
+
+prom
+
+pt
+
+完美
+
+提示
+
+“a
+
+house, high-quality,
+
+extremely detailed,
+
+4K,
+
+HQ”
+
+一栋房子，高
+
+质量，非常
+
+详
+
+细，4K，总部
+
+Figure 8: Ablative study
+
+of different architectures on
+
+a sketch condition and
+
+different prompt settings. For
+
+each setting, we
+
+show
+
+a random batch of
+
+6 samples without cherry-picking.
+
+Images are at 512
+
+× 512 and best
+
+viewed when zoomed in.
+
+The
+
+green “conv” blocks
+
+on the left are
+
+standard convolution layers initialized
+
+with Gaussian weights.
+
+图
+
+8:在
+
+草图条件和
+
+不同提示设
+
+置下对不同
+
+建筑的消融
+
+研究。对于每
+
+个设置，我们
+
+展示了一批
+
+随机的 6 个样
+
+品，没
+
+有挑选
+
+。图像为
+
+512 × 512，放大
+
+后观看效果
+
+最佳。左边的
+
+绿色“conv”块是用
+
+高斯权重初
+
+始化的标准
+
+卷积层。
+
+ADE20K
+
+(GT)VQGAN [19]LDM [72]PITI [89]ControlNet-liteControlNet
+
+ade 20k(GT)VQGAN[19]LDM[72]PITI[89]control net-liteControlNet
+
+0.58
+
+± 0.10 0.21 ±
+
+0.150.31 ± 0.090.26 ±
+
+0.16 0.32 ± 0.12
+
+0.35 ±
+
+0.14
+
+0.58
+
+0.10 0.21 0.150.31 0.090.26
+
+0.16 0.32 0.12 0.35
+
+0.14
+
+Table 2: Evaluation
+
+of semantic segmentation label
+
+recon￾struction (ADE20K) with Intersection
+
+over Union (IoU ↑).
+
+表 2:具
+
+有交集/并集
+
+(IoU ↑)的语义分割
+
+标签重构
+
+(ADE20K)的
+
+评估。
+
+all 4 settings. The
+
+lightweight ControlNet-lite (Figure 8c)
+
+is not strong enough
+
+to interpret the conditioning
+
+images
+
+and fails in
+
+the insufficient and no
+
+prompt conditions. When
+
+zero
+
+convolutions are replaced, the
+
+performance of
+
+ControlNet drops
+
+to about the same
+
+as ControlNet-lite,
+
+indicating that
+
+the pretrained backbone of
+
+the trainable
+
+copy is
+
+destroyed during finetuning (Figure
+
+8b).
+
+所有 4 种
+
+设置。轻量级
+
+ControlNet-lite(图
+
+8c)不够强
+
+大
+
+，不足以解释
+
+调节图像，并
+
+且在不充分
+
+和没有提示
+
+的
+
+情况下失
+
+败。当零卷积
+
+被替换时，ControlNet 的
+
+性能
+
+下降到
+
+与 ControlNet-lite 大致相同
+
+，表明可训练
+
+副本
+
+的预训
+
+练主干在调
+
+整期间被破
+
+坏(图
+
+8b)。
+
+8.5. Quantitative Evaluation
+
+8.6. 定量评
+
+价
+
+User study.
+
+We sample 20 unseen
+
+hand-drawn sketches,
+
+and then
+
+assign each sketch to
+
+5 methods: PITI [89]’s
+
+sketch model, Sketch-Guided Diffusion
+
+(SGD) [88] with
+
+default
+
+edge-guidance scale (β =
+
+1.6), SGD [88] with
+
+relatively high edge-guidance scale
+
+(β = 3.2), the
+
+aforementioned ControlNet-lite, and ControlNet.
+
+We invited
+
+12 users
+
+to rank these 20
+
+groups of 5 results
+
+individually in
+
+terms of
+
+“the quality of displayed
+
+images” and “the fidelity
+
+to the sketch”. In
+
+this way, we obtain
+
+100 rankings for result
+
+quality and 100 for
+
+condition fidelity. We use
+
+the Average
+
+Human Ranking
+
+(AHR) as a preference
+
+metric where users
+
+rank
+
+each result on a
+
+scale of 1 to
+
+5 (lower is worse).
+
+The
+
+average rankings are
+
+shown in Table 1.
+
+用户研究
+
+。我们对 20 个看
+
+不见的手绘
+
+草图进行采
+
+样，
+
+然后将每
+
+个草图分配
+
+给
+
+5 种方法:PITI [89]的
+
+草图模
+
+型、具
+
+有默认边缘
+
+引导尺度(β
+
+= 1.6)的
+
+草图引导扩
+
+散(SGD) [88]、具有相对
+
+较高边缘引
+
+导尺度 (β
+
+=
+
+3.2)的 SGD [88]、前
+
+面提到的
+
+ControlNet-lite 和
+
+ControlNet。我们邀请了
+
+12 位用户根据
+
+“显示图像的
+
+质量”和“草图
+
+的灵活性”分
+
+别对这 20
+
+组 5 个
+
+结果进
+
+行排
+
+名。通过这种
+
+方式，我们获
+
+得了结果质
+
+量
+
+100 分
+
+和条件
+
+符合度 100
+
+分。我
+
+们使用人类
+
+平均排名(AHR)作
+
+为偏好指标
+
+，用户将每个
+
+结果按 1 到 5(越
+
+低越差)进行
+
+排名。平均排
+
+名如表
+
+1 所示
+
+。
+
+Comparison to
+
+industrial models. Stable
+
+Diffusion
+
+V2 Depth-to-Image (SDv2-D2I) [83]
+
+is
+
+trained with a
+
+large-
+
+与工业模型
+
+的比较。稳定
+
+扩散 V2 深度成
+
+像(SDv2-
+
+D2I) [83]是用一个
+
+大的
+
+Method FID
+
+↓CLIP-score ↑CLIP-aes. ↑
+
+方法
+
+FID ↓CLIP-score ↑CLIP-aes↑
+
+Stable
+
+Diffusion 6.09 0.26 6.32
+
+稳
+
+定扩散 6.09 0.26 6.32
+
+VQGAN [19](seg.)*26.28 0.17 5.14
+
+VQGAN [19](seg。)*26.28 0.17 5.14
+
+LDM [72](seg.)* 25.35 0.18
+
+5.15
+
+LDM [72](seg。)* 25.35
+
+0.18 5.15
+
+PITI [89](seg.)
+
+19.74 0.20 5.77
+
+PITI
+
+[89](seg。) 19.74 0.20 5.77
+
+ControlNet-lite 17.92 0.26 6.30
+
+ControlNet-lite 17.92 0.26 6.30
+
+ControlNet 15.27 0.26 6.31
+
+控制
+
+网络 15.27 0.26 6.31
+
+Table 3: Evaluation for
+
+image generation conditioned by
+
+semantic segmentation. We report
+
+FID, CLIP text-image
+
+score,
+
+and CLIP aesthetic scores
+
+for our method and
+
+other
+
+baselines. We also
+
+report the performance of
+
+Stable Diffu￾sion without segmentation
+
+conditions. Methods marked
+
+with
+
+“*” are trained from
+
+scratch.
+
+表 3:语义
+
+分割条件下
+
+的图像生成
+
+评估。我们报
+
+告了我
+
+们的
+
+方法和其他
+
+基线的
+
+FID、剪辑
+
+文本图像分
+
+数和剪
+
+辑美
+
+学分数。我们
+
+还报道了在
+
+没有分割条
+
+件下稳定扩
+
+散的性能。标
+
+有“*”的方法是
+
+从零开始训
+
+练的。
+
+scale NVIDIA
+
+A100 cluster, thousands of
+
+GPU hours,
+
+and more
+
+than 12M training images.
+
+We train a
+
+ControlNet
+
+for the SD V2
+
+with the same depth
+
+conditioning but only use
+
+200k training samples, one
+
+single
+
+NVIDIA RTX 3090Ti,
+
+and 5 days of
+
+training. We use 100
+
+images generated by each
+
+SDv2-D2I and ControlNet to
+
+teach 12 users to
+
+distinguish the two methods.
+
+Afterwards, we generate 200
+
+images and ask the
+
+users to
+
+tell which
+
+model generated each image.
+
+The average
+
+precision of
+
+the users is 0.52
+
+± 0.17, indicating that
+
+the two method yields
+
+almost indistinguishable results.
+
+扩展
+
+NVIDIA A100 集
+
+群、数千个 GPU
+
+小
+
+时和超过 1200
+
+万
+
+个训练图像
+
+。我们使用相
+
+同的深度条
+
+件为 SD
+
+V2 训
+
+练控
+
+制网络，但仅
+
+使用 20
+
+万个训
+
+练样本、一个
+
+英伟
+
+达 RTX 3090Ti
+
+和 5 天
+
+的训练。我们
+
+使用由每个
+
+SDv2-
+
+D2I
+
+和 ControlNet 生成的 100
+
+个
+
+图像来教导
+
+12 个用
+
+户区分
+
+这两种方法
+
+。之后，我们生
+
+成 200
+
+张图像，并
+
+要求用户说
+
+出每张图像
+
+是由哪个模
+
+型生成的。用
+
+户的
+
+平均精
+
+度为 0.52±0.17，表明两
+
+种方法产生
+
+的结果几
+
+乎
+
+没有区别。
+
+Condition reconstruction and FID
+
+score. We
+
+use the
+
+test set of ADE20K
+
+[96] to evaluate the
+
+conditioning fidelity. The state-of-the-art
+
+segmentation
+
+method OneFormer [35]
+
+achieves an Intersection-over￾Union (IoU)
+
+with 0.58 on the
+
+ground-truth set. We use
+
+different methods to generate
+
+images with ADE20K
+
+segmentations
+
+and then apply One-
+
+条
+
+件重建和 FID 评
+
+分。我们使用
+
+ADE20K [96]的测试
+
+集来
+
+评估调节能
+
+力。最先进的
+
+分段方法 OneFormer
+
+[35]在
+
+地面真实数
+
+据集上实现
+
+了 0.58
+
+的交集/并
+
+集
+
+(IoU)。我们使用
+
+不同的方法
+
+生成带有 ADE20K 分
+
+割的
+
+图像，然
+
+后应用一个
+
+-
+
+Input (sketch)
+
+输入(草图)
+
+PITI 皮
+
+蒂（关岛地名
+
+）
+
+wall
+
+dog
+
+cup paper
+
+wall
+
+dog
+
+cup paper
+
+Ours (w/o
+
+prompts) 我 们的(无提
+
+示)
+
+“Lion”
+
+1k images 50k images
+
+3m images
+
+“狮子”1k 图像
+
+50k
+
+图像 3m 图像
+
+Figure
+
+10: The influence of
+
+different training dataset sizes.
+
+See also the supplementary
+
+material for extended examples.
+
+图
+
+10:不同训练数
+
+据集大小的
+
+影响。请参见
+
+补充材料中
+
+的扩展示例
+
+。
+
+Input (seg.)
+
+输入(分
+
+段。)
+
+PITI 皮
+
+蒂（关岛地名
+
+）
+
+Ours
+
+(default)“go
+
+lden
+
+retri
+
+ever”
+
+我们的(默认
+
+)“金毛”
+
+Input (sketch)
+
+输入(草
+
+图)
+
+Input (canny)
+
+输入(谨慎
+
+)
+
+Sketch-Guided
+
+草图引导的
+
+Taming Tran.
+
+驯服 Tran。
+
+on
+
+on
+
+Ours (“electric
+
+fan”)
+
+我们的
+
+(“电
+
+风扇”)
+
+Ours
+
+(default)
+
+“white helmet
+
+我们
+
+的(默认)
+
+“白色
+
+头盔
+
+Input “a high￾quality
+
+and extremely
+
+detailed image”
+
+投入 “高
+
+质量且极其
+
+细致的图像
+
+”
+
+Figure 11:
+
+Interpreting contents. If the
+
+input is ambiguous
+
+and
+
+the user does not
+
+mention object contents in
+
+prompts,
+
+the results look
+
+like the model tries
+
+to interpret input
+
+shapes.
+
+图 11:解释内容
+
+。如果输入不
+
+明确，并且用
+
+户没有在提
+
+示中提到对
+
+象内容，结果
+
+看起来就像
+
+模型试图解
+
+释输
+
+入的形
+
+状。
+
+Figure
+
+9: Comparison to previous
+
+methods.We present the
+
+图
+
+9:与以前
+
+方法的比较
+
+。我们介绍
+
+“house” “房
+
+子” SD
+
+1.5
+
+标清 1.5
+
+Comic
+
+Diffusio
+
+n
+
+Protog
+
+en
+
+3.4
+
+漫画
+
+扩散原始人
+
+3.4
+
+qualitative comparisons
+
+to PITI [89], Sketch-Guided
+
+Diffu- sion [88], and
+
+Taming Transformers [19].
+
+与
+
+PITI [89]、草图导向
+
+扩散[88]和驯服
+
+变形金刚[19]
+
+的
+
+定性比较。
+
+Former
+
+to detect the segmentations
+
+again to compute the
+
+reconstructed IoUs (Table 2).
+
+Besides, we use Frechet
+
+Incep- tion Distance (FID)
+
+[28] to measure the
+
+distribution
+
+distance over randomly
+
+generated 512×512 image sets
+
+using differ- ent segmentation-conditioned
+
+methods, as well
+
+as
+
+text-image CLIP scores [66]
+
+and CLIP aesthetic score
+
+[79] in Table 3.
+
+See also the supplementary
+
+material for
+
+detailed settings.
+
+前
+
+者再次检测
+
+分割以计算
+
+重建的 iou(表 2)。此
+
+外，我
+
+们使用
+
+Frechet
+
+接收距离(FID) [28]来
+
+测量随机生
+
+成
+
+的 512×512
+
+图像集
+
+的分布距离
+
+，使用不同的
+
+分割条件
+
+方
+
+法，以及表 3 中
+
+的文本图像
+
+剪辑得分[66]和
+
+剪辑美
+
+学得
+
+分[79]。有关详细
+
+设置，请参见
+
+补充材料。
+
+8.7. Comparison to
+
+Previous Methods
+
+8.8. 与
+
+以前方法的
+
+比较
+
+Figure 9 presents a
+
+visual comparison of baselines
+
+and our
+
+method (Stable
+
+Diffusion + ControlNet). Specifically,
+
+we
+
+show the results
+
+of PITI [89], Sketch-Guided
+
+Diffusion
+
+[88], and Taming
+
+Transformers [19]. (Note that
+
+the
+
+backbone of PITI
+
+is OpenAI GLIDE [57]
+
+that have different
+
+visual
+
+quality and performance.) We
+
+observe that
+
+ControlNet can
+
+robustly handle diverse conditioning
+
+images and achieves sharp
+
+and clean results.
+
+图
+
+9 展示
+
+了基线和我
+
+们的方法(稳
+
+定扩散+控制
+
+网)的视
+
+觉比
+
+较。具体来说
+
+，我们展示了
+
+PITI [89]、草图导向扩
+
+散[88]和驯服变
+
+压器[19]的结果
+
+。(请注意，PITI
+
+的支
+
+柱
+
+是 OpenAI GLIDE
+
+[57]，它们具
+
+有不同的视
+
+觉质量和性
+
+能。)我们观察
+
+到，ControlNet 可以稳健
+
+地处理不同
+
+的调
+
+节图像
+
+，并获得清晰
+
+的结果。
+
+8.9.
+
+Discussion
+
+8.10. 讨论
+
+Influence of
+
+training dataset sizes. We
+
+demonstrate the robustness of
+
+the ControlNet training in
+
+Figure 10. The training
+
+does not collapse with
+
+limited 1k
+
+images, and
+
+allows
+
+训 练 数
+
+据 集
+
+大 小 的
+
+影 响
+
+。 我 们
+
+在 图 10 中
+
+展
+
+示 了
+
+ControlNet 训练
+
+的健壮性。训
+
+练不会因为
+
+有限的
+
+1k 图
+
+像
+
+而崩溃，并且
+
+允许
+
+Figure
+
+12: Transfer pretrained ControlNets
+
+to community
+
+models [16,
+
+61] without training the
+
+neural networks
+
+again.
+
+图
+
+12:将预
+
+训练的控制
+
+网络转移到
+
+社区模型[16，61]
+
+中
+
+，无需再次训
+
+练神经网络
+
+。
+
+the model
+
+to generate a recognizable
+
+lion. The learning is
+
+scalable when more data
+
+is provided.
+
+生成可识别
+
+狮子的模型
+
+。当提供更多
+
+数据时，学习
+
+是
+
+可扩展的
+
+。
+
+Capability to interpret contents.
+
+We showcase
+
+Control- Net’s
+
+capability to capture the
+
+semantics from
+
+input condi-
+
+tioning images in Figure
+
+11.
+
+解 释 内
+
+容 的
+
+能 力 。
+
+在 图 11 中
+
+，
+
+我 们 展 示
+
+了
+
+Control- Net 从输入条件
+
+图像中捕获
+
+语义的能力
+
+。
+
+Transferring
+
+to community models. Since
+
+ControlNets do not change
+
+the network topology of
+
+pretrained SD models, it
+
+can be directly applied
+
+to various
+
+models in
+
+the stable diffusion community,
+
+such as Comic
+
+Diffusion
+
+[61] and Pro- togen
+
+3.4 [16], in Figure
+
+12.
+
+转移到社区
+
+模型。由于 ControlNets 不
+
+改变预训练
+
+SD
+
+模型的网络
+
+拓扑结构，它
+
+可以直接应
+
+用于稳定扩
+
+散社
+
+区中的
+
+各种模型，如
+
+Comic Diffusion [61]和
+
+Pro￾togen 3.4 [16]，如图 12
+
+所示
+
+。
+
+9.Conclusion
+
+10. 结论
+
+ControlNet is a neural
+
+network structure that learns
+
+con- ditional control for
+
+large pretrained text-to-image
+
+diffusion
+
+models. It reuses the
+
+large-scale pretrained
+
+layers of
+
+source models to build
+
+a deep and strong
+
+encoder to learn specific
+
+conditions. The original model
+
+and trainable copy are
+
+con- nected via “zero
+
+convolution”
+
+layers that eliminate
+
+harmful noise during training.
+
+Extensive experiments verify that
+
+Con- trolNet can
+
+effectively
+
+control Stable Diffusion with
+
+single or
+
+multiple conditions,
+
+with or without prompts.
+
+Results on
+
+diverse conditioning
+
+datasets show that the
+
+ControlNet
+
+struc￾ControlNet 是一种
+
+神经网络结
+
+构，它学习大
+
+型预训
+
+练文
+
+本到图像扩
+
+散模型的条
+
+件控制。它重
+
+新使用源模
+
+型的大规模
+
+预训练层来
+
+构建深度和
+
+强度高的编
+
+码器，
+
+以学习
+
+特定条件。原
+
+始模型和可
+
+训练副本通
+
+过“零卷
+
+积”层
+
+连接，消除训
+
+练过程中的
+
+有害噪声。大
+
+量实验
+
+证明
+
+，在有或没有
+
+提示的情况
+
+下，control lnet
+
+可以
+
+有效
+
+地控制单个
+
+或多个条件
+
+下的稳定扩
+
+散。在不同条
+
+件数据集上
+
+的结果表明
+
+，ControlNet 结构
+
+ture
+
+is likely to be
+
+applicable to a wider
+
+range of
+
+conditions, and
+
+facilitate relevant applications.
+
+ture
+
+很可能
+
+适用于更广
+
+泛的条件，并
+
+促进相关的
+
+应
+
+用。
+
+Acknowledgment
+
+承认
+
+This work was partially
+
+supported by the Stanford
+
+In￾stitute for Human-Centered AI
+
+and the Brown Institute
+
+for
+
+Media Innovation.
+
+这
+
+项工作得到
+
+了斯坦福以
+
+人为中心的
+
+人工智能研
+
+究
+
+所和布朗
+
+媒体创新研
+
+究所的部分
+
+支持。
+
+References
+
+参考
+
+[1]
+
+Sadia Afrin. Weight initialization
+
+in neural network,
+
+inspired
+
+by andrew ng,
+
+https://medium.com/@safrin1128/weight-
+
+initialization-in￾neural-network-inspired-by-andrew-ng- e0066dc4a566, 
+
+2020.
+
+3
+
+[2] 萨
+
+迪亚·阿夫林
+
+。神经网络中
+
+的权重初始
+
+化，受 andrew
+
+ng 的启发
+
+，https://medium.com/@safrin1128/weight-
+
+神经网络初
+
+始化灵感来
+
+自 andrew-ng￾e0066dc4a566，2020。3
+
+[3] Armen Aghajanyan, Sonal
+
+Gupta, and Luke Zettlemoyer.
+
+In- trinsic dimensionality explains
+
+the effectiveness of
+
+language
+
+model fine-tuning. In Proceedings
+
+of the 59th Annual
+
+Meeting of the Association
+
+for Computational Linguistics and
+
+the 11th International Joint
+
+Conference on Natural Language
+
+Process- ing, pages 7319–7328,
+
+Online, Aug. 2021.
+
+Association
+
+for Computational Linguistics. 3
+
+[4] 阿门·阿加
+
+贾尼扬、索纳
+
+尔·古普塔和
+
+卢克·塞特勒
+
+莫
+
+耶。内在维
+
+度解释了语
+
+言模型微调
+
+的有效性。《计
+
+算语
+
+言学协
+
+会第
+
+59 届年会
+
+和第 11 届国际
+
+自然语言处
+
+理联合
+
+会议
+
+论文集》，第 7319-7328 页
+
+，在线，2021 年
+
+8 月。
+
+计
+
+算语言学协
+
+会。3
+
+[5]
+
+Yuval Alaluf, Or Patashnik,
+
+and Daniel Cohen-Or. Only
+
+a matter of style:
+
+Age transformation using a
+
+style-based
+
+regression model. ACM
+
+Transactions on Graphics (TOG),
+
+40(4), 2021. 3
+
+[6]
+
+尤瓦尔阿
+
+拉鲁夫，或帕
+
+塔什尼克，和
+
+丹尼尔·科恩
+
+。只
+
+是风格的
+
+问题:使用基
+
+于风格的回
+
+归模型进行
+
+年龄转
+
+换。美
+
+国计算机学
+
+会图形汇刊
+
+(TOG)，40(4)，2021。3
+
+[7]
+
+Yuval Alaluf, Omer Tov,
+
+Ron Mokady, Rinon Gal,
+
+and
+
+Amit Bermano. Hyperstyle:
+
+Stylegan inversion with
+
+hypernetworks
+
+for real image editing.
+
+In Proceedings of the
+
+IEEE/CVF Conference on Computer
+
+Vision and Pattern
+
+Recognition,
+
+pages 18511–18521, 2022. 2
+
+[8] Yuval Alaluf、Omer Tov、Ron
+
+Mokady、Rinon Gal 和
+
+Amit
+
+Bermano。超风格:风
+
+格根反演与
+
+超网络的真
+
+实图
+
+像编辑
+
+。IEEE/CVF 计算机视觉
+
+和模式识别
+
+会议论文集
+
+，
+
+第
+
+18511-18521 页，2022。2
+
+[9] Alembics.
+
+Disco diffusion, https://github.com/alembics/disco￾diffusion, 2022.
+
+3
+
+[10]Alembics 。 迪
+
+斯 科
+
+扩 散 ，
+
+https://github.com/
+
+alembics/disco-扩散，2022。3
+
+[11]Omri Avrahami,
+
+Thomas Hayes, Oran Gafni,
+
+Sonal Gupta,
+
+Yaniv Taigman,
+
+Devi Parikh, Dani Lischinski,
+
+Ohad Fried,
+
+and Xi
+
+Yin. Spatext: Spatio-textual representation
+
+for con￾trollable image generation.
+
+arXiv preprint arXiv:2211.14305,
+
+2022.
+
+2, 3
+
+[12]Omri Avrahami
+
+、 Thomas Hayes 、
+
+Oran Gafni 、 Sonal
+
+Gupta 、 Yaniv Taigman
+
+、 Devi Parikh 、
+
+Dani
+
+Lischinski、Ohad Fried 和
+
+Xi
+
+Yin。空间文本:可
+
+控图
+
+像 生 成
+
+的
+
+空 间 文 本
+
+表
+
+示 。 arXiv 预
+
+印 本
+
+arXiv:2211.14305，2022。2, 3
+
+[13]Omri
+
+Avrahami, Dani Lischinski, and
+
+Ohad Fried. Blended
+
+diffusion
+
+for text-driven editing of
+
+natural images. In Pro￾ceedings
+
+of the IEEE/CVF Conference
+
+on Computer Vision
+
+and
+
+Pattern Recognition, pages 18208–18218,
+
+2022. 3
+
+[14]Omri Avrahami，Dani
+
+Lischinski 和 Ohad Fried。自然
+
+图像
+
+文本驱动编
+
+辑的混合扩
+
+散。IEEE/CVF 计算机视
+
+觉和
+
+模式识
+
+别会议论文
+
+集，第 18208-18218
+
+页，2022。3
+
+[15]Omer Bar-Tal, Lior
+
+Yariv, Yaron Lipman, and
+
+Tali Dekel.
+
+Multidiffusion: Fusing
+
+diffusion paths for controlled
+
+image
+
+generation. arXiv preprint
+
+arXiv:2302.08113, 2023. 3
+
+[16]奥马
+
+尔·巴尔-塔尔
+
+、利奥·亚里夫
+
+、亚龙·李普曼
+
+和程
+
+昕婷·德
+
+克。多重扩散
+
+:控制图像生
+
+成的融合扩
+
+散路
+
+径。arXiv 预印
+
+本 arXiv:2302.08113，2023。3
+
+[17]Dina Bashkirova, Jose Lezama,
+
+Kihyuk Sohn, Kate Saenko,
+
+and Irfan Essa. Masksketch:
+
+Unpaired structure-guided
+
+masked image
+
+generation. arXiv preprint arXiv:2302.05496,
+
+2023. 3
+
+[18]迪娜·巴什
+
+基罗娃、何塞
+
+·莱萨马、Kihyuk Sohn、凯特
+
+·萨恩科和伊
+
+尔凡·埃萨。Masksketch:不
+
+成对结构引
+
+导
+
+的 掩 蔽 图
+
+像
+
+生 成 。 arXiv
+
+预 印
+
+本
+
+arXiv:2302.05496，2023。3
+
+[19]
+
+Tim Brooks, Aleksander Holynski,
+
+and Alexei A Efros.
+
+In￾structpix2pix: Learning to follow
+
+image editing instructions.
+
+arXiv
+
+preprint arXiv:2211.09800, 2022. 2,
+
+3
+
+[20] 蒂姆·布鲁
+
+克斯、亚历山
+
+大·霍林斯基
+
+和阿列克谢
+
+·埃
+
+夫
+
+罗 斯 。 In-
+
+structpix2pix: 学
+
+习 遵 循
+
+图 像
+
+编 辑 说
+
+明。arXiv 预
+
+印本 arXiv:2211.09800，2022。2, 3
+
+[21] John Canny. A
+
+computational approach to edge
+
+detection.
+
+IEEE Transactions on
+
+Pattern Analysis and Machine
+
+Intelli￾gence, (6):679–698, 1986. 6
+
+[22] 约翰·坎
+
+尼。边缘检测
+
+的计算方法
+
+。IEEE 模式分析和
+
+机
+
+器智能汇
+
+刊，(6):679–698，1986。6
+
+[23] Z. Cao, G.
+
+Hidalgo Martinez, T. Simon,
+
+S. Wei, and Y.
+
+A.
+
+Sheikh. Openpose: Realtime
+
+multi-person 2d pose estima-
+
+[24] Z. 曹 、
+
+伊 达 尔
+
+戈 ·
+
+马 丁 内 斯
+
+、
+
+西 蒙 、 魏
+
+和 谢
+
+赫。Openpose:实时多人
+
+2d 姿势估计
+
+tion
+
+using part affinity fields.
+
+IEEE Transactions on
+
+Pattern
+
+Analysis and Machine Intelligence,
+
+2019. 6
+
+使
+
+用零件配件
+
+字段的选项
+
+。2019 年
+
+IEEE 模式分析
+
+与机
+
+器智能
+
+汇刊。6
+
+[25]
+
+Hanting Chen, Yunhe Wang,
+
+Tianyu Guo, Chang Xu,
+
+Yiping Deng, Zhenhua Liu,
+
+Siwei Ma, Chunjing Xu,
+
+Chao
+
+Xu, and Wen
+
+Gao. Pre-trained image processing
+
+transformer. In Pro- ceedings
+
+of the IEEE/CVF Conference
+
+on Computer Vision and
+
+Pattern Recognition, pages 12299–
+
+12310, 2021. 3
+
+[26]
+
+陈汉庭
+
+、、、徐畅、、邓、、刘振
+
+华、、、、等。预先
+
+训
+
+练的图像处
+
+理转换器。IEEE/CVF 计
+
+算机视觉和
+
+模式识
+
+别会
+
+议论文集，第
+
+12299–12310
+
+页，2021。3
+
+[27] Zhe Chen,
+
+Yuchen Duan, Wenhai Wang,
+
+Junjun He, Tong
+
+Lu,
+
+Jifeng Dai, and Yu
+
+Qiao. Vision transformer adapter
+
+for dense predictions. International
+
+Conference on
+
+Learning Representations,
+
+2023. 2
+
+[28] 、段、、、何、、戴继
+
+峰、俞乔。密集
+
+预测的视觉
+
+转换
+
+适配器
+
+。2023 年学习表征
+
+国际会议。2
+
+[29] Yunjey
+
+Choi, Minje Choi, Munyoung
+
+Kim, Jung-Woo Ha,
+
+Sunghun
+
+Kim, and Jaegul Choo.
+
+Stargan: Unified genera￾tive adversarial
+
+networks for multi-domain image-to-image
+
+translation. In Proceedings of
+
+the IEEE/CVF Conference on
+
+Computer Vision and Pattern
+
+Recognition, pages 8789–8797,
+
+2018.
+
+3
+
+[30] 崔
+
+允杰、崔敏杰
+
+、金文永、夏正
+
+宇、金成宪和
+
+周在
+
+哲。Stargan:用于
+
+多领域图像
+
+到图像翻译
+
+的统一通用
+
+对
+
+抗网络。IEEE/CVF 计
+
+算机视觉和
+
+模式识别会
+
+议论文集，
+
+第
+
+8789-8797 页，2018
+
+年。3
+
+[31] darkstorm2150.Protogen x3.4
+
+(photorealism) offi- cial
+
+release,
+
+https://civitai.com/models/3666/protogen-x34-
+
+photorealism-official-release, 2022. 8
+
+[32] 黑 暗 风
+
+暴
+
+2150 。 正 式
+
+发 布
+
+的 原 型
+
+x3.4( 照 片
+
+写
+
+实
+
+) ， https://civitai.com/models/3666/protogen￾x34-正式发
+
+布的照片写
+
+实，2022。8
+
+[33]
+
+Prafulla Dhariwal and Alexander
+
+Nichol. Diffusion models
+
+beat
+
+gans on image synthesis.
+
+Advances in Neural Information
+
+Processing Systems, 34:8780–8794, 2021.
+
+3
+
+[34] 普拉芙拉
+
+·德里瓦尔和
+
+亚历山大·尼
+
+科尔。扩散模
+
+型在
+
+图
+
+像 合
+
+成 上 击
+
+败 了
+
+甘 斯 。
+
+神 经 信
+
+息 处
+
+理 系 统
+
+进
+
+展，34:8780–8794，2021。3
+
+[35] Tan M. Dinh,
+
+Anh Tuan Tran, Rang
+
+Nguyen, and Binh-Son
+
+Hua.
+
+Hyperinverter: Improving stylegan inversion
+
+via hy￾pernetwork. In Proceedings
+
+of the IEEE/CVF Conference
+
+on Computer Vision and
+
+Pattern Recognition, pages 11389–
+
+11398, 2022. 2
+
+[36]
+
+陈明定
+
+、安俊川、阮让
+
+和华炳森。超
+
+反向器:通过
+
+超网
+
+络改进
+
+stylegan 反向。IEEE/CVF 计算机
+
+视觉和模式
+
+识
+
+别会议论
+
+文集，第 11389-11398 页，2022。2
+
+[37]
+
+Patrick Esser, Robin Rombach,
+
+and Bjorn Ommer. Taming
+
+transformers for high-resolution image
+
+synthesis. In Proceed￾ings of
+
+the IEEE/CVF Conference on
+
+Computer Vision and
+
+Pattern
+
+Recognition, pages 12873–12883, 2021.
+
+3, 5, 7, 8
+
+[38] 帕
+
+特里克·埃塞
+
+、罗宾·龙巴赫
+
+和比约恩·奥
+
+默。驯服
+
+高分
+
+辨率图像合
+
+成的变压器
+
+。IEEE/CVF 计算机视觉
+
+和模
+
+式识别
+
+会议论文集
+
+，第 12873-12883 页，2021。3, 5,
+
+7, 8
+
+[39] Oran
+
+Gafni, Adam Polyak, Oron
+
+Ashual, Shelly Sheynin,
+
+Devi
+
+Parikh, and Yaniv Taigman.
+
+Make-a-scene: Scene￾based text-to-image generation
+
+with human priors. In
+
+Euro￾pean Conference on Computer
+
+Vision (ECCV), pages 89–106.
+
+[40] Oran Gafni 、
+
+Adam Polyak 、 Oron
+
+Ashual 、 Shelly
+
+Sheynin、Devi
+
+Parikh 和 Yaniv Taigman。有人
+
+类先验
+
+的基
+
+于场景的文
+
+本到图像生
+
+成。欧洲计算
+
+机视觉会议
+
+(ECCV)，第 89-106 页。
+
+Springer,
+
+2022. 2, 3
+
+斯普林
+
+格，2022。2,
+
+3
+
+[41] Rinon Gal,
+
+Yuval Alaluf, Yuval Atzmon,
+
+Or Patashnik,
+
+Amit H
+
+Bermano, Gal Chechik, and
+
+Daniel Cohen-Or. An
+
+image
+
+is worth one word:
+
+Personalizing text-to-image genera￾tion using
+
+textual inversion. arXiv preprint
+
+arXiv:2208.01618,
+
+2022. 2, 3
+
+[42] 里农·加尔
+
+、尤瓦尔·阿拉
+
+鲁夫、尤瓦尔
+
+·阿茨蒙或
+
+帕
+
+塔什尼克、阿
+
+米特·H·伯曼诺
+
+、加尔·切奇克
+
+和丹
+
+尼尔·科
+
+恩-奥尔。一幅
+
+图像抵得上
+
+一个词:使用
+
+文本
+
+反 转 使
+
+文 本
+
+到 图 像
+
+的 生
+
+成 个 性
+
+化 。
+
+arXiv 预 印 本
+
+arXiv:2208.01618，2022。2, 3
+
+[43] Rinon
+
+Gal, Or Patashnik, Haggai
+
+Maron, Amit H Bermano,
+
+Gal Chechik, and Daniel
+
+Cohen-Or. Stylegan-nada: Clip￾guided domain
+
+adaptation of image generators.
+
+ACM
+
+Trans- actions on
+
+Graphics (TOG), 41(4):1–13, 2022.
+
+3
+
+[44] 利
+
+农·加尔，或帕
+
+塔什尼克，哈
+
+该·马龙，阿米
+
+特
+
+·H·伯曼诺，加
+
+尔·切奇克，和
+
+丹尼尔·科恩
+
+·奥
+
+尔。图像生
+
+成器的剪辑
+
+引导域自适
+
+应。《美国计算
+
+机
+
+学会图形
+
+学报》，41(4):1–13，2022。3
+
+[45] Peng
+
+Gao, Shijie Geng, Renrui
+
+Zhang, Teli Ma, Rongyao
+
+Fang, Yongfeng Zhang, Hongsheng
+
+Li, and Yu Qiao.
+
+Clip￾adapter: Better vision-language models
+
+with feature
+
+adapters. arXiv
+
+preprint arXiv:2110.04544, 2021. 2
+
+[46] 、耿世杰
+
+、、张、马特立、方
+
+荣耀、、、俞乔。剪
+
+辑
+
+适 配
+
+器 : 带
+
+有 特
+
+性 适 配
+
+器 的
+
+更 好 的
+
+视 觉
+
+语 言 模
+
+型。arXiv 预印本
+
+arXiv:2110.04544，2021。2
+
+[47] Geonmo Gu,
+
+Byungsoo Ko, SeoungHyun Go,
+
+Sung-Hyun
+
+Lee, Jingeun Lee,
+
+and Minchul Shin. Towards
+
+light￾weight and real-time line
+
+segment detection. In
+
+Proceedings
+
+of the AAAI Conference
+
+on Artificial
+
+Intelligence, 2022.
+
+6
+
+[48] 顾
+
+景文、高秉洙
+
+、宋宪、李圣贤
+
+、李京恩和申
+
+敏哲。
+
+走向轻
+
+量级和实时
+
+线段检测。2022
+
+年
+
+AAAI 人工智能会
+
+议论文集。6
+
+[49] David
+
+Ha, Andrew M. Dai,
+
+and Quoc V. Le.
+
+Hypernetworks. In International Conference
+
+on Learning
+
+Representations, 2017.
+
+2
+
+[50] 夏
+
+大伟，戴明伦
+
+，郭文乐。超级
+
+网络。在 2017
+
+年国
+
+际
+
+学习代表
+
+大会上。2
+
+[51] Heathen.
+
+Hypernetwork style training, a
+
+tiny guide, stable￾diffusion-webui, https://github.com/automatic1111/stable￾diffusion-webui/discussions/2670,
+
+2022. 2
+
+[52] 异教
+
+徒。超网络风
+
+格训练，一个
+
+微小的指南
+
+，稳定-扩
+
+散 -webui ， https://github.com/automatic1111/
+
+stable-扩
+
+散-webui/讨论/2670，2022。2
+
+[53] Amir Hertz,
+
+Ron Mokady, Jay Tenenbaum,
+
+Kfir Aberman,
+
+Yael Pritch,
+
+and Daniel Cohen-Or. Prompt-to-prompt
+
+im￾age editing with cross
+
+attention control. arXiv preprint
+
+arXiv:2208.01626, 2022. 3
+
+[54]
+
+阿米
+
+尔·赫兹、罗恩
+
+·莫卡迪、杰伊
+
+·特南鲍姆、科
+
+菲
+
+·阿伯曼、雅
+
+艾尔·普里奇
+
+和丹尼尔·科
+
+恩·奥尔。具
+
+有
+
+交叉注意力
+
+控制的即时
+
+图像编辑。 arXiv
+
+预
+
+印本
+
+arXiv:2208.01626，2022。3
+
+[55] Martin
+
+Heusel, Hubert Ramsauer, Thomas
+
+Unterthiner, Bern￾hard Nessler, and
+
+Sepp Hochreiter. Gans trained
+
+by a two
+
+time-scale
+
+update rule converge to
+
+a local nash equilibrium.
+
+In I. Guyon, U.
+
+Von Luxburg, S. Bengio,
+
+H. Wallach, R.
+
+Fer-
+
+gus, S. Vishwanathan, and
+
+R. Garnett, editors,
+
+Advances
+
+in Neural Information Processing
+
+Systems,
+
+volume 30. Curran
+
+Associates, Inc., 2017. 8
+
+[56] 马丁·霍
+
+塞尔、休伯特
+
+·拉姆绍尔、托
+
+马斯·安特辛
+
+纳、伯恩-哈德
+
+·奈斯勒和赛
+
+普·霍克雷特
+
+。由双时标
+
+更
+
+新规 则训练
+
+的
+
+gan 收敛 到局
+
+部 纳什
+
+均衡
+
+。在 I.
+
+Guyon、U. Von
+
+Luxburg、S. Bengio、H. Wallach、R.
+
+Fer-
+
+gus、S. Vishwanathan 和 R.
+
+Garnett 编辑的
+
+《神
+
+经信息处
+
+理系统的进
+
+展》第 30
+
+卷中。柯
+
+伦联合公
+
+司
+
+，2017 年。8
+
+[57]
+
+Jonathan Ho and Tim
+
+Salimans. Classifier-free diffusion
+
+guidance,
+
+2022. 5
+
+[58] 乔纳森·何
+
+和蒂姆·萨利
+
+曼斯。2022
+
+年无分
+
+类扩散指
+
+南
+
+。5
+
+[59] Neil
+
+Houlsby, Andrei Giurgiu, Stanislaw
+
+Jastrzebski, Bruna
+
+Morrone, Quentin
+
+De Laroussilhe, Andrea Gesmundo,
+
+Mona Attariyan, and Sylvain
+
+Gelly. Parameter-efficient
+
+transfer learning
+
+for nlp. In International
+
+Conference on
+
+Machine Learning,
+
+pages 2790–2799, 2019. 2
+
+[60] 尼尔·霍尔斯
+
+比、安德烈·久
+
+尔久、斯坦尼
+
+斯劳·雅斯
+
+特
+
+日布斯基、布
+
+鲁纳·莫龙、昆
+
+廷·德拉鲁西
+
+尔、安德
+
+烈·格
+
+斯蒙多、莫娜
+
+·阿塔利扬和
+
+西尔万·盖利
+
+。nlp
+
+的参数有效
+
+迁移学习。在
+
+机器学习国
+
+际会议上，第
+
+2790-2799 页，2019 年。2
+
+[61]
+
+Edward J Hu, Yelong
+
+Shen, Phillip Wallis, Zeyuan
+
+Allen-Zhu,
+
+Yuanzhi Li, Shean
+
+Wang, Lu Wang, and
+
+Weizhu Chen.
+
+Lora: Low-rank
+
+adaptation of large language
+
+models. arXiv
+
+preprint arXiv:2106.09685,
+
+2021. 2
+
+[62] 爱德华
+
+·J·胡，·沈，菲利普
+
+·沃利斯，
+
+·艾伦
+
+·
+
+朱，，Shean Wang，，和陈。大型
+
+语言模型的
+
+低阶适
+
+应。arXiv
+
+预
+
+印本 arXiv:2106.09685，2021。2
+
+[63] Lianghua
+
+Huang, Di Chen, Yu
+
+Liu, Shen Yujun, Deli
+
+Zhao,
+
+and Zhou Jingren.
+
+Composer: Creative and controllable
+
+image synthesis with composable
+
+conditions. 2023. 3
+
+[64]
+
+、黄、、、沈、、、周
+
+。作曲:具有可
+
+组合条件的
+
+创造
+
+性和可
+
+控的图像合
+
+成。2023.3
+
+[65] Nisha
+
+Huang, Fan Tang, Weiming
+
+Dong, Tong-Yee Lee,
+
+and
+
+Changsheng Xu. Region-aware diffusion
+
+for zero-shot
+
+text- driven
+
+image editing. arXiv preprint
+
+arXiv:2302.11797,
+
+2023. 3
+
+[66]
+
+黄，，范唐，，李
+
+同义和徐长
+
+生。零镜头文
+
+本驱动图像
+
+编 辑 的 区
+
+域
+
+感 知 扩 散
+
+。 arXiv 预
+
+印 本
+
+arXiv:2302.11797，2023。3
+
+[67] Phillip Isola,
+
+Jun-Yan Zhu, Tinghui Zhou,
+
+and Alexei A Efros.
+
+Image-to-image translation with conditional
+
+adversarial net￾works. In Proceedings
+
+of the IEEE Conference
+
+on Computer
+
+Vision and
+
+Pattern Recognition, pages 1125–1134,
+
+2017. 1,
+
+3
+
+[68]
+
+菲利普
+
+·伊索拉、、周廷
+
+辉和阿列克
+
+谢·埃夫罗斯
+
+。基于
+
+条件对
+
+抗网络的意
+
+象翻译。IEEE 计算
+
+机视觉和模
+
+式识别会
+
+议
+
+论文集，第
+
+1125-1134 页
+
+，2017 年。1, 3
+
+[69] Jitesh Jain, Jiachen
+
+Li, MangTik Chiu, Ali
+
+Hassani, Nikita
+
+Orlov, and
+
+Humphrey Shi. OneFormer: One
+
+Transformer to
+
+Rule Universal
+
+Image Segmentation. 2023. 7
+
+[70] Jitesh Jain 、
+
+Li 、 MangTik Chiu
+
+、 Ali
+
+Hassani、Nikita Orlov
+
+和 Humphrey Shi。OneFormer:
+
+统治通
+
+用图像分割
+
+的转换器。2023.七
+
+[71]
+
+Tero Karras, Timo Aila,
+
+Samuli Laine, and Jaakko
+
+Lehtinen.
+
+Progressive growing of
+
+gans for improved quality,
+
+stability,
+
+and variation. International
+
+Conference on Learning Repre￾sentations,
+
+2018. 3
+
+[72] Tero
+
+Karras 、 Timo Aila
+
+、 Samuli Laine 和
+
+Jaakko
+
+Lehtinen。为了提高
+
+质量、稳定性
+
+和多样性而
+
+逐步种植
+
+甘
+
+蔗。2018 年国际学
+
+习代表大会
+
+。3
+
+[73] Tero Karras, Samuli
+
+Laine, and Timo Aila.
+
+A style-based
+
+generator architecture
+
+for generative adversarial networks.
+
+In Proceedings of the
+
+IEEE/CVF Conference on Computer
+
+Vision and Pattern Recognition,
+
+pages 4401–4410, 2019. 3
+
+[74] 泰罗·卡拉斯
+
+、萨穆利·莱恩
+
+和蒂莫·艾拉
+
+。一种基于
+
+风
+
+格的生成对
+
+抗网络生成
+
+器体系结构
+
+。IEEE/CVF 计算机
+
+视觉
+
+和模式识别
+
+会议论文集
+
+，第 4401-4410 页，2019
+
+年。3
+
+[75] Tero Karras, Samuli
+
+Laine, and Timo Aila.
+
+A style-based
+
+generator architecture
+
+for generative adversarial networks.
+
+[76] 泰罗
+
+·卡拉斯、萨穆
+
+利·莱恩和蒂
+
+莫·艾拉。一种
+
+基于
+
+风格的
+
+生成对抗网
+
+络生成器体
+
+系结构。
+
+IEEE
+
+Transactions on Pattern Analysis,
+
+2021. 3
+
+2021 年
+
+IEEE 模
+
+式分析汇刊
+
+。3
+
+[77] Oren
+
+Katzir, Vicky Perepelook, Dani
+
+Lischinski, and Daniel
+
+Cohen-Or.
+
+Multi-level latent space structuring
+
+for generative
+
+control. arXiv
+
+preprint arXiv:2202.05910, 2022. 3
+
+[78] 柳文欢·卡齐
+
+尔，维基·佩佩
+
+洛克，达尼·利
+
+辛斯基和
+
+丹
+
+尼尔·科恩·奥
+
+尔。生成控制
+
+的多层次潜
+
+在空间结
+
+构
+
+。arXiv
+
+预印本 arXiv:2202.05910，2022。3
+
+[79] Bahjat
+
+Kawar, Shiran Zada, Oran
+
+Lang, Omer Tov, Huiwen
+
+Chang, Tali Dekel, Inbar
+
+Mosseri, and Michal Irani.
+
+Imagic:
+
+Text-based real image
+
+editing with diffusion models.
+
+arXiv
+
+preprint arXiv:2210.09276, 2022.
+
+3
+
+[80] 巴赫
+
+贾特·卡瓦尔
+
+、希兰·扎达、奥
+
+兰·朗、奥迈尔
+
+·
+
+托夫、张惠文
+
+、程昕婷·德科
+
+、因巴尔·莫塞
+
+里和米哈
+
+尔
+
+· 伊 拉 尼
+
+。 基 于
+
+文 本
+
+的 真 实
+
+图 像
+
+编 辑 与
+
+扩 散
+
+模
+
+型。arXiv 预
+
+印本 arXiv:2210.09276，2022。3
+
+[81] Gwanghyun Kim, Taesung
+
+Kwon, and Jong Chul
+
+Ye. Dif￾fusionclip: Text-guided diffusion
+
+models for robust image
+
+manipulation. In Proceedings of
+
+the IEEE/CVF
+
+Conference on
+
+Computer Vision and Pattern
+
+Recognition,
+
+pages 2426– 2435,
+
+2022. 3
+
+[82] 金光铉
+
+，权泰成和叶
+
+钟哲。Dif-
+
+fusionclip:鲁棒图
+
+像
+
+处理的文
+
+本引导扩散
+
+模型。IEEE/CVF 计算机
+
+视觉和模式
+
+识别会议论
+
+文集，第 2426-2435
+
+页，2022。3
+
+[83] Diederik Kingma,
+
+Tim Salimans, Ben Poole,
+
+and Jonathan Ho.
+
+Variational
+
+diffusion models. Advances in
+
+Neural Information
+
+Processing Systems,
+
+34:21696–21707, 2021. 3
+
+[84]
+
+迪
+
+德里克·金马
+
+、蒂姆·萨利曼
+
+斯、本·普尔和
+
+乔纳森·
+
+何。变
+
+分扩散模型
+
+。神经信息处
+
+理系统进展
+
+，34:21696–
+
+21707，2021。3
+
+[85]
+
+Kurumuz. Novelai improvements on
+
+stable diffusion, 
+
+https://blog.novelai.net/novelai-improvements-on-stable￾diffusion-e10d38db82ac,
+
+2022. 2
+
+[86] 库鲁穆兹。稳
+
+定扩散的新
+
+改进，https://
+
+blog.novelai.net/novelai-improvements-on-stable-
+
+扩散-e10d38db82ac，2022。2
+
+[87] Yann
+
+LeCun, Yoshua Bengio, and
+
+Geoffrey Hinton. Deep
+
+learning. Nature, 521(7553):436–444, May
+
+2015. 3
+
+[88] Yann
+
+LeCun，Yoshua Bengio 和
+
+Geoffrey Hinton。深
+
+度学习。《自
+
+然》，521(7553):436–444，2015 年 5
+
+月。3
+
+[89] Y. Lecun, L.
+
+Bottou, Y. Bengio, and
+
+P. Haffner. Gradient￾based learning
+
+applied to document recognition.
+
+Proceedings of the IEEE,
+
+86(11):2278–2324, 1998. 3
+
+[90]
+
+Y.Lecun、L. Bottou、Y. Bengio 和
+
+P. Haffner。基
+
+于
+
+梯 度
+
+的 学
+
+习 在 文
+
+档 识
+
+别 中 的
+
+应 用
+
+。 IEEE 会
+
+议
+
+录，86(11):2278–2324，1998 年。3
+
+[91]
+
+Jaakko Lehtinen, Jacob Munkberg,
+
+Jon Hasselgren, Samuli
+
+Laine,
+
+Tero Karras, Miika Aittala,
+
+and Timo Aila.
+
+Noise2noise:
+
+Learning image restoration without
+
+clean data.
+
+Proceedings of
+
+the 35th International Conference
+
+on Machine
+
+Learning, 2018.
+
+3
+
+[92] Jaakko Lehtinen
+
+、 Jacob Munkberg 、
+
+Jon
+
+Hasselgren 、 Samuli
+
+Laine 、 Tero Karras
+
+、 Miika
+
+Aittala 和
+
+Timo
+
+Aila。Noise2noise:在没有干净
+
+数据
+
+的情况
+
+下学习图像
+
+恢复。2018 年第 35
+
+届
+
+机器学习国
+
+际
+
+会议论文
+
+集。3
+
+[93] Chunyuan
+
+Li, Heerad Farkhoor, Rosanne
+
+Liu, and Jason
+
+Yosinski.
+
+Measuring the intrinsic dimension
+
+of objective
+
+landscapes. International
+
+Conference on Learning
+
+Represen-
+
+tations, 2018. 3
+
+[94]
+
+李 春 元 、
+
+Heerad Farkhoor 、 Rosanne
+
+Liu 和
+
+Jason
+
+Yosinski。测量客观景
+
+观的内在维
+
+度。2018 年学习代
+
+表
+
+国际会议
+
+。3
+
+[95] Yuheng Li,
+
+Haotian Liu, Qingyang Wu,
+
+Fangzhou Mu,
+
+Jian- wei
+
+Yang, Jianfeng Gao, Chunyuan
+
+Li, and Yong Jae
+
+Lee. Gligen: Open-set grounded
+
+text-to-image generation.
+
+2023. 3
+
+[96] 李宇恒、刘昊
+
+天、吴青阳、穆
+
+、杨建伟、高剑
+
+锋、李春
+
+元和
+
+李勇在。Gligen:基于
+
+开放集的文
+
+本到图像生
+
+成。2023.3
+
+[97]
+
+Yanghao Li, Hanzi Mao,
+
+Ross Girshick, and Kaiming
+
+He.
+
+Exploring plain vision
+
+transformer backbones for object
+
+de￾tection. arXiv preprint arXiv:2203.16527,
+
+2022. 2
+
+[98] 李，毛翰子
+
+，罗斯·吉斯克
+
+和何。探索用
+
+于物体检测
+
+的
+
+平 面 视 觉
+
+变
+
+压 器 主 干
+
+。
+
+arXiv 预 印 本
+
+arXiv:2203.16527，2022。2
+
+[99] Yanghao Li,
+
+Saining Xie, Xinlei Chen,
+
+Piotr Dollar, Kaim￾ing He,
+
+and Ross Girshick. Benchmarking
+
+detection
+
+transfer learning with
+
+vision transformers. arXiv preprint
+
+arXiv:2111.11429, 2021. 2
+
+[100]、李、谢
+
+赛宁、、陈、彼得
+
+·多勒、何凯明
+
+和罗斯·吉
+
+希
+
+克。视觉转换
+
+器的基准检
+
+测迁移学习
+
+。arXiv 预印本
+
+arXiv:2111.11429，2021。2
+
+[101]Arun
+
+Mallya, Dillon Davis, and
+
+Svetlana Lazebnik. Piggy￾back: Adapting
+
+a single network to
+
+multiple tasks by
+
+learning
+
+to mask weights. In
+
+European Conference on
+
+Computer
+
+Vi- sion (ECCV), pages
+
+67–82, 2018. 2
+
+[102]阿伦
+
+·马尔雅、狄龙
+
+·戴维斯和斯
+
+维特拉娜·拉
+
+泽布
+
+尼克。搭
+
+载:通过学习
+
+屏蔽权重，使
+
+单一网络适
+
+应多项
+
+任 务
+
+。 欧
+
+洲 计 算 机
+
+视
+
+觉 会 议 (ECCV)
+
+， 第
+
+67–82
+
+页，2018 年。2
+
+[103]Arun Mallya and Svetlana
+
+Lazebnik. Packnet: Adding
+
+multi-
+
+ple tasks to a
+
+single network by iterative
+
+pruning. In
+
+Proceed- ings
+
+of the IEEE/CVF Conference
+
+on Computer
+
+Vision and
+
+Pattern Recognition, pages 7765–7773,
+
+2018.
+
+2
+
+[104]阿伦·马
+
+尔雅和斯维
+
+特拉娜·拉泽
+
+布尼克。打包
+
+:通过
+
+迭代修
+
+剪将多个任
+
+务添加到单
+
+个网络中。IEEE/CVF
+
+计
+
+算机视觉 和
+
+模 式识别 会
+
+议论
+
+文集， 第
+
+7765–7773
+
+页，2018 年。2
+
+[105]Chenlin Meng, Yutong He,
+
+Yang Song, Jiaming Song,
+
+Jiajun Wu, Jun-Yan Zhu,
+
+and Stefano Ermon. Sdedit:
+
+Guided image synthesis and
+
+editing with stochastic
+
+differential
+
+equations. In International Conference
+
+on
+
+Learning Representations, 2021.
+
+3
+
+[106]孟、何雨
+
+桐、、宋家明、吴
+
+家军、和 Stefano Ermon。
+
+用随
+
+机微分方程
+
+指导图像合
+
+成和编辑。2021 年
+
+国际学
+
+习表
+
+征会议。3
+
+[107]Midjourney.
+
+https://www.midjourney.com/, 2023. 1, 3
+
+[108]中途
+
+。https://www.midjourney.com/, 2023。1, 3
+
+[109]Ron
+
+Mokady, Omer Tov, Michal
+
+Yarom, Oran Lang, Inbar
+
+Mosseri, Tali Dekel, Daniel
+
+Cohen-Or, and Michal Irani.
+
+Self￾distilled stylegan: Towards generation
+
+from internet
+
+photos. In
+
+ACM SIGGRAPH 2022 Conference
+
+Proceedings, pages 1–9, 2022.
+
+3
+
+[110]罗恩·莫卡迪
+
+、奥迈尔·托夫
+
+、米哈尔·亚罗
+
+姆、奥
+
+兰·朗、因
+
+巴尔·莫塞里
+
+、程昕婷·德克
+
+、丹尼尔·
+
+科恩
+
+-奥尔和米哈
+
+尔·伊拉尼。自
+
+我提炼的风
+
+格:从互
+
+联网
+
+照片走向一
+
+代。美国计算
+
+机学会 2022 年会
+
+议记
+
+录，第
+
+1-9 页
+
+，2022。3
+
+[111]Chong Mou,
+
+Xintao Wang, Liangbin Xie,
+
+Jian Zhang,
+
+Zhon- gang
+
+Qi, Ying Shan, and
+
+Xiaohu Qie. T2i-adapter:
+
+Learning
+
+[112]崇谋、王、谢、、周
+
+刚奇、、肖虎。T2i 适
+
+配器:学习
+
+adapters to
+
+dig out more controllable
+
+ability for text-to￾image diffusion
+
+models. arXiv preprint arXiv:2302.08453,
+
+2023. 2, 3
+
+适
+
+配器挖掘更
+
+多的可控能
+
+力的文本到
+
+图像扩散模
+
+型。arXiv
+
+预印本 arXiv:2302.08453，2023。2, 3
+
+[113]Alex
+
+Nichol, Prafulla Dhariwal, Aditya
+
+Ramesh, Pranav
+
+Shyam, Pamela
+
+Mishkin, Bob McGrew, Ilya
+
+Sutskever, and
+
+Mark Chen.
+
+GLIDE: towards photorealistic image
+
+generation
+
+and editing with
+
+text-guided diffusion models. CoRR,
+
+2021.
+
+8
+
+[114]Alex Nichol
+
+， Prafulla Dhariwal ，
+
+Aditya
+
+Ramesh ， Pranav
+
+Shyam ， Pamela Mishkin
+
+， Bob
+
+McGrew，Ilya Sutskever
+
+和
+
+陈唐山。GLIDE:使用
+
+文本引
+
+导 扩
+
+散 模
+
+型 实 现
+
+照 片
+
+级 真 实
+
+感 图
+
+像 生 成
+
+和 编
+
+辑。CoRR，2021。8
+
+[115]Alex Nichol, Prafulla
+
+Dhariwal, Aditya Ramesh, Pranav
+
+Shyam, Pamela Mishkin, Bob
+
+McGrew, Ilya Sutskever, and
+
+Mark Chen. Glide: Towards
+
+photorealistic image
+
+generation and
+
+editing with text-guided diffusion
+
+models.
+
+2022. 3
+
+[116]Alex
+
+Nichol ， Prafulla Dhariwal
+
+， Aditya
+
+Ramesh ，
+
+Pranav Shyam ， Pamela
+
+Mishkin ， Bob
+
+McGrew，Ilya
+
+Sutskever 和陈
+
+唐山。Glide:使用文
+
+本
+
+引 导
+
+扩 散
+
+模 型 实
+
+现 照
+
+片 级 真
+
+实 感
+
+图 像 生
+
+成 和
+
+编
+
+辑。2022.3
+
+[117]Alexander
+
+Quinn Nichol and Prafulla
+
+Dhariwal. Improved
+
+denoising diffusion
+
+probabilistic models. In International
+
+Conference on Machine Learning,
+
+pages 8162–8171.
+
+PMLR, 2021.
+
+3
+
+[118]亚历山
+
+大·奎因·尼科
+
+尔和普拉富
+
+拉·德里瓦尔
+
+。改进
+
+的去噪
+
+扩散概率模
+
+型。在机器学
+
+习国际会议
+
+上，第
+
+8162–8171
+
+页。PMLR，2021 年。3
+
+[119]Yotam Nitzan,
+
+Kfir Aberman, Qiurui He,
+
+Orly Liba, Michal
+
+Yarom,
+
+Yossi Gandelsman, Inbar Mosseri,
+
+Yael Pritch, and
+
+Daniel
+
+Cohen-Or. Mystyle: A personalized
+
+generative prior.
+
+arXiv preprint
+
+arXiv:2203.17272, 2022. 3
+
+[120]约
+
+坦·尼赞、科夫
+
+勒·阿伯曼、瑞
+
+秋·何、奥利·巴
+
+丽、米哈尔·亚
+
+罗姆、约西·甘
+
+德斯曼、因巴
+
+尔·莫塞
+
+里、雅
+
+艾尔·普里奇
+
+和丹尼尔·科
+
+恩-奥尔。我的
+
+风格:
+
+个 性 化
+
+的
+
+生 成 先 验
+
+。
+
+arXiv 预 印 本
+
+arXiv:2203.17272，2022。3
+
+[121]ogkalu. Comic-diffusion v2,
+
+trained on 6 styles
+
+at once,
+
+https://huggingface.co/ogkalu/comic-diffusion, 2022.
+
+8
+
+[122]奥 格
+
+卡 鲁
+
+。 漫 画 传
+
+播
+
+v2 ， 一 次
+
+训 练
+
+6 种 风
+
+格 ， https://huggingface.co/ogkalu/comic￾diffusion, 2022。8
+
+[123]OpenAI. Dall-e-2, https://openai.com/product/dall-e-2, 2023.
+
+[124]OpenAI。https://openai.com/product/dall-e-2, 2023 年
+
+的
+
+Dall-e-2。
+
+1, 3
+
+1, 3
+
+[125]Taesung Park, Ming-Yu Liu,
+
+Ting-Chun Wang, and Jun￾Yan
+
+Zhu. Semantic image synthesis
+
+with spatially-adaptive
+
+nor- malization.
+
+In Proceedings of the
+
+IEEE/CVF
+
+Conference on Computer
+
+Vision and Pattern Recognition,
+
+pages 2337–2346, 2019. 3
+
+[126]大成公园，刘
+
+明宇，汀王春
+
+和朱俊彦。空
+
+间自适应归
+
+一
+
+化的语义
+
+图像合成。IEEE/CVF 计
+
+算机视觉和
+
+模式识别会
+
+议论文集，第
+
+2337-2346 页，2019
+
+年。3
+
+[127]Gaurav Parmar, Krishna
+
+Kumar Singh, Richard Zhang,
+
+Yijun Li, Jingwan Lu,
+
+and Jun-Yan Zhu. Zero-shot
+
+image￾to-image translation. arXiv preprint
+
+arXiv:2302.03027,
+
+2023. 3
+
+[128]高拉夫
+
+·帕尔马、克里
+
+希纳·库马尔
+
+·辛格、张曦轲
+
+、
+
+李翊君、陆景
+
+万和朱俊彦
+
+。零拍摄图像
+
+到图像的翻
+
+译。arXiv 预印本 arXiv:2302.03027，2023。3
+
+[129]Or
+
+Patashnik, Zongze Wu, Eli
+
+Shechtman, Daniel Cohen-Or,
+
+and
+
+Dani Lischinski. Styleclip: Text-driven
+
+manipulation
+
+of stylegan imagery.
+
+In Proceedings of the
+
+IEEE/CVF In￾ternational Conference on
+
+Computer Vision (ICCV), pages
+
+2085–2094, October 2021. 3
+
+[130]或
+
+者帕塔什尼
+
+克、宗泽·吴、埃
+
+利·谢赫特曼
+
+、丹尼尔
+
+·科恩
+
+-奥尔和达尼
+
+·利辛斯基。Styleclip:文
+
+本驱动的
+
+stylegan 图
+
+像操作。IEEE/CVF
+
+国际
+
+计算机视觉
+
+会议
+
+(ICCV)论文集
+
+，2085–2094 页，2021 年
+
+10 月。3
+
+[131]Alec Radford,
+
+Jong Wook Kim, Chris
+
+Hallacy, Aditya
+
+Ramesh, Gabriel
+
+Goh, Sandhini Agarwal, Girish
+
+Sastry,
+
+Amanda Askell, Pamela
+
+Mishkin, Jack Clark, et
+
+al. Learning
+
+transferable visual
+
+models from natural language
+
+supervision. In
+
+International Conference
+
+on Machine Learning, pages
+
+8748–
+
+8763. PMLR, 2021.
+
+2, 3, 4, 8
+
+[132]亚历
+
+克·拉德福德
+
+、琼·金旭、克里
+
+斯·哈拉西、阿
+
+迪
+
+蒂亚·拉梅
+
+什、加布里埃
+
+尔·高、桑蒂尼
+
+·阿加瓦尔、
+
+吉
+
+里什·萨斯特
+
+里、阿曼达·阿
+
+斯克尔、帕梅
+
+拉·米什
+
+金、杰
+
+克·克拉克等
+
+人,《从自然语
+
+言监督中学
+
+习可转移
+
+视
+
+觉模型》。在机
+
+器学习国际
+
+会议上，第 8748–8763
+
+页
+
+。PMLR，2021 年。2,
+
+3, 4, 8
+
+[133]Aditya
+
+Ramesh, Prafulla Dhariwal, Alex
+
+Nichol, Casey Chu,
+
+and
+
+Mark Chen. Hierarchical text-conditional
+
+image genera￾tion with clip
+
+latents. arXiv preprint arXiv:2204.06125,
+
+2022.
+
+3
+
+[134]Aditya Ramesh
+
+， Prafulla Dhariwal ，
+
+Alex
+
+Nichol，Casey Chu 和陈唐山
+
+。具有剪辑潜
+
+在性的分层
+
+文
+
+本 条 件 图
+
+像
+
+生 成 。 arXiv
+
+预 印
+
+本
+
+arXiv:2204.06125，2022。3
+
+[135]Aditya
+
+Ramesh, Mikhail Pavlov, Gabriel
+
+Goh, Scott Gray,
+
+Chelsea
+
+Voss, Alec Radford, Mark
+
+Chen, and Ilya Sutskever.
+
+Zero-shot text-to-image generation. In
+
+International Confer￾ence on Machine
+
+Learning, pages 8821–8831. PMLR,
+
+2021.
+
+3
+
+[136]Aditya Ramesh，Mikhail
+
+Pavlov，Gabriel Goh，Scott
+
+Gray，Chelsea Voss，Alec
+
+拉德福德
+
+，陈唐山和 Ilya
+
+Sutskever。零
+
+镜头文本到
+
+图像生成。《机
+
+器学习国际
+
+会
+
+议》,第
+
+8821–8831 页。PMLR，2021 年
+
+。3
+
+[70]
+
+Sylvestre-Alvise Rebuffi, Hakan Bilen,
+
+and Andrea
+
+Vedaldi. Efficient
+
+parametrization of multi-domain deep
+
+neural net- works. In
+
+Proceedings of the IEEE/CVF
+
+Conference on Com- puter
+
+Vision and Pattern Recognition,
+
+pages 8119–8127, 2018. 2
+
+[71] 西尔威斯特
+
+-阿尔维斯·雷
+
+夫、哈坎·比伦
+
+和安德里亚
+
+·韦达尔迪。多
+
+域深度神经
+
+网络的有 效
+
+参数化。
+
+《IEEE/CVF
+
+计算
+
+机视觉和模
+
+式识别会议
+
+论文集》，第
+
+8119-8127 页
+
+，2018 年。2
+
+[72] Elad Richardson, Yuval
+
+Alaluf, Or Patashnik, Yotam
+
+Nitzan, Yaniv Azar, Stav
+
+Shapiro, and Daniel Cohen-Or.
+
+Encoding in style: a
+
+stylegan encoder for image-to-image
+
+translation. In Proceedings of
+
+the IEEE/CVF Conference on
+
+Computer Vision and Pattern
+
+Recognition, 2021. 3
+
+[73]
+
+埃拉德·理
+
+查森、尤瓦尔
+
+·阿拉鲁夫或
+
+帕塔什尼克
+
+、约
+
+坦·尼赞、亚
+
+尼夫·阿扎尔
+
+、斯塔夫·夏皮
+
+罗和丹尼尔
+
+·科恩-奥尔。风
+
+格编码:图像
+
+到图像翻译
+
+的风格编码
+
+器。IEEE/CVF 计算机视
+
+觉和模式识
+
+别会议论文
+
+集，2021
+
+年。3
+
+[74] Robin Rombach, Andreas
+
+Blattmann, Dominik Lorenz,
+
+Patrick
+
+Esser, and Bjo¨ rn
+
+Ommer. High-resolution image
+
+synthesis
+
+with latent diffusion models.
+
+In Proceedings of
+
+the
+
+IEEE/CVF Conference on Computer
+
+Vision and Pattern
+
+Recognition,
+
+pages 10684–10695, 2022. 1,
+
+2, 3, 4, 5,
+
+7
+
+[75] 罗宾·龙
+
+巴赫、安德里
+
+亚斯·布拉特
+
+曼、张秀坤·洛
+
+伦
+
+茨、帕特里
+
+克·埃塞尔和
+
+比约·rn·奥默。用
+
+潜在扩散
+
+模
+
+型合成高分
+
+辨率图像。IEEE/CVF 计
+
+算机视觉和
+
+模式识
+
+别会
+
+议论文集，第
+
+10684-10695 页，2022。1,
+
+2, 3,
+
+4, 5,
+
+7
+
+[76] Olaf Ronneberger,
+
+Philipp Fischer, and Thomas
+
+Brox. U￾net: Convolutional networks
+
+for biomedical image
+
+segmentation.
+
+In Medical Image Computing
+
+and Computer￾Assisted Inter- vention
+
+MICCAI International Conference,
+
+pages
+
+234–241, 2015. 4
+
+[77]
+
+奥拉夫·龙
+
+内贝格、菲利
+
+普·费舍尔和
+
+托马斯·布罗
+
+克
+
+斯。生物医
+
+学图像分割
+
+的卷积网络
+
+。医学图像计
+
+算和计
+
+算 机
+
+辅
+
+助 介 入 MICCAI
+
+国
+
+际 会 议 ，
+
+第 234–241
+
+页
+
+，2015。四
+
+[78]
+
+Amir Rosenfeld and John
+
+K Tsotsos. Incremental learning
+
+through deep adaptation. IEEE
+
+Transactions on Pattern
+
+Anal-
+
+ysis and Machine Intelligence,
+
+42(3):651–663, 2018.
+
+2
+
+[79]
+
+阿米尔·罗
+
+森菲尔德和
+
+约翰·K·措措斯
+
+。通过深度适
+
+应 进 行 增
+
+量
+
+学 习 。 IEEE
+
+模 式 分
+
+析 与
+
+机 器 智
+
+能 汇
+
+刊，42(3):651–663，2018。2
+
+[80] Nataniel Ruiz,
+
+Yuanzhen Li, Varun Jampani,
+
+Yael Pritch,
+
+Michael Rubinstein,
+
+and Kfir Aberman. Dreambooth:
+
+Fine
+
+tuning text-to-image diffusion
+
+models for subject-driven gen￾eration.
+
+arXiv preprint arXiv:2208.12242, 2022.
+
+2, 3
+
+[81] 纳坦
+
+尼尔·鲁伊斯
+
+、李元镇、瓦伦
+
+·詹帕尼、雅艾
+
+尔·
+
+普 里 奇 、
+
+迈
+
+克 尔 · 温
+
+斯 顿
+
+和 科 菲
+
+· 阿 伯
+
+曼。Dreambooth:微调主题
+
+驱动生成的
+
+文本到图像
+
+扩散
+
+模型。arXiv
+
+预
+
+印本 arXiv:2208.12242，2022。2, 3
+
+[82]
+
+David E. Rumelhart, Geoffrey
+
+E. Hinton, and Ronald
+
+J.
+
+Williams. Learning representations
+
+by back-propagating er￾rors. Nature,
+
+323(6088):533–536, Oct. 1986. 3
+
+[83] 戴维·鲁
+
+梅尔哈特、杰
+
+弗里·欣顿和
+
+罗纳德·威廉
+
+斯。
+
+通过反向
+
+传播误差学
+
+习表征。自然
+
+，323(6088):533–
+
+536，1986
+
+年 10 月。3
+
+[84]
+
+Chitwan Saharia, William Chan,
+
+Huiwen Chang, Chris Lee,
+
+Jonathan Ho, Tim Salimans,
+
+David Fleet, and Mohammad
+
+Norouzi. Palette: Image-to-image diffusion
+
+models. In ACM
+
+SIGGRAPH
+
+2022 Conference Proceedings, SIGGRAPH
+
+’22,
+
+New York, NY,
+
+USA, 2022. Association for
+
+Computing
+
+Ma- chinery. 3
+
+[85] 奇万·萨
+
+哈利亚、陈伟
+
+霆、张慧文、李
+
+宇春、乔纳森
+
+·
+
+何、蒂姆·萨利
+
+曼斯、戴维·弗
+
+利特和穆罕
+
+默德·诺鲁
+
+齐
+
+。调色板:图像
+
+到图像扩散
+
+模型。美国计
+
+算机学会信
+
+号图
+
+2022 会议论
+
+文集，信号图
+
+' 22，纽约，纽约
+
+州
+
+，2022。计算机协会
+
+。3
+
+[86] Chitwan Saharia, William
+
+Chan, Saurabh Saxena, Lala
+
+Li, Jay
+
+Whang, Emily
+
+Denton, Seyed Kamyar Seyed
+
+Ghasemipour, Burcu Karagol Ayan,
+
+S Sara Mahdavi,
+
+Rapha
+
+Gontijo Lopes, et al.
+
+Photorealistic text-to-image
+
+diffusion models
+
+with deep language understanding.
+
+arXiv
+
+preprint arXiv:2205.11487, 2022.
+
+3
+
+[87] Chitwan Saharia
+
+，， Saurabh Saxena ，Lala
+
+Li，Jay
+
+Whang ， Emily
+
+Denton ， Seyed Kamyar
+
+Seyed
+
+Ghasemipour ， Burcu
+
+Karagol Ayan ， S
+
+Sara
+
+Mahdavi，Rapha Gontijo Lopes
+
+等人,《具有深
+
+度语言理
+
+解
+
+的 真 实感
+
+文
+
+本 到图 像扩
+
+散模 型》
+
+。 arXiv 预 印
+
+本
+
+arXiv:2205.11487，2022。3
+
+[88] Christoph Schuhmann,
+
+Romain Beaumont, Richard Vencu,
+
+Cade W Gordon, Ross
+
+Wightman, Mehdi Cherti, Theo
+
+Coombes, Aarush Katta, Clayton
+
+Mullis, Mitchell Worts￾man, Patrick
+
+Schramowski, Srivatsa R Kundurthy,
+
+Katherine Crowson, Ludwig Schmidt,
+
+Robert Kaczmarczyk,
+
+and Jenia
+
+Jitsev. LAION-5b: An open
+
+large-scale dataset
+
+for training
+
+next generation image-text models.
+
+In Thirty￾sixth Confer- ence
+
+on Neural Information Processing
+
+Systems
+
+Datasets and Benchmarks
+
+Track, 2022. 2, 8
+
+[89] 克里斯托
+
+弗·舒曼、罗曼
+
+·博蒙特、理查
+
+德·文库、凯
+
+德
+
+·戈登、罗斯·维
+
+格特曼、迈赫
+
+迪·切尔蒂、西
+
+奥·
+
+库姆比斯
+
+、阿鲁沙·卡塔
+
+、克莱顿·穆利
+
+斯、米切尔·
+
+沃
+
+茨-曼、帕特里
+
+克·施拉莫夫
+
+斯基、斯里瓦
+
+萨·昆杜
+
+尔西
+
+、凯瑟琳·克劳
+
+森、路德维希
+
+·施密特、罗伯
+
+特·
+
+卡兹马奇
+
+克和杰尼亚
+
+·吉采夫。LAION-5b:用于
+
+训练下
+
+一代
+
+图文模型的
+
+开放大规模
+
+数据集。2022
+
+年第
+
+三十六届
+
+神
+
+经信息处理
+
+系统数据集
+
+和基准会议
+
+。2, 8
+
+[90]
+
+Joan Serra, Didac Suris,
+
+Marius Miron, and Alexandros
+
+Karat-
+
+[91] 琼·塞拉，迪亚
+
+克·苏瑞斯，马
+
+里乌斯·米隆
+
+和亚历山大
+
+·
+
+卡拉特-
+
+[137] Rene
+
+´
+
+[138]雷内
+
+Ranftl,
+
+Katrin Lasinger, David Hafner,
+
+Konrad 兰福特，卡特
+
+琳·拉辛格，大
+
+卫·哈夫纳，康
+
+拉德
+
+zoglou.
+
+Overcomi
+
+ng catastrophic forgetting with
+
+hard atten- 佐格卢
+
+。努力克服灾
+
+难性的遗忘
+
+-
+
+Schindler,
+
+and Vladlen Koltun. Towards
+
+robust monocular
+
+depth estimation:
+
+Mixing datasets for zero-shot
+
+cross￾dataset transfer. IEEE Transactions
+
+on Pattern Analysis and
+
+Machine Intelligence, 44(3):1623–1637, 2020.
+
+6
+
+辛德勒和弗
+
+拉德伦·科尔
+
+顿。走向稳健
+
+的单目深度
+
+估
+
+计:零炮跨
+
+数据集传输
+
+的混合数据
+
+集。IEEE 模式分析
+
+和
+
+机器智能
+
+汇刊，44(3):1623–1637，2020。6
+
+tion to the
+
+task. In International Conference
+
+on Machine
+
+任务的
+
+选项。在国际
+
+机器会议上
+
+Learning, pages
+
+4548–4557. PMLR, 2018. 2
+
+学习，第 4548-4557 页。PMLR，2018。2
+
+[92]
+
+Jascha Sohl-Dickstein, Eric Weiss,
+
+Niru 
+
+Maheswaranathan, and
+
+Surya Ganguli. Deep
+
+unsupervised
+
+learning using
+
+[93] Jascha
+
+Sohl-Dickstein、Eric Weiss、Niru 
+
+Maheswaranathan
+
+和
+
+Surya Ganguli。深度无监督
+
+学习使用
+
+nonequilibrium thermodynamics.
+
+In International Confer￾ence on
+
+Machine Learning, pages 2256–2265.
+
+PMLR,
+
+2015. 3
+
+非
+
+平衡热力学
+
+。《机器学习国
+
+际会议》,第
+
+2256–2265
+
+页
+
+。PMLR，2015 年。3
+
+[94]
+
+Stability. Stable diffusion v1.5
+
+model card,
+
+https://huggingface.co/runwayml/stable-diffusion-v1-5,
+
+2022.
+
+2, 3
+
+[95] 稳定。
+
+稳定
+
+的 传播 v1.5 模型
+
+https://huggingface.co/runwayml/stable-diffusion￾v1-5,
+
+2022 卡。2, 3
+
+[96]
+
+Stability. Stable diffusion v2
+
+model card, stable-diffusion-
+
+2-depth,
+
+https://huggingface.co/stabilityai/stable-diffusion-2-
+
+depth, 2022. 3,
+
+7
+
+[97] 稳 定
+
+。 稳 定
+
+扩 散
+
+v2 模 型 卡
+
+，
+
+稳 定 扩 散
+
+2 深
+
+度 ， https://huggingface.co/stabilityai/stable￾diffusion-2-深度，2022。3,
+
+7
+
+[98] Asa Cooper
+
+Stickland and Iain Murray.
+
+Bert and pals: Pro￾jected
+
+attention layers for efficient
+
+adaptation in multi-task
+
+learning.
+
+In International Conference on
+
+Machine Learning,
+
+pages 5986–5995,
+
+2019. 2
+
+[99] 阿萨
+
+·库珀·斯蒂克
+
+兰和伊恩·默
+
+里。Bert
+
+和 pals:多
+
+任务
+
+学习中有效
+
+适应的预测
+
+注意层。在机
+
+器学习国际
+
+会
+
+议上，第
+
+5986-5995 页
+
+，2019 年。2
+
+[100]Yi-Lin
+
+Sung, Jaemin Cho, and
+
+Mohit Bansal. Vl-adapter:
+
+Parameter-efficient
+
+transfer learning for vision-and￾language
+
+tasks. arXiv preprint arXiv:2112.06825,
+
+2021. 2
+
+[101]宋以林、赵
+
+在民和莫希
+
+特·班萨尔。Vl-adapter:视
+
+觉
+
+和
+
+语 言 任
+
+务 的
+
+参 数 有
+
+效 迁
+
+移 学 习
+
+。 arXiv
+
+预 印 本
+
+arXiv:2112.06825，2021。2
+
+[102]Narek Tumanyan, Michal Geyer,
+
+Shai Bagon, and Tali
+
+Dekel. Plug-and-play diffusion features
+
+for text-driven
+
+image-to- image
+
+translation. arXiv preprint
+
+arXiv:2211.12572,
+
+2022. 3
+
+[103]纳雷
+
+克·图曼扬、米
+
+哈尔·盖耶、沙
+
+伊·巴贡和程
+
+昕婷
+
+·德克勒
+
+。用于文本驱
+
+动的图像到
+
+图像翻译的
+
+即插即用
+
+扩
+
+散功能。arXiv 预印
+
+本 arXiv:2211.12572，2022。3
+
+[104]Igor
+
+Vasiljevic, Nick Kolkin, Shanyi
+
+Zhang, Ruotian Luo,
+
+Haochen
+
+Wang, Falcon Z Dai,
+
+Andrea F Daniele, Moham￾madreza
+
+Mostajabi, Steven Basart, Matthew
+
+R Walter, et al.
+
+Diode: A dense indoor
+
+and outdoor depth dataset.
+
+arXiv
+
+preprint arXiv:1908.00463, 2019.
+
+6
+
+[105]Igor Vasiljevic ，
+
+Nick Kolkin ， Zhang
+
+， Ruotian
+
+Luo ，
+
+Wang ， Falcon Z
+
+Dai ， Andrea F
+
+Daniele ， Moham- madreza
+
+Mostajabi ， Steven
+
+Basart
+
+， Matthew R Walter
+
+， 等 。 arXiv
+
+预 印 本
+
+arXiv:1908.00463，2019。6
+
+[106]Andrey
+
+Voynov, Kfir Abernan, and
+
+Daniel Cohen-Or. Sketch￾guided text-to-image
+
+diffusion models. 2022. 3,
+
+6, 7, 8
+
+[107]安德烈·沃伊
+
+诺夫、科菲·阿
+
+伯南和丹尼
+
+尔·科恩·奥
+
+尔
+
+。草图引导的
+
+文本到图像
+
+扩散模型。2022.3, 6, 7, 8
+
+[108]Tengfei Wang, Ting Zhang,
+
+Bo Zhang, Hao Ouyang,
+
+Dong
+
+Chen, Qifeng Chen,
+
+and Fang Wen. Pretraining
+
+is all you
+
+need
+
+for image-to-image translation. 2022.
+
+3, 6, 7, 8
+
+[109]王
+
+腾飞、、、欧阳浩
+
+、、。图像到图像
+
+的翻译只需
+
+要预
+
+训练。2022.3, 6, 7,
+
+8
+
+[110]Ting-Chun Wang, Ming-Yu
+
+Liu, Jun-Yan Zhu, Andrew
+
+Tao, Jan Kautz, and
+
+Bryan Catanzaro. High-resolution
+
+image
+
+synthesis and semantic manipulation
+
+with conditional
+
+gans. In
+
+Proceedings of the IEEE/CVF
+
+Conference on
+
+Computer Vision
+
+and Pattern Recognition, pages
+
+8798–
+
+8807, 2018. 3
+
+[111]廷
+
+-王春、刘明宇
+
+、朱俊彦、安德
+
+鲁·陶、扬·考茨
+
+和
+
+布莱恩·卡
+
+坦扎罗。用条
+
+件 gans 进行高分
+
+辨率图像合
+
+成
+
+和语义处
+
+理。IEEE/CVF 计算机视
+
+觉和模式识
+
+别会议论文
+
+集，第 8798-8807 页，2018
+
+年。3
+
+[112]Saining Xie and
+
+Zhuowen Tu. Holistically-nested edge
+
+detec￾tion. In Proceedings of
+
+the IEEE International Conference
+
+on Computer Vision (ICCV),
+
+pages 1395–1403, 2015. 6
+
+[113]谢
+
+赛宁与屠。整
+
+体嵌套边缘
+
+检测。IEEE 计算机
+
+视觉国际
+
+会
+
+议(ICCV)论文集，第
+
+1395–1403 页，2015
+
+年。6
+
+[114]Jeffrey O. Zhang,
+
+Alexander Sax, Amir Zamir,
+
+Leonidas J.
+
+Guibas, and
+
+Jitendra Malik. Side-tuning: Network
+
+adapta￾tion via additive side
+
+networks. In European Conference
+
+on
+
+Computer Vision (ECCV),
+
+pages 698–714. Springer, 2020.
+
+2
+
+[115]Jeffrey O. Zhang
+
+、 Alexander Sax 、
+
+Amir
+
+Zamir、Leonidas J. Guibas
+
+和 Jitendra Malik。侧调
+
+谐:通过附加
+
+侧网络的网
+
+络适应。欧洲
+
+计算机视觉
+
+会议
+
+(ECCV)，第
+
+698–714 页。斯
+
+普林格，2020。2
+
+[116]Pan Zhang,
+
+Bo Zhang, Dong Chen,
+
+Lu Yuan, and Fang
+
+Wen.
+
+Cross-domain correspondence learning
+
+for exemplar-based
+
+image translation.
+
+In Proceedings of the
+
+IEEE/CVF Con￾ference on Computer
+
+Vision and Pattern Recognition,
+
+pages
+
+5143–5153, 2020. 3
+
+[117]潘璋
+
+、章博、陈栋、陆
+
+源和文房。基
+
+于样例的图
+
+像翻译
+
+的跨
+
+域对应学习
+
+。IEEE/CVF 计算机视觉
+
+和模式识别
+
+会议
+
+论文集
+
+，第
+
+5143–5153 页，2020 年。3
+
+[118]Renrui
+
+Zhang, Rongyao Fang, Peng
+
+Gao, Wei Zhang, Kun￾chang
+
+Li, Jifeng Dai, Yu
+
+Qiao, and Hongsheng Li.
+
+Tip￾adapter: Training-free clip-adapter for
+
+better vision-language
+
+modeling. arXiv
+
+preprint arXiv:2111.03930, 2021. 2
+
+[119]、张、方
+
+荣耀、、、李坤昌
+
+、戴继峰、俞乔
+
+和。Tip￾adapter:用于更好
+
+的视觉语言
+
+建模的免培
+
+训剪辑适配
+
+器。arXiv 预印本 arXiv:2111.03930，2021。2
+
+[120]Jiawei
+
+Zhao, Florian Scha¨fer, and
+
+Anima Anandkumar. Zero
+
+initialization:
+
+Initializing residual networks with
+
+only zeros
+
+and ones.
+
+arXiv, 2021. 3
+
+[121]赵
+
+嘉玮、弗洛里
+
+安·谢弗和阿
+
+尼玛·阿南德
+
+库马尔。零
+
+初
+
+始化:仅用零
+
+和一初始化
+
+剩余网络。arXiv，2021。3
+
+[122]Bolei Zhou, Hang
+
+Zhao, Xavier Puig, Sanja
+
+Fidler, Adela Bar￾riuso, and
+
+Antonio Torralba. Scene parsing
+
+through ade20k
+
+dataset. In
+
+Proceedings of the IEEE
+
+Conference on Computer
+
+Vision
+
+and Pattern Recognition, pages
+
+633–641, 2017. 6, 7
+
+[123]雷
+
+勃·周、、泽维尔
+
+·普伊格、萨尼
+
+亚·菲德勒、阿
+
+德拉
+
+·巴尔-里
+
+乌索和安东
+
+尼奥·托雷瓦
+
+尔。通过 ade20k 数据
+
+集
+
+进行场景
+
+解析。IEEE 计算机
+
+视觉和模式
+
+识别会议论
+
+文
+
+集，633-641 页，2017
+
+年。6, 7
+
+[124]Xingran Zhou,
+
+Bo Zhang, Ting Zhang,
+
+Pan Zhang, Jianmin
+
+Bao,
+
+Dong Chen, Zhongfei Zhang,
+
+and Fang Wen. Cocos￾net
+
+v2: Full-resolution correspondence learning
+
+for image
+
+translation. In
+
+Proceedings of the IEEE/CVF
+
+Conference
+
+on Computer Vision
+
+and Pattern Recognition, pages
+
+11465– 11475, 2021. 3
+
+[125]周
+
+兴然，，，潘章，鲍
+
+建民，，，张和。Cocos- net
+
+v2:用
+
+于图像翻译
+
+的全分辨率
+
+通信学习。IEEE/CVF 计
+
+算
+
+机 视 觉 和
+
+模
+
+式 识 别 会
+
+议
+
+论 文 集 ，
+
+第
+
+11465-11475
+
+页，2021。3
+
+[126]Jun-Yan Zhu,
+
+Taesung Park, Phillip Isola,
+
+and Alexei A Efros.
+
+Unpaired image-to-image translation using
+
+cycle-consistent
+
+adversarial networks. In
+
+Computer Vision (ICCV), 2017
+
+IEEE
+
+International Conference on,
+
+2017. 1, 3
+
+[127]朱俊彦，朴
+
+泰星，菲利普
+
+·伊索拉和阿
+
+列克谢·埃夫
+
+罗
+
+斯。使用循
+
+环一致对抗
+
+网络的不成
+
+对图像到图
+
+像翻译。在
+
+计
+
+算机视觉(ICCV)，2017 IEEE 国
+
+际会议上，2017。1,
+
+3
+
+[128]Jun-Yan Zhu, Richard
+
+Zhang, Deepak Pathak, Trevor
+
+Darrell, Alexei A Efros,
+
+Oliver Wang, and Eli
+
+Shechtman.
+
+Toward multimodal image-to-image
+
+translation. Advances
+
+in Neural
+
+Information Processing Systems, 30,
+
+2017. 3
+
+[129]、张
+
+曦轲、迪帕克
+
+·帕塔克、特雷
+
+弗·达雷尔、阿
+
+列克
+
+谢·阿·埃
+
+夫罗斯、奥利
+
+弗·王和伊莱
+
+·谢赫特曼。多
+
+模
+
+态 图 像 到
+
+图
+
+像 的 翻 译
+
+。
+
+神 经 信 息
+
+处
+
+理 系 统 进
+
+展
+
+，30，2017。3
