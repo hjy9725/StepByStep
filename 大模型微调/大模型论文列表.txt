@@ -1,0 +1,4485 @@
+/大模型经典
+
+论文列表/
+
+
+
+大
+
+模型基础论
+
+文列表
+
+语言
+
+模型基础
+
+
+
+基
+
+于统计方法
+
+的语言模型
+
+
+
+
+
+基于 RNN 的语言
+
+模型
+
+
+
+基于 Transformer 的
+
+语言模型
+
+
+
+语
+
+言模型的采
+
+样方法
+
+
+
+语言
+
+模型的评测
+
+
+
+大语言模型
+
+
+
+
+
+大数据+大模
+
+型→新智能
+
+
+
+大
+
+语言模型架
+
+构概览
+
+
+
+基于
+
+Encoder-only 架构的大语
+
+言模型
+
+
+
+基于
+
+Encoder-Decoder 架构的大语
+
+言模型
+
+
+
+基于
+
+Decoder-only 架构的大语
+
+言模型
+
+
+
+非 Transformer 架
+
+构
+
+Prompt
+
+工程
+
+
+
+Prompt 工程
+
+简介
+
+
+
+上下文
+
+学习
+
+
+
+思维链
+
+
+
+Prompt
+
+技巧
+
+
+
+相关应
+
+用
+
+参数高效
+
+微调
+
+
+
+参数高
+
+效微调简介
+
+
+
+参数附加方
+
+法
+
+
+
+参数选择
+
+方法
+
+
+
+低秩适
+
+配方法
+
+
+
+实践
+
+与应用
+
+模型
+
+编辑
+
+
+
+模型编
+
+辑简介
+
+
+
+模型
+
+编辑经典方
+
+法
+
+
+
+附加参数
+
+法：T-Patcher
+
+
+
+定位编辑
+
+法：ROME
+
+
+
+模型编辑
+
+应用
+
+检索增
+
+强生成
+
+
+
+检索
+
+增强生成简
+
+介
+
+
+
+检索增强
+
+生成架构
+
+
+
+知
+
+识检索
+
+
+
+生成
+
+增强
+
+
+
+实践与
+
+应用
+
+
+
+语言模
+
+型基础
+
+基于
+
+统计方法的
+
+语言模型
+
+
+
+Foundations of statistical natural
+
+language processing. BOOK
+
+Chris Manning,
+
+Hinrich Sch{"{u}}tze [PDF], 1999
+
+Speech
+
+and Language Processing: An
+
+Introduction to Natural Language
+
+Processing, Computational Linguistics and
+
+Speech Recognition.Third Edition. BOOK
+
+Daniel
+
+Jurafsky, James H. Martin
+
+[PDF], 2023
+
+
+
+基
+
+于
+
+RNN 的语言模
+
+型
+
+A learning
+
+algorithm for continually running
+
+fully recurrent neural networks.
+
+Neural computation
+
+RJ Williams, D
+
+Zipser. [PDF], 1989
+
+Long
+
+Short-Term Memory. Neural Computing
+
+Sepp
+
+Hochreiter, J{"{u}}rgen Schmidhuber [PDF],
+
+1997
+
+On the difficulty
+
+of training Recurrent Neural
+
+Networks. ICML
+
+Razvan Pascanu, Tomas
+
+Mikolov, Yoshua Bengio. [PDF],
+
+2012
+
+Empirical Evaluation of
+
+Gated Recurrent Neural Networks
+
+on Sequence Modeling. arXiv
+
+Junyoung
+
+Chung, Caglar Gulcehre, KyungHyun
+
+Cho, Yoshua Bengio [PDF],
+
+2014
+
+Scheduled Sampling for
+
+Sequence Prediction with Recurrent
+
+Neural Networks. NeurIPS
+
+Samy Bengio,
+
+Oriol Vinyals, Navdeep Jaitly,
+
+Noam Shazeer [PDF], 2015
+
+基于 Transformer 的语
+
+言模型
+
+Layer
+
+Normalization. arXiv
+
+Jimmy Lei Ba,
+
+Jamie Ryan Kiros, Geoffrey
+
+E. Hinton [PDF], 2016
+
+
+
+Exploring the Limits of
+
+Transfer Learning with a
+
+Unified Text-to-Text Transformer. JMLR
+
+Colin
+
+Raffel, Noam Shazeer, Adam
+
+Roberts, Katherine Lee, Sharan
+
+Narang, Michael Matena, Yanqi
+
+Zhou, Wei Li, Peter
+
+J. Liu. [PDF], 2019
+
+
+
+Transformer Feed-Forward Layers Are
+
+Key-Value Memories. EMNLP
+
+Mor Geva,
+
+Roei Schuster, Jonathan Berant,
+
+Omer Levy [PDF], 2021
+
+
+
+ResiDual: Transformer with Dual
+
+Residual Connections. arXiv
+
+Shufang Xie,
+
+Huishuai Zhang, Junliang Guo,
+
+Xu Tan, Jiang Bian,
+
+Hany Hassan Awadalla, Arul
+
+Menezes, Tao Qin, Rui
+
+Yan. [PDF], 2023
+
+语言
+
+模型的采样
+
+方法
+
+Diverse Beam Search:
+
+Decoding Diverse Solutions from
+
+Neural Sequence Models. AAAI
+
+Ashwin
+
+K Vijayakumar, Michael Cogswell,
+
+Ramprasath R. Selvaraju, Qing
+
+Sun, Stefan Lee, David
+
+Crandall, Dhruv Batra. [PDF],
+
+2018
+
+The Curious Case
+
+of Neural Text Degeneration.
+
+ICLR
+
+Ari Holtzman, Jan Buys,
+
+Li Du, Maxwell Forbes,
+
+Yejin Choi [PDF], 2020
+
+语言模
+
+型的评测
+
+Perplexity—a Measure of
+
+the Difficulty of Speech
+
+Recognition Tasks. JASA
+
+F. Jelinek,
+
+R. L. Mercer, L.
+
+R. Bahl, J. K.
+
+Baker [PDF], 1997
+
+ROUGE:
+
+A Package for Automatic
+
+Evaluation of Summaries. ACL
+
+Chin-Yew
+
+Lin [PDF], 2004
+
+BLEU
+
+might be Guilty but
+
+References are not Innocent.
+
+EMNLP
+
+Markus Freitag, David Grangier,
+
+Isaac Caswell [PDF], 2020
+
+
+
+BERTScore: Evaluating Text Generation
+
+with BERT. ICLR
+
+Tianyi Zhang,
+
+Varsha Kishore, Felix Wu,
+
+Kilian Q. Weinberger, Yoav
+
+Artzi. [PDF], 2020
+
+Leveraging
+
+Large Language Models for
+
+NLG Evaluation: Advances and
+
+Challenges. arXiv
+
+Zhen Li, Xiaohan
+
+Xu, Tao Shen, Can
+
+Xu, Jia-Chen Gu, Yuxuan
+
+Lai, Chongyang Tao, Shuai
+
+Ma [PDF], 2024
+
+G-Eval:
+
+NLG Evaluation using GPT-4
+
+with Better Human Alignment.
+
+EMNLP
+
+Yang Liu, Dan Iter,
+
+Yichong Xu, Shuohang Wang,
+
+Ruochen Xu, Chenguang Zhu
+
+[PDF], 2023
+
+INSTRUCTSCORE: Towards
+
+Explainable Text Generation Evaluation
+
+with Automatic Feedback. EMNLP
+
+Wenda
+
+Xu, Danqing Wang, Liangming
+
+Pan, Zhenqiao Song, Markus
+
+Freitag, William Wang, Lei
+
+Li. [PDF], 2023
+
+大
+
+语言模型
+
+大
+
+数据+大模型
+
+→新智能
+
+Scaling laws
+
+for neural language models.
+
+arXiv
+
+Jared Kaplan, Sam McCandlish,
+
+Tom Henighan, Tom B.
+
+Brown, Benjamin Chess, Rewon
+
+Child, Scott Gray, Alec
+
+Radford, Jeffrey Wu, Dario
+
+Amodei. [PDF], 2020.
+
+Training
+
+Compute-Optimal Large Language Models
+
+arXiv
+
+Jordan Hoffmann, Sebastian Borgeaud,
+
+Arthur Mensch, Elena Buchatskaya,
+
+Trevor Cai, Eliza Rutherford,
+
+Diego de Las Casas,
+
+Lisa Anne Hendricks, Johannes
+
+Welbl, Aidan Clark, Tom
+
+Hennigan, Eric Noland, Katie
+
+Millican, George van den
+
+Driessche, Bogdan Damoc, Aurelia
+
+Guy, Simon Osindero, Karen
+
+Simonyan, Erich Elsen, Jack
+
+W. Rae, Oriol Vinyals,
+
+Laurent Sifre. [PDF], 2022.
+
+
+
+PaLM 2 Technical Report.
+
+arXiv
+
+Google. [PDF], 2023.
+
+大语
+
+言模型架构
+
+概览
+
+Attention is all
+
+you need. NeurIPS
+
+Vaswani, Ashish
+
+and Shazeer, Noam and
+
+Parmar, Niki and Uszkoreit,
+
+Jakob and Jones, Llion
+
+and Gomez, Aidan N
+
+and Kaiser, Lukasz and
+
+Polosukhin, Illia. [PDF], 2017.
+
+基于 Encoder-only 架
+
+构的大语言
+
+模型
+
+A
+
+survey on contextual embeddings.
+
+arXiv
+
+Qi Liu, Matt J.
+
+Kusner, Phil Blunsom. [PDF],
+
+2020.
+
+BERT: Pre-training of
+
+Deep Bidirectional Transformers for
+
+Language Understanding. NAACL Jacob
+
+Devlin, Ming-Wei Chang, Kenton
+
+Lee, Kristina Toutanova. [PDF][Code],
+
+2018.
+
+RoBERTa: A Robustly
+
+Optimized BERT Pretraining Approach.
+
+arXiv Yinhan Liu, Myle
+
+Ott, Naman Goyal, Jingfei
+
+Du, Mandar Joshi, Danqi
+
+Chen, Omer Levy, Mike
+
+Lewis, Luke Zettlemoyer, Veselin
+
+Stoyanov. [PDF][Code], 2019.
+
+ALBERT:
+
+A Lite BERT for
+
+Self-supervised Learning of Language
+
+Representations. arXiv Zhenzhong Lan,
+
+Mingda Chen, Sebastian Goodman,
+
+Kevin Gimpel, Piyush Sharma,
+
+Radu Soricut. [PDF][Code], 2019.
+
+
+
+ELECTRA: Pre-training Text Encoders
+
+as Discriminators Rather Than
+
+Generators. arXiv Kevin Clark,
+
+Minh-Thang Luong, Quoc V.
+
+Le, Christopher D. Manning.
+
+[PDF][Code], 2020.
+
+
+
+基于
+
+Encoder-Decoder 架
+
+构的大语言
+
+模型
+
+Exploring the
+
+Limits of Transfer Learning
+
+with a Unified Text-to-Text
+
+Transformer. arXiv
+
+Colin Raffel, Noam
+
+Shazeer, Adam Roberts, Katherine
+
+Lee, Sharan Narang, Michael
+
+Matena, Yanqi Zhou, Wei
+
+Li, Peter J. Liu.
+
+[PDF][Code], 2019.
+
+Multitask Prompted
+
+Training Enables Zero-Shot Task
+
+Generalization. arXiv
+
+Victor Sanh, Albert
+
+Webson, Colin Raffel, Stephen
+
+H. Bach, Lintang Sutawika,
+
+Zaid Alyafeai, Antoine Chaffin,
+
+Arnaud Stiegler, Teven Le
+
+Scao, Arun Raja, Manan
+
+Dey, M Saiful Bari,
+
+Canwen Xu, Urmish Thakker,
+
+Shanya Sharma Sharma, Eliza
+
+Szczechla, Taewoon Kim, Gunjan
+
+Chhablani, Nihal Nayak, Debajyoti
+
+Datta, Jonathan Chang, Mike
+
+Tian-Jian Jiang, Han Wang,
+
+Matteo Manica, Sheng Shen,
+
+Zheng Xin Yong, Harshit
+
+Pandey, Rachel Bawden, Thomas
+
+Wang, Trishala Neeraj, Jos
+
+Rozen, Abheesht Sharma, Andrea
+
+Santilli, Thibault Fevry, Jason
+
+Alan Fries, Ryan Teehan,
+
+Tali Bers, Stella Biderman,
+
+Leo Gao, Thomas Wolf,
+
+Alexander M. Rush. [PDF][Code],
+
+2021.
+
+mT5: A Massively
+
+Multilingual Pre-trained Text-to-Text Transformer.
+
+NAACL
+
+Linting Xue, Noah Constant,
+
+Adam Roberts, Mihir Kale,
+
+Rami Al-Rfou, Aditya Siddhant,
+
+Aditya Barua, Colin Raffel.
+
+[PDF][Code], 2021.
+
+Scaling Instruction-Finetuned
+
+Language Models. Journal of
+
+Machine Learning Research
+
+Hyung Won
+
+Chung, Le Hou, Shayne
+
+Longpre, Barret Zoph, Yi
+
+Tay, William Fedus, Yunxuan
+
+Li, Xuezhi Wang, Mostafa
+
+Dehghani, Siddhartha Brahma, Albert
+
+Webson, Shixiang Shane Gu,
+
+Zhuyun Dai, Mirac Suzgun,
+
+Xinyun Chen, Aakanksha Chowdhery,
+
+Alex Castro-Ros, Marie Pellat,
+
+Kevin Robinson, Dasha Valter,
+
+Sharan Narang, Gaurav Mishra,
+
+Adams Yu, Vincent Zhao,
+
+Yanping Huang, Andrew Dai,
+
+Hongkun Yu, Slav Petrov,
+
+Ed H. Chi, Jeff
+
+Dean, Jacob Devlin, Adam
+
+Roberts, Denny Zhou, Quoc
+
+V. Le, Jason Wei.
+
+[PDF][Code], 2024.
+
+Bart: Denoising
+
+sequence-to-sequence pre-training for natural
+
+language generation, translation, and
+
+comprehension. ACL
+
+Mike Lewis, Yinhan
+
+Liu, Naman Goyal, Marjan
+
+Ghazvininejad, Abdelrahman Mohamed, Omer
+
+Levy, Ves Stoyanov, Luke
+
+Zettlemoyer. [PDF][Code], 2020.
+
+Multilingual
+
+denoising pre-training for neural
+
+machine translation. Transactions of
+
+the Association for Computational
+
+Linguistics
+
+Yinhan Liu, Jiatao Gu,
+
+Naman Goyal, Xian Li,
+
+Sergey Edunov, Marjan Ghazvininejad,
+
+Mike Lewis, Luke Zettlemoyer.
+
+[PDF][Code], 2020.
+
+
+
+基于
+
+Decoder-only 架
+
+构的大语言
+
+模型
+
+Improving language
+
+understanding by generative pre-training.
+
+Online
+
+Alec Radford, Karthik Narasimhan,
+
+Tim Salimans, Ilya Sutskever.
+
+[PDF], 2018.
+
+Language models
+
+are unsupervised multitask learners.
+
+Online
+
+Alec Radford, Jeffrey Wu,
+
+Rewon Child, David Luan,
+
+Dario Amodei, Ilya Sutskever.
+
+[PDF], 2019.
+
+Language models
+
+are few-shot learners. NeurIPS
+
+Tom
+
+Brown, Benjamin Mann, Nick
+
+Ryder, Melanie Subbiah, Jared
+
+D Kaplan, Prafulla Dhariwal,
+
+Arvind Neelakantan, Pranav Shyam,
+
+Girish Sastry, Amanda Askell,
+
+Sandhini Agarwal, Ariel Herbert-Voss,
+
+Gretchen Krueger, Tom Henighan,
+
+Rewon Child, Aditya Ramesh,
+
+Daniel Ziegler, Jeffrey Wu,
+
+Clemens Winter, Chris Hesse,
+
+Mark Chen, Eric Sigler,
+
+Mateusz Litwin, Scott Gray,
+
+Benjamin Chess, Jack Clark,
+
+Christopher Berner, Sam McCandlish,
+
+Alec Radford, Ilya Sutskever,
+
+Dario Amodei. [PDF], 2020.
+
+
+
+Evaluating Large Language Models
+
+Trained on Code. arXiv
+
+Mark
+
+Chen, Jerry Tworek, Heewoo
+
+Jun, Qiming Yuan, Henrique
+
+Ponde de Oliveira Pinto,
+
+Jared Kaplan, Harri Edwards,
+
+Yuri Burda, Nicholas Joseph,
+
+Greg Brockman, Alex Ray,
+
+Raul Puri, Gretchen Krueger,
+
+Michael Petrov, Heidy Khlaaf,
+
+Girish Sastry, Pamela Mishkin,
+
+Brooke Chan, Scott Gray,
+
+Nick Ryder, Mikhail Pavlov,
+
+Alethea Power, Lukasz Kaiser,
+
+Mohammad Bavarian, Clemens Winter,
+
+Philippe Tillet, Felipe Petroski
+
+Such, Dave Cummings, Matthias
+
+Plappert, Fotios Chantzis, Elizabeth
+
+Barnes, Ariel Herbert-Voss, William
+
+Hebgen Guss, Alex Nichol,
+
+Alex Paino, Nikolas Tezak,
+
+Jie Tang, Igor Babuschkin,
+
+Suchir Balaji, Shantanu Jain,
+
+William Saunders, Christopher Hesse,
+
+Andrew N. Carr, Jan
+
+Leike, Josh Achiam, Vedant
+
+Misra, Evan Morikawa, Alec
+
+Radford, Matthew Knight, Miles
+
+Brundage, Mira Murati, Katie
+
+Mayer, Peter Welinder, Bob
+
+McGrew, Dario Amodei, Sam
+
+McCandlish, Ilya Sutskever, Wojciech
+
+Zaremba. [PDF], 2021.
+
+WebGPT:
+
+Browser-assisted question-answering with human
+
+feedback. arXiv
+
+Reiichiro Nakano, Jacob
+
+Hilton, Suchir Balaji, Jeff
+
+Wu, Long Ouyang, Christina
+
+Kim, Christopher Hesse, Shantanu
+
+Jain, Vineet Kosaraju, William
+
+Saunders, Xu Jiang, Karl
+
+Cobbe, Tyna Eloundou, Gretchen
+
+Krueger, Kevin Button, Matthew
+
+Knight, Benjamin Chess, John
+
+Schulman. [PDF], 2021.
+
+Training
+
+language models to follow
+
+instructions with human feedback.
+
+NeurIPS
+
+Long Ouyang, Jeff Wu,
+
+Xu Jiang, Diogo Almeida,
+
+Carroll L. Wainwright, Pamela
+
+Mishkin, Chong Zhang, Sandhini
+
+Agarwal, Katarina Slama, Alex
+
+Ray, John Schulman, Jacob
+
+Hilton, Fraser Kelton, Luke
+
+Miller, Maddie Simens, Amanda
+
+Askell, Peter Welinder, Paul
+
+Christiano, Jan Leike, Ryan
+
+Lowe. [PDF], 2022.
+
+Introducing
+
+chatgpt. Online
+
+OpenAI. [PDF], 2023.
+
+
+
+Gpt-4 technical report. Online
+
+OpenAI.
+
+[PDF], 2023.
+
+Gpt-4 technical
+
+report. Online
+
+OpenAI. [PDF], 2024.
+
+
+
+Gpt-4 technical report. Online
+
+OpenAI.
+
+[PDF], 2024.
+
+LLaMA: Open
+
+and Efficient Foundation Language
+
+Models. arXiv
+
+Hugo Touvron, Thibaut
+
+Lavril, Gautier Izacard, Xavier
+
+Martinet, Marie-Anne Lachaux, Timothée
+
+Lacroix, Baptiste Rozière, Naman
+
+Goyal, Eric Hambro, Faisal
+
+Azhar, Aurelien Rodriguez, Armand
+
+Joulin, Edouard Grave, Guillaume
+
+Lample. [PDF][Code], 2023.
+
+Llama
+
+2: Open Foundation and
+
+Fine-Tuned Chat Models. arXiv
+
+Hugo
+
+Touvron, Louis Martin, Kevin
+
+Stone, Peter Albert, Amjad
+
+Almahairi, Yasmine Babaei, Nikolay
+
+Bashlykov, Soumya Batra, Prajjwal
+
+Bhargava, Shruti Bhosale, Dan
+
+Bikel, Lukas Blecher, Cristian
+
+Canton Ferrer, Moya Chen,
+
+Guillem Cucurull, David Esiobu,
+
+Jude Fernandes, Jeremy Fu,
+
+Wenyin Fu, Brian Fuller,
+
+Cynthia Gao, Vedanuj Goswami,
+
+Naman Goyal, Anthony Hartshorn,
+
+Saghar Hosseini, Rui Hou,
+
+Hakan Inan, Marcin Kardas,
+
+Viktor Kerkez, Madian Khabsa,
+
+Isabel Kloumann, Artem Korenev,
+
+Punit Singh Koura, Marie-Anne
+
+Lachaux, Thibaut Lavril, Jenya
+
+Lee, Diana Liskovich, Yinghai
+
+Lu, Yuning Mao, Xavier
+
+Martinet, Todor Mihaylov, Pushkar
+
+Mishra, Igor Molybog, Yixin
+
+Nie, Andrew Poulton, Jeremy
+
+Reizenstein, Rashi Rungta, Kalyan
+
+Saladi, Alan Schelten, Ruan
+
+Silva, Eric Michael Smith,
+
+Ranjan Subramanian, Xiaoqing Ellen
+
+Tan, Binh Tang, Ross
+
+Taylor, Adina Williams, Jian
+
+Xiang Kuan, Puxin Xu,
+
+Zheng Yan, Iliyan Zarov,
+
+Yuchen Zhang, Angela Fan,
+
+Melanie Kambadur, Sharan Narang,
+
+Aurelien Rodriguez, Robert Stojnic,
+
+Sergey Edunov, Thomas Scialom.
+
+[PDF][Code], 2023.
+
+Introducing Meta
+
+Llama 3: The most
+
+capable openly available LLM
+
+to date. Online
+
+Meta AI.
+
+[PDF][Code], 2024.
+
+Alpaca: A
+
+Strong, Replicable Instruction-Following Model.
+
+Online
+
+Rohan Taori, Ishaan Gulrajani,
+
+Tianyi Zhang, Yann Dubois,
+
+Xuechen Li, Carlos Guestrin,
+
+Percy Liang, Tatsunori B.
+
+Hashimoto. [PDF][Code], 2023.
+
+Vicuna:
+
+An Open-Source Chatbot Impressing
+
+GPT-4 with 90%* ChatGPT
+
+Quality. Online
+
+The Vicuna Team.
+
+[PDF][Code], 2023.
+
+QLoRA: Efficient
+
+Finetuning of Quantized LLMs.
+
+arXiv
+
+Tim Dettmers, Artidoro Pagnoni,
+
+Ari Holtzman, Luke Zettlemoyer.
+
+[PDF][Code], 2023.
+
+Code Llama:
+
+Open Foundation Models for
+
+Code. arXiv
+
+Baptiste Rozière, Jonas
+
+Gehring, Fabian Gloeckle, Sten
+
+Sootla, Itai Gat, Xiaoqing
+
+Ellen Tan, Yossi Adi,
+
+Jingyu Liu, Romain Sauvestre,
+
+Tal Remez, Jérémy Rapin,
+
+Artyom Kozhevnikov, Ivan Evtimov,
+
+Joanna Bitton, Manish Bhatt,
+
+Cristian Canton Ferrer, Aaron
+
+Grattafiori, Wenhan Xiong, Alexandre
+
+Défossez, Jade Copet, Faisal
+
+Azhar, Hugo Touvron, Louis
+
+Martin, Nicolas Usunier, Thomas
+
+Scialom, Gabriel Synnaeve. [PDF][Code],
+
+2023.
+
+A Brief Report
+
+on LawGPT 1.0: A
+
+Virtual Legal Assistant Based
+
+on GPT-3. arXiv
+
+Ha-Thanh Nguyen.
+
+[PDF], 2023.
+
+Goat: Fine-tuned
+
+LLaMA Outperforms GPT-4 on
+
+Arithmetic Tasks. arXiv
+
+Tiedong Liu,
+
+Bryan Kian Hsiang Low.
+
+[PDF][Code], 2023.
+
+Visual instruction
+
+tuning. NeurIPS
+
+Haotian Liu, Chunyuan
+
+Li, Qingyang Wu, Yong
+
+Jae Lee. [PDF][Code], 2023.
+
+
+
+MiniGPT-4: Enhancing Vision-Language Understanding
+
+with Advanced Large Language
+
+Models. arXiv
+
+Deyao Zhu, Jun
+
+Chen, Xiaoqian Shen, Xiang
+
+Li, Mohamed Elhoseiny. [PDF][Code],
+
+2023.
+
+
+
+非 Transformer
+
+架构
+
+
+
+Efficiently modeling long sequences
+
+with structured state spaces.
+
+arXiv
+
+Albert Gu, Karan Goel,
+
+Christopher Ré. [PDF][Code], 2021.
+
+
+
+On the Parameterization and
+
+Initialization of Diagonal State
+
+Space Models. NeurIPS
+
+Albert Gu,
+
+Karan Goel, Ankit Gupta,
+
+Christopher Ré. [PDF], 2022.
+
+
+
+RWKV: Reinventing RNNs for
+
+the Transformer Era. EMNLP
+
+Bo
+
+Peng, Eric Alcaide, Quentin
+
+Anthony, Alon Albalak, Samuel
+
+Arcadinho, Stella Biderman, Huanqi
+
+Cao, Xin Cheng, Michael
+
+Chung, Leon Derczynski, Xingjian
+
+Du, Matteo Grella, Kranthi
+
+Kiran GV, Xuzheng He,
+
+Haowen Hou, Przemyslaw Kazienko,
+
+Jan Kocon, Jiaming Kong,
+
+Bartlomiej Koptyra, Hayden Lau,
+
+Jiaju Lin, Krishna Sri
+
+Ipsit Mantri, Ferdinand Mom,
+
+Atsushi Saito, Guangyu Song,
+
+Xiangru Tang, Johan S.
+
+Wind, Stanislaw Wozniak, Zhenyuan
+
+Zhang, Qinghua Zhou, Jian
+
+Zhu, Rui-Jie Zhu [PDF][Code],
+
+2023.
+
+Mamba: Linear-Time Sequence
+
+Modeling with Selective State
+
+Spaces. arXiv
+
+Albert Gu, Tri
+
+Dao. [PDF][Code], 2023.
+
+Learning
+
+to (Learn at Test
+
+Time): RNNs with Expressive
+
+Hidden States. arXiv
+
+Yu Sun,
+
+Xinhao Li, Karan Dalal,
+
+Jiarui Xu, Arjun Vikram,
+
+Genghan Zhang, Yann Dubois,
+
+Xinlei Chen, Xiaolong Wang,
+
+Sanmi Koyejo, et al.
+
+[PDF][Code], 2024.
+
+
+
+Prompt
+
+工程
+
+Prompt 工程简
+
+介
+
+A
+
+Survey of Large Language
+
+Models. arXiv
+
+Wayne Xin
+
+Zhao, Qian Liu, Zhicheng
+
+Dou, Jian-Yun Nie, and
+
+Ji-Rong Wen.[PDF], 2023.
+
+LLMLingua:
+
+Compressing Prompts for Accelerated
+
+Inference of Large Language
+
+Models EMNLP
+
+Huiqiang Jiang,
+
+Qianhui Wu, Chin-Yew Lin,
+
+Yuqing Yang, Lili Qiu.
+
+[PDF] [Code], 2023.
+
+FIT-RAG:
+
+Black-Box RAG with Factual
+
+Information and Token Reduction.
+
+arXiv
+
+Yuren Mao, Xuemei
+
+Dong, Wenyi Xu, Yunjun
+
+Gao, Bin Wei, Ying
+
+Zhang.[PDF], 2024.
+
+DeepSeek-V2: A
+
+Strong, Economical, and Efficient
+
+Mixture-of-Experts Language Model arXiv
+
+
+
+DeepSeek-AI. [PDF] [Code], 2024.
+
+
+
+Spider: A Large-Scale Human-Labeled
+
+Dataset for Complex and
+
+Cross-Domain Semantic Parsing and
+
+Text-to-SQL Task. EMNLP
+
+Tao
+
+Yu, Rui Zhang, Kai
+
+Yang, Michihiro Yasunaga, Dongxu
+
+Wang, Zifan Li, James
+
+Ma, Irene Li, Qingning
+
+Yao, Shanelle Roman, Zilin
+
+Zhang, Dragomir Radev.[PDF] [Code],
+
+2018.
+
+Measuring Massive Multitask
+
+Language Understanding ICLR
+
+Dan
+
+Hendrycks, Collin Burns, Steven
+
+Basart, Andy Zou, Mantas
+
+Mazeika, Dawn Song, Jacob
+
+Steinhardt. [PDF] [Code], 2021.
+
+
+
+FinSQL: Model-Agnostic LLMs-based Text-to-SQL
+
+Framework for Financial Analysis.
+
+SIGMOD
+
+Chao Zhang, Yuren
+
+Mao, Yijiang Fan, Yu
+
+Mi, Yunjun Gao, Lu
+
+Chen, Dongfang Lou, Jinshu
+
+Lin.[PDF] [Code], 2024.
+
+Alpaca:
+
+A strong, replicable instruction-following
+
+model. Stanford Center for
+
+Research on Foundation Models
+
+
+
+Rohan Taori, Ishaan Gulrajani,
+
+Tianyi Zhang, Yann Dubois,
+
+Xuechen Li, and Percy
+
+Liang.[PDF] [Code], 2023.
+
+Wizardcoder:
+
+Empowering code large language
+
+models with evol-instruct. arXiv
+
+
+
+Ziyang Luo, Can Xu,
+
+Pu Zhao, Qingfeng Sun,
+
+Xiubo Geng, Wenxiang Hu,
+
+Chongyang Tao, Jing Ma,
+
+Qingwei Lin, Daxin Jiang.[PDF]
+
+[Code], 2023.
+
+Generative Agents:
+
+Interactive Simulacra of Human
+
+Behavior. UIST
+
+Joon Sung
+
+Park, Joseph C. O'Brien,
+
+Carrie J. Cai, Meredith
+
+Ringel Morris, Percy Liang,
+
+Michael S. Bernstein.[PDF] [Code],
+
+2023.
+
+
+
+上下文学
+
+习
+
+Language
+
+Models are Few-Shot Learners
+
+NeurIPS
+
+Tom B. Brown,
+
+Benjamin Mann, Nick Ryder,
+
+Melanie Subbiah, Jared Kaplan,
+
+Prafulla Dhariwal, Arvind Neelakantan,
+
+Pranav Shyam, Girish Sastry,
+
+Amanda Askell, Sandhini Agarwal,
+
+Ariel Herbert-Voss, Gretchen Krueger,
+
+Tom Henighan, Rewon Child,
+
+Aditya Ramesh, Daniel M.
+
+Ziegler, Jeffrey Wu, Clemens
+
+Winter, Christopher Hesse, Mark
+
+Chen, Eric Sigler, Mateusz
+
+Litwin, Scott Gray, Benjamin
+
+Chess, Jack Clark, Christopher
+
+Berner, Sam McCandlish, Alec
+
+Radford, Ilya Sutskever, Dario
+
+Amodei. [PDF] [Code], 2020.
+
+
+
+An Explanation of In-context
+
+Learning as Implicit Bayesian
+
+Inference. ICLR
+
+Sang Michael
+
+Xie, Aditi Raghunathan, Percy
+
+Liang, Tengyu Ma.[PDF], 2022.
+
+
+
+In-context Learning with Retrieved
+
+Demonstrations for Language Models:
+
+A Survey. arXiv
+
+Man
+
+Luo, Xin Xu, Yue
+
+Liu, Panupong Pasupat, Mehran
+
+Kazemi.[PDF], 2024.
+
+What Makes
+
+Good In-Context Examples for
+
+GPT-3? ACL
+
+Jiachang Liu,
+
+Dinghan Shen, Yizhe Zhang,
+
+Bill Dolan, Lawrence Carin,
+
+Weizhu Chen.[PDF] [Code], 2022.
+
+
+
+Self-Prompting Large Language Models
+
+for Zero-Shot Open-Domain QA
+
+arXiv
+
+Junlong Li, Jinyuan
+
+Wang, Zhuosheng Zhang, Hai
+
+Zhao. [PDF] [Code], 2024.
+
+
+
+Long Short-Term Memory Neural
+
+Computation
+
+Sepp Hochreiter, Jürgen
+
+Schmidhuber. [PDF] [Code], 1997.
+
+
+
+The Mystery of In-Context
+
+Learning: A Comprehensive Survey
+
+on Interpretation and Analysis.
+
+arXiv
+
+Yuxiang Zhou, Jiazheng
+
+Li, Yanzheng Xiang, Hanqi
+
+Yan, Lin Gui, Yulan
+
+He.[PDF], 2024.
+
+On the
+
+Effect of Pretraining Corpora
+
+on In-context Learning by
+
+a Large-scale Language Model.
+
+NAACL
+
+Seongjin Shin, Sang-Woo
+
+Lee, Hwijeen Ahn, Sungdong
+
+Kim, HyoungSeok Kim, Boseop
+
+Kim, Kyunghyun Cho, Gichang
+
+Lee, Woomyoung Park, Jung-Woo
+
+Ha, Nako Sung.[PDF], 2022.
+
+
+
+Pretraining task diversity and
+
+the emergence of non-Bayesian
+
+in-context learning for regression.
+
+NeurIPS
+
+Allan Raventós, Mansheej
+
+Paul, Feng Chen, Surya
+
+Ganguli.[PDF] [Code], 2023.
+
+Data
+
+Distributional Properties Drive Emergent
+
+In-Context Learning in Transformers
+
+NeurIPS
+
+
+
+Stephanie C.Y.
+
+Chan, Adam Santoro, Andrew
+
+K. Lampinen, Jane X.
+
+Wang, Aaditya Singh, Pierre
+
+H. Richemond, Jay McClelland,
+
+Felix Hill. [PDF] [Code],
+
+2022.
+
+Emergent Abilities of
+
+Large Language Models. Transaction
+
+of Machine Learning Research
+
+
+
+Jason Wei, Yi Tay,
+
+Rishi Bommasani, Colin Raffel,
+
+Barret Zoph, Sebastian Borgeaud,
+
+Dani Yogatama, Maarten Bosma,
+
+Denny Zhou, Donald Metzler,
+
+Ed H. Chi, Tatsunori
+
+Hashimoto, Oriol Vinyals, Percy
+
+Liang, Jeff Dean, William
+
+Fedus.[PDF], 2022.
+
+In-Context Learning
+
+Learns Label Relationships but
+
+Is Not Conventional Learning
+
+arXiv
+
+Jannik Kossen, Yarin
+
+Gal, Tom Rainforth. [PDF]
+
+[Code], 2024.
+
+Ground-Truth Labels
+
+Matter: A Deeper Look
+
+into Input-Label Demonstrations. EMNLP
+
+
+
+Kang Min Yoo, Junyeob
+
+Kim, Hyuhng Joon Kim,
+
+Hyunsoo Cho, Hwiyeol Jo,
+
+Sang-Woo Lee, Sang-goo Lee,
+
+Taeuk Kim.[PDF], 2022.
+
+What
+
+In-Context Learning "Learns" In-Context:
+
+Disentangling Task Recognition and
+
+Task Learning. ACL
+
+Jane
+
+Pan, Tianyu Gao, Howard
+
+Chen, Danqi Chen.[PDF] [Code],
+
+2023.
+
+Emergent Abilities of
+
+Large Language Models. Transaction
+
+of Machine Learning Research
+
+
+
+Jason Wei, Yi Tay,
+
+Rishi Bommasani, Colin Raffel,
+
+Barret Zoph, Sebastian Borgeaud,
+
+Dani Yogatama, Maarten Bosma,
+
+Denny Zhou, Donald Metzler,
+
+Ed H. Chi, Tatsunori
+
+Hashimoto, Oriol Vinyals, Percy
+
+Liang, Jeff Dean, William
+
+Fedus.[PDF], 2022.
+
+Rethinking the
+
+Role of Demonstrations: What
+
+Makes In-Context Learning Work?
+
+EMNLP
+
+Sewon Min, Xinxi
+
+Lyu, Ari Holtzman, Mikel
+
+Artetxe, Mike Lewis, Hannaneh
+
+Hajishirzi, Luke Zettlemoyer.[PDF] [Code],
+
+2022.
+
+Unified Demonstration Retriever
+
+for In-Context Learning. ACL
+
+
+
+Xiaonan Li, Kai Lv,
+
+Hang Yan, Tianyang Lin,
+
+Wei Zhu, Yuan Ni,
+
+Guotong Xie, Xiaoling Wang,
+
+Xipeng Qiu.[PDF] [Code], 2023.
+
+
+
+Fantastically Ordered Prompts and
+
+Where to Find Them:
+
+Overcoming Few-Shot Prompt Order
+
+Sensitivity. ACL
+
+Yao Lu,
+
+Max Bartolo, Alastair Moore,
+
+Sebastian Riedel, Pontus Stenetorp.[PDF]
+
+[Code], 2022.
+
+
+
+思维链
+
+
+
+Chain-of-Thought Prompting Elicits Reasoning
+
+in Large Language Models.
+
+NeurIPS
+
+Jason Wei, Xuezhi
+
+Wang, Dale Schuurmans, Maarten
+
+Bosma, Brian Ichter, Fei
+
+Xia, Ed Chi, Quoc
+
+Le, Denny Zhou.[PDF], 2022.
+
+
+
+Large Language Models are
+
+Zero-Shot Reasoners NeurIPS
+
+Takeshi
+
+Kojima, Shixiang Shane Gu,
+
+Machel Reid, Yutaka Matsuo,
+
+Yusuke Iwasawa. [PDF] [Code],
+
+2022.
+
+Automatic Chain of
+
+Thought Prompting in Large
+
+Language Models. ICLR
+
+Zhuosheng
+
+Zhang, Aston Zhang, Mu
+
+Li, Alex Smola.[PDF] [Code],
+
+2023.
+
+Tree of Thoughts:
+
+Deliberate Problem Solving with
+
+Large Language Models. NeurIPS
+
+
+
+Shunyu Yao, Dian Yu,
+
+Jeffrey Zhao, Izhak Shafran,
+
+Thomas L. Griffiths, Yuan
+
+Cao, Karthik Narasimhan.[PDF] [Code],
+
+2023.
+
+Graph of Thoughts:
+
+Solving Elaborate Problems with
+
+Large Language Models AAAI
+
+
+
+Maciej Besta, Nils Blach,
+
+Ales Kubicek, Robert Gerstenberger,
+
+Michal Podstawski, Lukas Gianinazzi,
+
+Joanna Gajda, Tomasz Lehmann,
+
+Hubert Niewiadomski, Piotr Nyczyk,
+
+Torsten Hoefler. [PDF] [Code],
+
+2024.
+
+Self-Consistency Improves Chain
+
+of Thought Reasoning in
+
+Language Models. ICLR
+
+Xuezhi
+
+Wang, Jason Wei, Dale
+
+Schuurmans, Quoc Le, Ed
+
+Chi, Sharan Narang, Aakanksha
+
+Chowdhery, Denny Zhou.[PDF], 2023.
+
+Prompt 技
+
+巧
+
+Lost in
+
+the middle: How language
+
+models use long contexts.
+
+Transactions of the Association
+
+for Computational Linguistics
+
+Nelson
+
+F. Liu, Kevin Lin,
+
+John Hewitt, Ashwin Paranjape,
+
+Michele Bevilacqua, Fabio Petroni,
+
+Percy Liang.[PDF] [Code], 2024.
+
+
+
+C3: Zero-shot Text-to-SQL with
+
+ChatGPT arXiv
+
+Xuemei Dong,
+
+Chao Zhang, Yuhang Ge,
+
+Yuren Mao, Yunjun Gao,
+
+Lu Chen, Jinshu Lin,
+
+Dongfang Lou. [PDF] [Code],
+
+2023.
+
+PaLM: Scaling Language
+
+Modeling with Pathways Journal
+
+of Machine Learning Research
+
+
+
+Aakanksha Chowdhery, Sharan Narang,
+
+Jacob Devlin, Maarten Bosma,
+
+Gaurav Mishra, Adam Roberts,
+
+Paul Barham, Hyung Won
+
+Chung, Charles Sutton, Sebastian
+
+Gehrmann, Parker Schuh, Kensen
+
+Shi, Sasha Tsvyashchenko, Joshua
+
+Maynez, Abhishek Rao, Parker
+
+Barnes, Yi Tay, Noam
+
+Shazeer, Vinodkumar Prabhakaran, Emily
+
+Reif, Nan Du, Ben
+
+Hutchinson, Reiner Pope, James
+
+Bradbury, Jacob Austin, Michael
+
+Isard, Guy Gur-Ari, Pengcheng
+
+Yin, Toju Duke, Anselm
+
+Levskaya, Sanjay Ghemawat, Sunipa
+
+Dev, Henryk Michalewski, Xavier
+
+Garcia, Vedant Misra, Kevin
+
+Robinson, Liam Fedus, Denny
+
+Zhou, Daphne Ippolito, David
+
+Luan, Hyeontaek Lim, Barret
+
+Zoph, Alexander Spiridonov, Ryan
+
+Sepassi, David Dohan, Shivani
+
+Agrawal, Mark Omernick, Andrew
+
+M. Dai, Thanumalayan Sankaranarayana
+
+Pillai, Marie Pellat, Aitor
+
+Lewkowycz, Erica Moreira, Rewon
+
+Child, Oleksandr Polozov, Katherine
+
+Lee, Zongwei Zhou, Xuezhi
+
+Wang, Brennan Saeta, Mark
+
+Diaz, Orhan Firat, Michele
+
+Catasta, Jason Wei, Kathy
+
+Meier-Hellstern, Douglas Eck, Jeff
+
+Dean, Slav Petrov, Noah
+
+Fiedel. [PDF] [Code], 2023.
+
+
+
+Better Zero-Shot Reasoning with
+
+Role-Play Prompting arxiv
+
+Aobo
+
+Kong, Shiwan Zhao, Hao
+
+Chen, Qicheng Li, Yong
+
+Qin, Ruiqi Sun, Xin
+
+Zhou, Enzhi Wang, Xiaohang
+
+Dong. [PDF] [Code], 2023.
+
+相关应用
+
+
+
+A survey on large
+
+language model based autonomous
+
+agents. Frontiers of Computer
+
+Science
+
+Lei Wang, Chen
+
+Ma, Xueyang Feng, Zeyu
+
+Zhang, Hao Yang, Jingsen
+
+Zhang, Zhiyuan Chen, Jiakai
+
+Tang, Xu Chen, Yankai
+
+Lin, Wayne Xin Zhao,
+
+Zhewei Wei, Ji-Rong Wen.[PDF]
+
+[Code], 2024.
+
+Generative Agents:
+
+Interactive Simulacra of Human
+
+Behavior. UIST
+
+Joon Sung
+
+Park, Joseph C. O'Brien,
+
+Carrie J. Cai, Meredith
+
+Ringel Morris, Percy Liang,
+
+Michael S. Bernstein.[PDF] [Code],
+
+2023.
+
+HuggingGPT: Solving AI
+
+Tasks with ChatGPT and
+
+its Friends in Hugging
+
+Face. Advances in Neural
+
+Information Processing Systems
+
+Yongliang
+
+Shen, Kaitao Song, Xu
+
+Tan, Dongsheng Li, Weiming
+
+Lu, Yueting Zhuang.[PDF] [Code],
+
+2023.
+
+Garbage in, garbage
+
+out: Having useful data
+
+is everything. Measurement: Interdisciplinary
+
+Research and Perspectives
+
+L.
+
+Todd Rose and Kurt
+
+W. Fischer.[PDF], 2011.
+
+Will
+
+we run out of
+
+data? Limits of LLM
+
+scaling based on human-generated
+
+data. arxiv
+
+Pablo Villalobos,
+
+Colin Raffel, and Tim
+
+Dettmers.[PDF], 2022.
+
+Self-Instruct: Aligning
+
+Language Models with Self-Generated
+
+Instructions. ACL
+
+Yizhong Wang,
+
+Yeganeh Kordi, Swaroop Mishra,
+
+Alisa Liu, Noah A.
+
+Smith, Daniel Khashabi, Hannaneh
+
+Hajishirzi.[PDF] [Code], 2023.
+
+C3:
+
+Zero-shot Text-to-SQL with ChatGPT
+
+arXiv
+
+Xuemei Dong, Chao
+
+Zhang, Yuhang Ge, Yuren
+
+Mao, Yunjun Gao, Lu
+
+Chen, Jinshu Lin, Dongfang
+
+Lou. [PDF] [Code], 2023.
+
+参数高效微
+
+调
+
+参数高效
+
+微调简介
+
+Efficient Large
+
+Language Models: A Survey.
+
+arXiv
+
+Zhongwei Wan, Xin Wang,
+
+Che Liu, Samiul Alam,
+
+Yu Zheng, Jiachen Liu,
+
+Zhongnan Qu, Shen Yan,
+
+Yi Zhu, Quanlu Zhang,
+
+Mosharaf Chowdhury, Mi Zhang.
+
+[PDF] [Code], 2023.
+
+A
+
+Survey for In-context Learning.
+
+arXiv
+
+Qingxiu Dong, Lei Li,
+
+Damai Dai, Ce Zheng,
+
+Jingyuan Ma, Rui Li,
+
+Heming Xia, Jingjing Xu,
+
+Zhiyong Wu, Baobao Chang,
+
+Xu Sun, Lei Li,
+
+Zhifang Sui. [PDF] [Code],
+
+2023.
+
+Instruction Tuning for
+
+Large Language Models: A
+
+Survey. arXiv
+
+Shengyu Zhang, Linfeng
+
+Dong, Xiaoya Li, Sen
+
+Zhang, Xiaofei Sun, Shuhe
+
+Wang, Jiwei Li, Runyi
+
+Hu, Tianwei Zhang, Fei
+
+Wu, Guoyin Wang. [PDF]
+
+[Code], 2023.
+
+Finetuned language
+
+models are zero-shot learners.
+
+arXiv
+
+Jason Wei, Maarten Bosma,
+
+Vincent Y. Zhao, Kelvin
+
+Guu, Adams Wei Yu,
+
+Brian Lester, Nan Du,
+
+Andrew M. Dai, Quoc
+
+V. Le. [PDF] [Code],
+
+2021.
+
+Multitask Prompted Training
+
+Enables Zero-Shot Task Generalization.
+
+ICLR
+
+Victor Sanh et al.
+
+[PDF] [Code], 2022.
+
+Instruction
+
+in the Wild: A
+
+User-based Instruction Dataset. GitHub
+
+Jinjie
+
+Ni and Fuzhao Xue
+
+and Kabir Jain and
+
+Mahir Hitesh Shah and
+
+Zangwei Zheng and Yang
+
+You. [Code], 2023.
+
+Self-Instruct:
+
+Aligning Language Models with
+
+Self-Generated Instructions. ACL
+
+Yizhong Wang
+
+et al. [PDF] [Code],
+
+2023.
+
+Llama 2: Open
+
+foundation and fine-tuned chat
+
+models. arXiv
+
+Yizhong Wang, Yeganeh
+
+Kordi, Swaroop Mishra, Alisa
+
+Liu, Noah A. Smith,
+
+Daniel Khashabi, Hannaneh Hajishirzi.
+
+[PDF] [Code], 2023.
+
+参
+
+数附加方法
+
+
+
+The Power of Scale
+
+for Parameter-Efficient Prompt Tuning.
+
+EMNLP
+
+Brian Lester, Rami Al-Rfou,
+
+and Noah Constant [PDF]
+
+[Code], 2021.
+
+Prefix-Tuning: Optimizing
+
+Continuous Prompts for Generation.
+
+ACL
+
+Xiang Lisa Li and
+
+Percy Liang [PDF] [Code],
+
+2021.
+
+Parameter-Efficient Transfer Learning
+
+for NLP. ICML
+
+Neil Houlsby,
+
+Andrei Giurgiu, Stanislaw Jastrzebski,
+
+Bruna Morrone, Quentin de
+
+Laroussilhe, Andrea Gesmundo, Mona
+
+Attariyan, Sylvain Gelly. [PDF]
+
+[Code], 2019.
+
+AdapterFusion: Non-Destructive
+
+Task Composition for Transfer
+
+Learning
+
+
+
+Jonas Pfeiffer, Aishwarya Kamath,
+
+Andreas Rücklé, Kyunghyun Cho,
+
+Iryna Gurevych. [PDF] [Code],
+
+2020.
+
+SparseAdapter: An Easy
+
+Approach for Improving the
+
+Parameter-Efficiency of Adapters. Findings
+
+of EMNLP
+
+Shwai He, Liang
+
+Ding, Daize Dong, Miao
+
+Zhang, Dacheng Tao. [PDF]
+
+[Code], 2022.
+
+Counter-Interference Adapter
+
+for Multilingual Machine Translation.
+
+Findings of EMNLP
+
+Yaoming Zhu,
+
+Jiangtao Feng, Chengqi Zhao,
+
+Mingxuan Wang, Lei Li.
+
+[PDF] [Code], 2021.
+
+Tuning
+
+Language Models by Proxy.
+
+arXiv
+
+Alisa Liu, Xiaochuang Han,
+
+Yizhong Wang, Yulia Tsvetkov,
+
+Yejin Choi, Noah A.
+
+Smith. [PDF] [Code], 2024.
+
+
+
+Training Neural Networks with
+
+Fixed Sparse Masks. NIPS
+
+Yi-Lin
+
+Sung, Varun Nair, Colin
+
+Raffel [PDF] [Code], 2021.
+
+参数选择方
+
+法
+
+BitFit: Simple Parameter-efficient
+
+Fine-tuning for Transformer-based Masked
+
+Language-models. ACL
+
+Elad Ben Zaken,
+
+Shauli Ravfogel, Yoav Goldberg
+
+[PDF] [Code], 2022.
+
+What
+
+Would Elsa Do? Freezing
+
+Layers During Transformer Fine-Tuning.
+
+arXiv
+
+Jaejun Lee, Raphael Tang,
+
+and Jimmy Lin [PDF],
+
+2019.
+
+On the Effectiveness
+
+of Parameter-Efficient Fine-Tuning. AAAI
+
+Zihao
+
+Fu, Haoran Yang, Anthony
+
+Man-Cho So, Wai Lam,
+
+Lidong Bing, Nigel Collier.
+
+[PDF] [Code], 2023.
+
+Parameter-Efficient
+
+Fine-Tuning without Introducing New
+
+Latency. ACL
+
+Baohao Liao, Yan
+
+Meng, and Christof Monz
+
+[PDF], 2023.
+
+Raise a
+
+Child in Large Language
+
+Model: Towards Effective and
+
+Generalizable Fine-tuning. EMNLP
+
+Runxin Xu,
+
+Fuli Luo, Zhiyuan Zhang,
+
+Chuanqi Tan, Baobao Chang,
+
+Songfang Huang, Fei Huang.
+
+[PDF] [Code], 2021.
+
+Masking
+
+as an Efficient Alternative
+
+to Finetuning for Pre-trained
+
+Language Models. EMNLP
+
+Mengjie Zhao,
+
+Tao Lin, Fei Mi,
+
+Martin Jaggi, Hinrich Schütze.
+
+[PDF], 2020.
+
+Composable Sparse
+
+Fine-Tuning for Cross-Lingual Transfer.
+
+ACL
+
+Alan Ansell, Edoardo Maria
+
+Ponti, Anna Korhonen, Ivan
+
+Vulić. [PDF] [Code], 2022.
+
+
+
+GLUE: A Multi-Task Benchmark
+
+and Analysis Platform for
+
+Natural Language Understanding. ICLR
+
+Alex
+
+Wang, Amanpreet Singh, Julian
+
+Michael, Felix Hill, Omer
+
+Levy, Samuel R. Bowman.
+
+[PDF] [Code], 2019.
+
+The
+
+Lottery Ticket Hypothesis: Finding
+
+Sparse, Trainable Neural Networks.
+
+ICLR
+
+Jonathan Frankle and Michael
+
+Carbin [PDF], 2019.
+
+Unified
+
+Low-Resource Sequence Labeling by
+
+Sample-Aware Dynamic Sparse Finetuning
+
+EMNLP Sarkar Snigdha Sarathi
+
+Das, Ranran Haoran Zhang,
+
+Peng Shi, Wenpeng Yin,
+
+Rui Zhang. [PDF] [Code],
+
+2023.
+
+
+
+低秩适配
+
+方法
+
+LoRA:
+
+Low-Rank Adaptation of Large
+
+Language Models. ICLR
+
+Edward J.
+
+Hu, Yelong Shen, Phillip
+
+Wallis, Zeyuan Allen-Zhu, Yuanzhi
+
+Li, Shean Wang, Lu
+
+Wang, Weizhu Chen [PDF]
+
+[Code], 2022
+
+Towards a
+
+Unified View of Parameter-Efficient
+
+Transfer Learning. ICLR
+
+Junxian He,
+
+Chunting Zhou, Xuezhe Ma,
+
+Taylor Berg-Kirkpatrick, Graham Neubig.
+
+[PDF] [Code], 2022.
+
+A
+
+Note on LoRA. arXiv
+
+Vlad
+
+Fomenko, Han Yu, Jongho
+
+Lee, Stanley Hsieh, Weizhu
+
+Chen. [PDF], 2024.
+
+KronA:
+
+Parameter Efficient Tuning with
+
+Kronecker Adapter arXiv Ali
+
+Edalati, Marzieh Tahaei, Ivan
+
+Kobyzev, Vahid Partovi Nia,
+
+James J. Clark, Mehdi
+
+Rezagholizadeh. [PDF], 2022.
+
+Parameter-Efficient
+
+Model Adaptation for Vision
+
+Transformers. AAAI
+
+Xuehai He,Chunyuan Li,Pengchuan
+
+Zhang,Jianwei Yang,Xin Eric Wang.
+
+[PDF], 2023.
+
+DoRA: Weight-Decomposed
+
+Low-Rank Adaptation. arXiv
+
+Shih-Yang Liu,
+
+Chien-Yi Wang, Hongxu Yin,
+
+Pavlo Molchanov, Yu-Chiang Frank
+
+Wang, Kwang-Ting Cheng, Min-Hung
+
+Chen. [PDF] [Code], 2024.
+
+
+
+LoRA Learns Less and
+
+Forgets Less arXiv Dan
+
+Biderman, Jose Gonzalez Ortiz,
+
+Jacob Portes, Mansheej Paul,
+
+Philip Greengard, Connor Jennings,
+
+Daniel King, Sam Havens,
+
+Vitaliy Chiley, Jonathan Frankle,
+
+Cody Blakeney, John P.
+
+Cunningham. [PDF], 2024.
+
+GaLore:
+
+Memory-Efficient LLM Training by
+
+Gradient Low-Rank Projection arXiv
+
+Jiawei Zhao, Zhenyu Zhang,
+
+Beidi Chen, Zhangyang Wang,
+
+Anima Anandkumar, Yuandong Tian.
+
+[PDF], 2024.
+
+S-LoRA: Serving
+
+Thousands of Concurrent LoRA
+
+Adapters. arXiv
+
+Ying Sheng, Shiyi
+
+Cao, Dacheng Li, Coleman
+
+Hooper, Nicholas Lee, Shuo
+
+Yang, Christopher Chou, Banghua
+
+Zhu, Lianmin Zheng, Kurt
+
+Keutzer, Joseph E. Gonzalez,
+
+Ion Stoica. [PDF] [Code],
+
+2023.
+
+Sparse Low-rank Adaptation
+
+of Pre-trained Language Models.
+
+EMNLP
+
+Ning Ding, Xingtai Lv,
+
+Qiaosen Wang, Yulin Chen,
+
+Bowen Zhou, Zhiyuan Liu,
+
+Maosong Sun. [PDF] [Code],
+
+2023.
+
+DoRA: Enhancing Parameter-Efficient
+
+Fine-Tuning with Dynamic Rank
+
+Distribution. arXiv
+
+Yulong Mao, Kaiyu
+
+Huang, Changhao Guan, Ganglin
+
+Bao, Fengran Mo, Jinan
+
+Xu [PDF] [Code], 2024.
+
+
+
+ReLoRA: High-Rank Training Through
+
+Low-Rank Updates. NIPS Workshop
+
+Vladislav
+
+Lialin, Namrata Shivagunde, Sherin
+
+Muckatira, Anna Rumshisky. [PDF]
+
+[Code],2023.
+
+SLTrain: a sparse
+
+plus low-rank approach for
+
+parameter and memory efficient
+
+pretraining. arXiv
+
+Andi Han, Jiaxiang
+
+Li, Wei Huang, Mingyi
+
+Hong, Akiko Takeda, Pratik
+
+Jawanpuria, Bamdev Mishra. [PDF]
+
+[Code], 2024.
+
+Pissa: Principal
+
+singular values and singular
+
+vectors adaptation of large
+
+language models. arXiv
+
+Fanxu Meng,
+
+Zhaohui Wang, Muhan Zhang
+
+[PDF] [Code], 2024.
+
+MiLoRA:
+
+Harnessing Minor Singular Components
+
+for Parameter-Efficient LLM Finetuning.
+
+arXiv
+
+Hanqing Wang, Zeguan Xiao,
+
+Yixia Li, Shuo Wang,
+
+Guanhua Chen, Yun Chen.
+
+[PDF], 2024.
+
+A Survey
+
+on LoRA of Large
+
+Language Models. arXiv
+
+Yuren Mao,
+
+Yuhang Ge, Yijiang Fan,
+
+Wenyi Xu, Yu Mi,
+
+Zhonghao Hu, Yunjun Gao.
+
+[PDF] [Code], 2024.
+
+Parameter-efficient
+
+fine-tuning of large-scale pre-trained
+
+language models. Nat. Mac.
+
+Intell.
+
+Ding, Ning, Yujia Qin,
+
+Guang Yang, Fuchao Wei,
+
+Zonghan Yang, Yusheng Su,
+
+Shengding Hu. [PDF], 2023.
+
+
+
+LoTR: Low Tensor Rank
+
+Weight Adaptation. arXiv
+
+Daniel Bershatsky,
+
+Daria Cherniuk, Talgat Daulbaev,
+
+Aleksandr Mikhalev, Ivan Oseledets.
+
+[PDF], 2024.
+
+MoRA: High-Rank
+
+Updating for Parameter-Efficient Fine-Tuning.
+
+arXiv
+
+Ting Jiang, Shaohan Huang,
+
+Shengyue Luo, Zihan Zhang,
+
+Haizhen Huang, Furu Wei,
+
+Weiwei Deng, Feng Sun,
+
+Qi Zhang, Deqing Wang,
+
+Fuzhen Zhuang. [PDF] [Code],
+
+2024.
+
+Chain of LoRA:
+
+Efficient Fine-tuning of Language
+
+Models via Residual Learning.
+
+arXiv
+
+Wenhan Xia, Chengwei Qin,
+
+Elad Hazan. [PDF], 2024.
+
+
+
+Intrinsic Dimensionality Explains the
+
+Effectiveness of Language Model
+
+Fine-Tuning. ACL/IJCNLP
+
+Armen Aghajanyan, Luke
+
+Zettlemoyer, Sonal Gupta. [PDF],2021.
+
+
+
+Mini-Ensemble Low-Rank Adapters for
+
+Parameter-Efficient Fine-Tuning. arXiv
+
+Pengjie Ren,
+
+Chengshun Shi, Shiguang Wu,
+
+Mengqi Zhang, Zhaochun Ren,
+
+Maarten de Rijke, Zhumin
+
+Chen, Jiahuan Pei [PDF],
+
+2024.
+
+LISA: Layerwise Importance
+
+Sampling for Memory-Efficient Large
+
+Language Model Fine-Tuning. arXiv
+
+Rui
+
+Pan, Xiang Liu, Shizhe
+
+Diao, Renjie Pi, Jipeng
+
+Zhang, Chi Han, Tong
+
+Zhang. [PDF] [Code], 2024.
+
+
+
+Chain of LoRA: Efficient
+
+Fine-tuning of Language Models
+
+via Residual Learning. arXiv
+
+Wenhan
+
+Xia, Chengwei Qin, and
+
+Elad Hazan [PDF], 2024.
+
+
+
+Adaptive Budget Allocation for
+
+Parameter-Efficient Fine-Tuning. ICLR
+
+Qingru Zhang,
+
+Minshuo Chen, Alexander Bukharin,
+
+Nikos Karampatziakis, Pengcheng He,
+
+Yu Cheng, Weizhu Chen,
+
+Tuo Zhao. [PDF] [Code],
+
+2023.
+
+LoraHub: Efficient Cross-Task
+
+Generalization via Dynamic LoRA
+
+Composition. CoLM
+
+Chengsong Huang, Qian
+
+Liu, Bill Yuchen Lin,
+
+Tianyu Pang, Chao Du,
+
+Min Lin. [PDF] [Code],
+
+2023.
+
+Dylora: Parameter efficient
+
+tuning of pre-trained models
+
+using dynamic search-free low-rank
+
+adaptation EACL Mojtaba Valipour,
+
+Mehdi Rezagholizadeh, Ivan Kobyzev,
+
+Ali Ghodsi. [PDF] [Code],
+
+2023.
+
+DoRA: Enhancing Parameter-Efficient
+
+Fine-Tuning with Dy-namic Rank
+
+Distribution arXiv Yulong Mao,
+
+Kaiyu Huang, Changhao Guan,
+
+Ganglin Bao, Fengran Mo,
+
+Jinan Xu. [PDF] [Code],2023.
+
+实践与
+
+应用
+
+FinSQL: Model-Agnostic LLMs-based
+
+Text-to-SQL Framework for Financial
+
+Analysis. SIGMOD
+
+Chao Zhang, Yuren
+
+Mao, Yijiang Fan, Yu
+
+Mi, Yunjun Gao, Lu
+
+Chen, Dongfang Lou, Jinshu
+
+Lin. [PDF], 2024.
+
+TabLLM:
+
+Few-shot Classification of Tabular
+
+Data with Large Language
+
+Models. AISTATS
+
+Stefan Hegselmann, Alejandro
+
+Buendia, Hunter Lang, Monica
+
+Agrawal, Xiaoyi Jiang, David
+
+Sontag. [PDF], 2023.
+
+模型编
+
+辑
+
+模型编辑
+
+简介
+
+Knowledge Editing
+
+for Large Language Models:
+
+A Survey. arXiv
+
+Song Wang,
+
+Yaochen Zhu, Haochen Liu,
+
+Zaiyi Zheng, Chen Chen,
+
+Jundong Li. [PDF], 2023
+
+
+
+A Comprehensive Study of
+
+Knowledge Editing for Large
+
+Language Models. arXiv
+
+Ningyu Zhang,
+
+Yunzhi Yao, Bozhong Tian,
+
+Peng Wang, Shumin Deng,
+
+Mengru Wang, Zekun Xi,
+
+Shengyu Mao, Jintian Zhang,
+
+Yuansheng Ni, Siyuan Cheng,
+
+Ziwen Xu, Xin Xu,
+
+Jia-Chen Gu, Yong Jiang,
+
+Pengjun Xie, Fei Huang,
+
+Lei Liang, Zhiqiang Zhang,
+
+Xiaowei Zhu, Jun Zhou,
+
+Huajun Chen. [PDF][Code], 2024
+
+
+
+Editing Large Language Models:
+
+Problems, Methods, and Opportunities.
+
+EMNLP
+
+Yunzhi Yao, Peng Wang,
+
+Bozhong Tian, Siyuan Cheng,
+
+Zhoubo Li, Shumin Deng,
+
+Huajun Chen, Ningyu Zhang.
+
+[PDF][Code], 2023
+
+A Survey
+
+on Knowledge Editing of
+
+Neural Networks. arXiv
+
+Vittorio Mazzia,
+
+Alessandro Pedrani, Andrea Caciolai,
+
+Kay Rottmann, Davide Bernardi.
+
+[PDF], 2023
+
+
+
+模型编
+
+辑经典方法
+
+
+
+Memory-Based
+
+Model Editing at Scale.
+
+ICML
+
+Eric Mitchell, Charles Lin,
+
+Antoine Bosselut, Christopher D.
+
+Manning, Chelsea Finn. [PDF][Code],
+
+2022
+
+Fixing Model Bugs
+
+with Natural Language Patches.
+
+EMNLP
+
+Shikhar Murty, Christopher D.
+
+Manning, Scott M. Lundberg,
+
+Marco Túlio Ribeiro. [PDF],
+
+2022
+
+Calibrating Factual Knowledge
+
+in Pretrained Language Models.
+
+EMNLP
+
+Qingxiu Dong, Damai Dai,
+
+Yifan Song, Jingjing Xu,
+
+Zhifang Sui, Lei Li.
+
+[PDF][Code], 2022
+
+Transformer-Patcher: One
+
+Mistake Worth One Neuron.
+
+ICLR
+
+Zeyu Huang, Yikang Shen,
+
+Xiaofeng Zhang, Jie Zhou,
+
+Wenge Rong, Zhang Xiong.
+
+[PDF][Code], 2023
+
+Aging with
+
+GRACE: Lifelong Model Editing
+
+with Discrete Key-Value Adaptors.
+
+NeurIPS
+
+Tom Hartvigsen, Swami Sankaranarayanan,
+
+Hamid Palangi, Yoon Kim,
+
+Marzyeh Ghassemi. [PDF][Code], 2023
+
+
+
+Meta-learning in neural networks:
+
+A survey. IEEE transactions
+
+on pattern analysis and
+
+machine intelligence
+
+Timothy Hospedales, Antreas
+
+Antoniou, Paul Micaelli, Amos
+
+Storkey. [PDF], 2021
+
+Editable
+
+Neural Networks. ICLR
+
+Anton Sinitsin,
+
+Vsevolod Plokhotnyuk, Dmitry V.
+
+Pyrkin, Sergei Popov, Artem
+
+Babenko. [PDF][Code], 2020
+
+Editing
+
+Factual Knowledge in Language
+
+Models. EMNLP
+
+Nicola De Cao,
+
+Wilker Aziz, Ivan Titov.
+
+[PDF][Code], 2021
+
+Fast Model
+
+Editing at Scale. ICLR
+
+Eric
+
+Mitchell, Charles Lin, Antoine
+
+Bosselut, Chelsea Finn, Christopher
+
+D. Manning. [PDF][Code], 2022
+
+
+
+Transformer Feed-Forward Layers Are
+
+Key-Value Memories. EMNLP
+
+Mor Geva,
+
+Roei Schuster, Jonathan Berant,
+
+Omer Levy. [PDF][Code], 2021
+
+
+
+Knowledge Neurons in Pretrained
+
+Transformers. ACL
+
+Damai Dai, Li
+
+Dong, Yaru Hao, Zhifang
+
+Sui, Baobao Chang, Furu
+
+Wei. [PDF][Code], 2022
+
+Locating
+
+and Editing Factual Associations
+
+in GPT. NeurIPS
+
+Kevin Meng,
+
+David Bau, Alex Andonian,
+
+Yonatan Belinkov. [PDF][Code], 2022
+
+
+
+Mass-Editing Memory in a
+
+Transformer. ICLR
+
+Kevin Meng, Arnab
+
+Sen Sharma, Alex J.
+
+Andonian, Yonatan Belinkov, David
+
+Bau. [PDF][Code], 2023
+
+附加参数法
+
+：T-Patcher
+
+Transformer-Patcher: One Mistake
+
+Worth One Neuron. ICLR
+
+Zeyu
+
+Huang, Yikang Shen, Xiaofeng
+
+Zhang, Jie Zhou, Wenge
+
+Rong, Zhang Xiong. [PDF][Code],
+
+2023
+
+
+
+定位编辑法
+
+：ROME
+
+Locating
+
+and Editing Factual Associations
+
+in GPT. NeurIPS
+
+Kevin Meng,
+
+David Bau, Alex Andonian,
+
+Yonatan Belinkov. [PDF][Code], 2022
+
+
+
+Mass-Editing Memory in a
+
+Transformer. ICLR
+
+Kevin Meng, Arnab
+
+Sen Sharma, Alex J.
+
+Andonian, Yonatan Belinkov, David
+
+Bau. [PDF][Code], 2023
+
+模型编辑应
+
+用
+
+Scalable Extraction of
+
+Training Data from (Production)
+
+Language Models. arXiv
+
+Milad Nasr,
+
+Nicholas Carlini, Jonathan Hayase,
+
+Matthew Jagielski, A Feder
+
+Cooper, Daphne Ippolito, Christopher
+
+A. Choquette-Choo, Eric Wallace,
+
+Florian Tramèr, Katherine Lee.
+
+[PDF], 2023
+
+DEPN: Detecting
+
+and Editing Privacy Neurons
+
+in Pretrained Language Models.
+
+arXiv
+
+Xinwei Wu, Junzhuo Li,
+
+Minghui Xu, Weilong Dong,
+
+Shuangzhi Wu, Chao Bian,
+
+Deyi Xiong. [PDF][Code], 2023
+
+
+
+Transformer Feed-Forward Layers Build
+
+Predictions by Promoting Concepts
+
+in the Vocabulary Space.
+
+arXiv
+
+Mor Geva, Avi Caciularu,
+
+Kevin Ro Wang, Yoav
+
+Goldberg. [PDF][Code], 2022
+
+Locating
+
+and Mitigating Gender Bias
+
+in Large Language Models.
+
+arXiv
+
+Yuchen Cai, Ding Cao,
+
+Rongxi Guo, Yaqin Wen,
+
+Guiquan Liu, Enhong Chen.
+
+[PDF], 2024
+
+Debiasing Algorithm
+
+through Model Adaptation. arXiv
+
+Tomasz
+
+Limisiewicz, David Mareček, Tomáš
+
+Musil. [PDF][Code], 2023
+
+检索增强
+
+生成
+
+检索增
+
+强生成简介
+
+
+
+No free lunch
+
+theorems for optimization. IEEE
+
+Transactions on Evolutionary Computation
+
+David
+
+H. Wolp ert, William
+
+G. Macready [PDF], 1997
+
+
+
+Retrieval-augmented generation for knowledge-intensive
+
+nlp tasks. NeurIPS
+
+Patrick Lewis,
+
+Ethan Perez, Aleksandra Piktus,
+
+Fabio Petroni, Vladimir Karpukhin,
+
+Naman Goyal, Heinrich Küttler,
+
+Mike Lewis, Wen-tau Yih,
+
+Tim Rocktäschel, Sebastian Riedel,
+
+Douwe Kiela [PDF], 2020
+
+检索增强生
+
+成架构
+
+In-context retrieval-augmented language
+
+models. Transactions of the
+
+Association for Computational Linguistics
+
+Ori
+
+Ram, Yoav Levine, Itay
+
+Dalmedigos, Dor Muhlgay, Amnon
+
+Shashua, Kevin Leyton-Brown, Yoav
+
+Shoham. [PDF][Code], 2023
+
+Replug:
+
+Retrieval-augmented black-box language models.
+
+arXiv
+
+Weijia Shi, Sewon Min,
+
+Michihiro Yasunaga, Minjoon Seo,
+
+Rich James, Mike Lewis,
+
+Luke Zettlemoyer, Wen-tau Yih.
+
+[PDF], 2023
+
+Atlas: Few-shot
+
+learning with retrieval augmented
+
+language models. Journal of
+
+Machine Learning Research
+
+Gautier Izacard,
+
+Patrick Lewis, Maria Lomeli,
+
+Lucas Hosseini, Fabio Petroni,
+
+Timo Schick, Jane Dwivedi-Yu,
+
+Armand Joulin, Sebastian Riedel,
+
+Edouard Grave. [PDF][Code], 2023
+
+
+
+Improving language models by
+
+retrieving from trillions of
+
+tokens. ICML Sebastian Borgeaud,
+
+Arthur Mensch, Jordan Hoffmann,
+
+Trevor Cai, Eliza Rutherford,
+
+Katie Millican, George Bm
+
+Van Den Driessche, Jean-Baptiste
+
+Lespiau, Bogdan Damoc, Aidan
+
+Clark. [PDF][Code], 2022
+
+Augmentation-Adapted
+
+Retriever Improves Generalization of
+
+Language Models as Generic
+
+Plug-In. arXiv Zichun Yu,
+
+Chenyan Xiong, Shi Yu,
+
+Zhiyuan Liu. [PDF][Code], 2023
+
+
+
+Self-rag: Learning to retrieve,
+
+generate, and critique through
+
+self-reflection. arXiv
+
+Akari Asai, Zeqiu
+
+Wu, Yizhong Wang, Avirup
+
+Sil, Hannaneh Hajishirzi. [PDF][Code],
+
+2023
+
+
+
+知识
+
+检索
+
+The
+
+Chronicles of RAG: The
+
+Retriever, the Chunk and
+
+the Generator. arXiv
+
+Paulo Finardi,
+
+Leonardo Avila, Rodrigo Castaldoni,
+
+Pedro Gengo, Celio Larcher,
+
+Marcos Piau, Pablo Costa,
+
+Vinicius Carid{'a}. [PDF], 2024
+
+
+
+LLM-Augmented Retrieval: Enhancing Retrieval
+
+Models Through Language Models
+
+and Doc-Level Embedding. arXiv
+
+Mingrui
+
+Wu, Sheng Cao. [PDF],
+
+2024
+
+Generate rather than
+
+retrieve: Large language models
+
+are strong context generators.
+
+ICLR
+
+Wenhao Yu, Dan Iter,
+
+Shuohang Wang, Yichong Xu,
+
+Mingxuan Ju, Soumya Sanyal,
+
+Chenguang Zhu, Michael Zeng,
+
+Meng Jiang. [PDF][Code], 2023
+
+
+
+An information-theoretic perspective of
+
+tf--idf measures. IPM
+
+Akiko Aizawa.
+
+[PDF], 2003
+
+The probabilistic
+
+relevance framework: BM25 and
+
+beyond. Foundations and Trends
+
+in Information Retrieval
+
+Stephen Robertson,
+
+Hugo Zaragoza. [PDF], 2009
+
+
+
+Investigating the Effects of
+
+Sparse Attention on Cross-Encoders.
+
+ECIR
+
+Ferdinand Schlatt, Maik Fr{"o}be,
+
+Matthias Hagen. [PDF][Code], 2024
+
+
+
+A Thorough Comparison of
+
+Cross-Encoders and LLMs for
+
+Reranking SPLADE. arXiv
+
+Herv{'e} D{'e}jean,
+
+St{'e}phane Clinchant, Thibault Formal.
+
+[PDF], 2024
+
+Dense passage
+
+retrieval for open-domain question
+
+answering. EMNLP
+
+Vladimir Karpukhin, Barlas
+
+O{\u{g}}uz, Sewon Min, Patrick
+
+Lewis, Ledell Wu, Sergey
+
+Edunov, Danqi Chen, Wen-tau
+
+Yih. [PDF][Code], 2020
+
+Colbert:
+
+Efficient and effective passage
+
+search via contextualized late
+
+interaction over bert. SIGIR
+
+Omar
+
+Khattab, Matei Zaharia. [PDF][Code],
+
+2020
+
+Poly-encoders: Transformer architectures
+
+and pre-training strategies for
+
+fast and accurate multi-sentence
+
+scoring. arXiv
+
+Samuel Humeau, Kurt
+
+Shuster, Marie-Anne Lachaux, Jason
+
+Weston. [PDF][Code], 2019
+
+Transformer
+
+memory as a differentiable
+
+search index. Advances in
+
+Neural Information Processing Systems
+
+Yi
+
+Tay, Vinh Tran, Mostafa
+
+Dehghani, Jianmo Ni, Dara
+
+Bahri, Harsh Mehta, Zhen
+
+Qin, Kai Hui, Zhe
+
+Zhao, Jai Gupta. [PDF][Code],
+
+2022
+
+From matching to
+
+generation: A survey on
+
+generative information retrieval. arXiv
+
+Xiaoxi
+
+Li, Jiajie Jin, Yujia
+
+Zhou, Yuyao Zhang, Peitian
+
+Zhang, Yutao Zhu, Zhicheng
+
+Dou. [PDF], 2024
+
+A
+
+Neural Corpus Indexer for
+
+Document Retrieval. arXiv
+
+Yujing Wang,
+
+Ying Hou, Hong Wang,
+
+Ziming Miao, Shibin Wu,
+
+Hao Sun, Qi Chen,
+
+Yuqing Xia, Chengmin Chi,
+
+Guoshuai Zhao, Zheng Liu,
+
+Xing Xie, Hao Sun,
+
+Weiwei Deng, Qi Zhang,
+
+Mao Yang. [PDF], 2022
+
+
+
+Multidimensional binary search trees
+
+used for associative searching.
+
+Communications of the ACM
+
+Jon
+
+Louis Bentley. [PDF], 1975
+
+
+
+Ball*-tree: Efficient spatial indexing
+
+for constrained nearest-neighbor search
+
+in metric spaces. arXiv
+
+Mohamad
+
+Dolatshah, Ali Hadian, Behrouz
+
+Minaei-Bidgoli. [PDF], 2015
+
+Approximate
+
+nearest neighbor algorithm based
+
+on navigable small world
+
+graphs. Information Systems
+
+Yury Malkov,
+
+Alexander Ponomarenko, Andrey Logvinov,
+
+Vladimir Krylov. [PDF], 2014
+
+
+
+Non-metric similarity graphs for
+
+maximum inner product search.
+
+Advances in Neural Information
+
+Processing Systems
+
+Stanislav Morozov, Artem
+
+Babenko. [PDF][Code], 2018
+
+Efficient
+
+and robust approximate nearest
+
+neighbor search using hierarchical
+
+navigable small world graphs.
+
+IEEE Transactions on Pattern
+
+Analysis and Machine Intelligence
+
+Yu
+
+A Malkov, Dmitry A
+
+Yashunin. [PDF][Code], 2018
+
+Product
+
+quantization for nearest neighbor
+
+search. IEEE Transactions on
+
+Pattern Analysis and Machine
+
+Intelligence
+
+Herve Jegou, Matthijs Douze,
+
+Cordelia Schmid. [PDF], 2010
+
+
+
+Optimized product quantization for
+
+approximate nearest neighbor search.
+
+CVPR
+
+Tiezheng Ge, Kaiming He,
+
+Qifa Ke, Jian Sun.
+
+[PDF], 2013
+
+Searching in
+
+one billion vectors: re-rank
+
+with source coding. ICASSP
+
+Herv{'e}
+
+J{'e}gou, Romain Tavenard, Matthijs
+
+Douze, Laurent Amsaleg. [PDF],
+
+2011
+
+Is ChatGPT good
+
+at search? Investigating large
+
+language models as re-ranking
+
+agent. arXiv
+
+Weiwei Sun, Lingyong
+
+Yan, Xinyu Ma, Pengjie
+
+Ren, Dawei Yin, Zhaochun
+
+Ren. [PDF][Code], 2023
+
+生成增
+
+强
+
+Selfcheckgpt: Zero-resource black-box
+
+hallucination detection for generative
+
+large language models. EMNLP
+
+Potsawee
+
+Manakul, Adian Liusie, Mark
+
+JF Gales [PDF] [Code],
+
+2023
+
+Predicting Question-Answering Performance
+
+of Large Language Models
+
+through Semantic Consistency. arXiv
+
+Ella
+
+Rabinovich, Samuel Ackerman, Orna
+
+Raz, Eitan Farchi, Ateret
+
+Anaby Tavor [PDF], 2020
+
+
+
+Large language models struggle
+
+to learn long-tail knowledge.
+
+ICML
+
+Nikhil Kandpal, Haikang Deng,
+
+Adam Roberts, Eric Wallace,
+
+Colin Raffel [PDF] [Code],
+
+2023
+
+When not to
+
+trust language models: Investigating
+
+effectiveness of parametric and
+
+non-parametric memories. ACL
+
+Alex Mallen,
+
+Akari Asai, Victor Zhong,
+
+Rajarshi Das, Hannaneh Hajishirzi,
+
+Daniel Khashabi [PDF] [Code],
+
+2023
+
+Locating and editing
+
+factual associations in GPT.
+
+NeurIPS
+
+Kevin Meng, David Bau,
+
+Alex Andonian, Yonatan Belinkov
+
+[PDF] [Code], 2022
+
+Learning
+
+to trust your feelings:
+
+Leveraging self-awareness in llms
+
+for hallucination mitigation. arXiv
+
+Yuxin
+
+Liang, Zhuoyang Song, Hao
+
+Wang, Jiaxing Zhang [PDF][Code],
+
+2024
+
+Improving Language Models
+
+via Plug-and-Play Retrieval Feed-back.
+
+arXiv
+
+Wenhao Yu, Zhihan Zhang,
+
+Zhenwen Liang, Meng Jiang,
+
+Ashish Sabharwal [PDF], 2023
+
+
+
+Demonstrate-search-predict: Composing retrieval and
+
+language models for knowledge-intensive
+
+nlp. arXiv
+
+Omar Khattab, Keshav
+
+Santhanam, Xiang Lisa Li,
+
+David Hall, Percy Liang,
+
+Christopher Potts, Matei Zaharia
+
+[PDF][Code], 2022
+
+Tree of
+
+clarifications: Answering ambiguous questions
+
+with retrieval-augmented large language
+
+models. EMNLP
+
+Gangwoo Kim, Sungdong
+
+Kim, Byeongguk Jeon, Joonsuk
+
+Park, Jaewoo Kang [PDF][Code],
+
+2023
+
+Longllmlingua: Accelerating and
+
+enhancing llms in long
+
+context scenarios via prompt
+
+compression. arXiv
+
+Huiqiang Jiang, Qianhui
+
+Wu, Xufang Luo, Dongsheng
+
+Li, Chin-Yew Lin, Yuqing
+
+Yang, Lili Qiu [PDF][Code],
+
+2023
+
+FIT-RAG: Black-Box RAG
+
+with Factual Information and
+
+Token Reduction. ACM Transactions
+
+on Information Systems
+
+Yuren Mao,
+
+Xuemei Dong, Wenyi Xu,
+
+Yunjun Gao, Bin Wei,
+
+Ying Zhang [PDF], 2024
+
+
+
+Prca: Fitting black-box large
+
+language models for retrieval
+
+question answering via pluggable
+
+reward-driven contextual adapter. EMNLP
+
+Haoyan
+
+Yang, Zhitao Li, Yong
+
+Zhang, Jianzong Wang, Ning
+
+Cheng, Ming Li, Jing
+
+Xiao [PDF], 2023
+
+Triforce:
+
+Lossless acceleration of long
+
+sequence generation with hierarchical
+
+speculative decodingr. arXiv
+
+Hanshi Sun,
+
+Zhuoming Chen, Xinyu Yang,
+
+Yuandong Tian, Beidi Chen
+
+[PDF][Code], 2024
+
+RAGCache: Efficient
+
+Knowledge Caching for Retrieval-Augmented
+
+Generation. arXiv
+
+Chao Jin, Zili
+
+Zhang, Xuanlin Jiang, Fangyue
+
+Liu, Xin Liu, Xuanzhe
+
+Liu, Xin Jin [PDF],
+
+2024
+
+
+
+实践与应
+
+用
+
+A
+
+survey on large language
+
+model based autonomous agents.
+
+Frontiers of Computer Science
+
+Hanshi
+
+Sun, Zhuoming Chen, Xinyu
+
+Yang, Yuandong Tian, Beidi
+
+Chen [PDF][Code], 2024
+
+Multimodal
+
+prompt retrieval for generative
+
+visual question answering. ACL
+
+Timothy
+
+Ossowski, Junjie Hu [PDF][Code],
+
+2023
+
+FinTextQA: A Dataset
+
+for Long-form Financial Question
+
+Answering. arXiv
+
+Jian Chen, Peilin
+
+Zhou, Yining Hua, Yingxin
+
+Loh, Kehui Chen, Ziyuan
+
+Li, Bing Zhu, Junwei
+
+Liang [PDF], 2024
+
+Retrieval-based
+
+controllable molecule generation. ICLR
+
+Zichao
+
+Wang, Weili Nie, Zhuoran
+
+Qiao, Chaowei Xiao, Richard
+
+Baraniuk, Anima Anandkumarn [PDF][Code],
+
+2022
+
+Re-imagen: Retrieval-augmented text-to-image
+
+generator. arXiv
+
+Wenhu Chen, Hexiang
+
+Hu, Chitwan Saharia, William
+
+W. Cohen [PDF], 2022
+
+
+
+Using external off-policy speech-to-text
+
+mappings in contextual end-to-end
+
+automated speech recognition. arXiv
+
+David
+
+M. Chan, Shalini Ghosh,
+
+Ariya Rastrow, Björn Hoffmeister
+
+[PDF], 2023
+
+Language models
+
+with image descriptors are
+
+strong few-shot video-language learners.
+
+NeurIPS
+
+Zhenhailong Wang, Manling Li,
+
+Ruochen Xu, Luowei Zhou,
+
+Jie Lei, Xudong Lin,
+
+Shuohang Wang, Ziyi Yang,
+
+Chenguang Zhu, Derek Hoiem,
+
+Shih-Fu Chang, Mohit Bansal,
+
+Heng Ji [PDF][Code], 2022
