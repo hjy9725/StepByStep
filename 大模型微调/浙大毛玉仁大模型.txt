@@ -5,308 +5,213 @@
 
 
 
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <algorithm>
+
+class Solution {
+public:
+    int lengthOfLongestSubstring(std::string s) {
+        int n = s.length();
+        if (n == 0) return 0;
+
+        int left = 0, right = 0;
+        int maxLength = 0;
+        std::unordered_set<char> charSet;
+
+        while (right < n) {
+            if (charSet.find(s[right]) == charSet.end()) {
+                charSet.insert(s[right]);
+                maxLength = std::max(maxLength, right - left + 1);
+                right++;
+            } else {
+                charSet.erase(s[left]);
+                left++;
+            }
+        }
+
+        return maxLength;
+    }
+};
+
+
+
+
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <algorithm>
+
+class Solution {
+public:
+    int lengthOfLongestSubstring(std::string s) {
+        int n = s.length();
+        if (n == 0) return 0;
+
+        int left = 0, right = 0;
+        int maxLength = 0;
+        std::unordered_set<char> charSet;
+
+        while (right < n) {
+            if (charSet.find(s[right]) == charSet.end()) {
+                charSet.insert(s[right]);
+                maxLength = std::max(maxLength, right - left + 1);
+                right++;
+            } else {
+                charSet.erase(s[left]);
+                left++;
+            }
+        }
+
+        return maxLength;
+    }
+};
+
+
+
+
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <algorithm>
+
+class Solution {
+public:
+    int lengthOfLongestSubstring(std::string s) {
+        int n = s.length();
+        if (n == 0) return 0;
+
+        int left = 0, right = 0;
+        int maxLength = 0;
+        std::unordered_set<char> charSet;
+
+        while (right < n) {
+            if (charSet.find(s[right]) == charSet.end()) {
+                charSet.insert(s[right]);
+                maxLength = std::max(maxLength, right - left + 1);
+                right++;
+            } else {
+                charSet.erase(s[left]);
+                left++;
+            }
+        }
+
+        return maxLength;
+    }
+};
+
+
+
+
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <algorithm>
 
+class Solution {
+public:
+    int lengthOfLongestSubstring(std::string s) {
+        int n = s.length();
+        if (n == 0) return 0;
 
+        int left = 0, right = 0;
+        int maxLength = 0;
+        std::unordered_set<char> charSet;
 
+        while (right < n) {
+            if (charSet.find(s[right]) == charSet.end()) {
+                charSet.insert(s[right]);
+                maxLength = std::max(maxLength, right - left + 1);
+                right++;
+            } else {
+                charSet.erase(s[left]);
+                left++;
+            }
+        }
 
+        return maxLength;
+    }
+};
 
 
 
 
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <algorithm>
 
+class Solution {
+public:
+    int lengthOfLongestSubstring(std::string s) {
+        int n = s.length();
+        if (n == 0) return 0;
 
+        int left = 0, right = 0;
+        int maxLength = 0;
+        std::unordered_set<char> charSet;
 
-于参数 WH 的梯
+        while (right < n) {
+            if (charSet.find(s[right]) == charSet.end()) {
+                charSet.insert(s[right]);
+                maxLength = std::max(maxLength, right - left + 1);
+                right++;
+            } else {
+                charSet.erase(s[left]);
+                left++;
+            }
+        }
 
-度为：
+        return maxLength;
+    }
+};
 
-∂L
 
-WH
 
-=
 
-t
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <algorithm>
 
-X
+class Solution {
+public:
+    int lengthOfLongestSubstring(std::string s) {
+        int n = s.length();
+        if (n == 0) return 0;
 
-i=1
+        int left = 0, right = 0;
+        int maxLength = 0;
+        std::unordered_set<char> charSet;
 
-∂o
+        while (right < n) {
+            if (charSet.find(s[right]) == charSet.end()) {
+                charSet.insert(s[right]);
+                maxLength = std::max(maxLength, right - left + 1);
+                right++;
+            } else {
+                charSet.erase(s[left]);
+                left++;
+            }
+        }
 
-∂lt
+        return maxLength;
+    }
+};
 
-t
 
-·
 
-∂ot
 
-∂ht
 
-·
 
-∂ht
 
-∂hi
 
-·
 
-∂hi
 
-∂WH
 
-。 (1.21)
 
-其中,
 
-∂ht
-
-∂hi
-
-=
-
-∂ht
-
-∂ht−1
-
-∂ht−1
-
-∂ht−2
-
-...
-
-∂hi+1
-
-∂hi
-
-=
-
-t
-
-Y
-
-k=i+1
-
-∂hk
-
-∂hk−1
-
-。 (1.22)
-
-9
-
-第
-
-1
-
-章 语言模型
-
-基础
-
-并且，
-
-∂hk
-
-∂hk−1
-
-=
-
-∂g(zk)
-
-∂zk
-
-WH。 (1.23)
-
-其
-
-中，zk =
-
-WHhk−1 + WIxk。综上，有
-
-∂L
-
-WH
-
-=
-
-t
-
-X
-
-i=1
-
-∂o
-
-∂lt
-
-t
-
-·
-
-∂ot
-
-∂ht
-
-·
-
-t
-
-Y
-
-k=i
-
-∂g(zk)
-
-∂zk
-
-WH ·
-
-∂hi
-
-∂WH
-
-。 (1.24)
-
-从
-
-上式中可以
-
-看出，求解
-
-WH 的
-
-梯度时涉及
-
-大量的矩阵
-
-级联相乘。这
-
-会导致
-
-其数
-
-值被级联放
-
-大或缩小。文
-
-献 [17]
-
-中指出，当
-
-WH 的最大特征
-
-值小于 1 时，会
-
-发生梯度消
-
-失；当
-
-WH 的最大
-
-特征值大于
-
-1 时，会发生梯
-
-度爆炸。梯度
-
-消失和爆炸
-
-导致训练上
-
-述 RNN
-
-非常困难
-
-。为了解决梯
-
-度消失和爆
-
-炸问题，GRU [4] 和 LSTM
-
-[8] 引
-
-入门控结构
-
-，取得了良好
-
-效果，成为主
-
-流的 RNN 网络架
-
-构。
-
-1.2.2 基于 RNN 的语
-
-言模型
-
-对词
-
-序列 {w1, w2, w3,
-
-..., wN }，基于 RNN
-
-的
-
-语言模型每
-
-次根据当前
-
-词 wi 和循
-
-环输
-
-入的隐藏状
-
-态
-
-hi−1，来预测下
-
-一个词 wi+1 出现
-
-的概率，即
-
-P(wi+1|w1:i)
-
-= P(wi+1|wi
-
-, hi−1)。
-
-(1.25)
-
-其
-
-中，当 i =
-
-1 时，P(wi+1|wi
-
-, hi−1)
-
-= P(w2|w1) 。基于
-
-此，{w1, w2,
-
-w3, ..., wN }
-
-整
-
-体出现
-
-的概率为：
-
-P(w1:N )
-
-=
-
-N−1
-
-Y
-
-i=1
-
-P(wi+1|wi
-
-, hi−1)。 (1.26)
 
 在
 
