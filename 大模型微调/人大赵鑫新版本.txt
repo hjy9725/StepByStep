@@ -62358,6 +62358,457 @@ U。
 
 
 
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
 6.5 预
 
 训练代码实
@@ -62368,47 +62819,745 @@ U。
 
 
 
-为了帮助读
+进一步，为
 
-者更好地理
+了实现数据
 
-解预训练的
+并行训练（
 
-过程，本节
+单机多卡）
 
-将详细展示
+，我们可以
 
-一个 LL
+使用 to
 
-MBox 
+rchru
 
-和
-
-
+n 启动
 
 
 
-YuLan
 
--Chat
 
- 的预训练
+上述代码。
 
-示例代码。
+具体的运行
 
-此示例基于
+指令如下面
 
- Tran
+的代码所示
 
-sform
+。其中，第
 
-ers 和
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
 
  Deep
 
 Speed
 
- 进行训练
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
 
 。
 
@@ -62416,49 +63565,27941 @@ Speed
 
 
 
-在下面的示
+133
 
-例代码中，
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
 
 train
 
-() 函数
+ed(ar
 
-涵盖了预训
+gs.mo
 
-练过程中的
+del_n
 
-主要步骤，
+ame_o
 
-包括模型
+r_pat
+
+h,
 
 
 
 
 
-与分词器的
+attn_
 
-初始化、训
+imple
 
-练数据的准
+menta
 
-备等；然后
+tion=
 
-调用 Tr
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
 
 ainer
 
- 类来执行
+ = Tr
 
-模型训练并
+ainer
+
+(**kw
+
+args)
 
 
 
 
 
-保存训练状
+65 tr
 
-态。
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
+
+
+
+
+
+1 fro
+
+m dat
+
+aclas
+
+ses i
+
+mport
+
+ data
+
+class
+
+
+
+
+
+2 fro
+
+m dat
+
+aset.
+
+pt_da
+
+taset
+
+ impo
+
+rt PT
+
+Datas
+
+et
+
+
+
+
+
+3 fro
+
+m tra
+
+nsfor
+
+mers 
+
+impor
+
+t (
+
+
+
+
+
+4 Aut
+
+oMode
+
+lForC
+
+ausal
+
+LM,
+
+
+
+
+
+5 Aut
+
+oToke
+
+nizer
+
+,
+
+
+
+
+
+6 HfA
+
+rgume
+
+ntPar
+
+ser,
+
+
+
+
+
+7 Tra
+
+ining
+
+Argum
+
+ents,
+
+
+
+
+
+8 Tra
+
+iner,
+
+
+
+
+
+9 )
+
+
+
+
+
+10 fr
+
+om tr
+
+ansfo
+
+rmers
+
+.hf_a
+
+rgpar
+
+ser i
+
+mport
+
+ HfAr
+
+g
+
+
+
+
+
+11
+
+
+
+
+
+12
+
+
+
+
+
+13 # 
+
+用户输入超
+
+参数
+
+
+
+
+
+14 @d
+
+atacl
+
+ass
+
+
+
+
+
+15 cl
+
+ass A
+
+rgume
+
+nts(T
+
+raini
+
+ngArg
+
+ument
+
+s):
+
+
+
+
+
+16 # 
+
+模型结构
+
+
+
+
+
+17 mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h: st
+
+r = H
+
+fArg(
+
+
+
+
+
+18 de
+
+fault
+
+=None
+
+,
+
+
+
+
+
+130
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+19 he
+
+lp="T
+
+he mo
+
+del n
+
+ame o
+
+r pat
+
+h, e.
+
+g., `
+
+meta-
+
+llama
+
+/Llam
+
+a-2-7
+
+b-hf`
+
+",
+
+
+
+
+
+20 )
+
+
+
+
+
+21 # 
+
+训练数据集
+
+
+
+
+
+22 da
+
+taset
+
+: str
+
+ = Hf
+
+Arg(
+
+
+
+
+
+23 de
+
+fault
+
+="",
+
+
+
+
+
+24 he
+
+lp="S
+
+ettin
+
+g the
+
+ name
+
+s of 
+
+data 
+
+file.
+
+",
+
+
+
+
+
+25 )
+
+
+
+
+
+26 # 
+
+上下文窗口
+
+大小
+
+
+
+
+
+27 mo
+
+del_m
+
+ax_le
+
+ngth:
+
+ int 
+
+= HfA
+
+rg(
+
+
+
+
+
+28 de
+
+fault
+
+=2048
+
+,
+
+
+
+
+
+29 he
+
+lp="T
+
+he ma
+
+ximum
+
+ sequ
+
+ence 
+
+lengt
+
+h",
+
+
+
+
+
+30 )
+
+
+
+
+
+31 # 
+
+只保存模型
+
+参数（不保
+
+存优化器状
+
+态等中间结
+
+果）
+
+
+
+
+
+32 sa
+
+ve_on
+
+ly_mo
+
+del: 
+
+bool 
+
+= HfA
+
+rg(
+
+
+
+
+
+33 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+34 he
+
+lp="W
+
+hen c
+
+heckp
+
+ointi
+
+ng, w
+
+hethe
+
+r to 
+
+only 
+
+save 
+
+the m
+
+odel,
+
+ or a
+
+lso
+
+
+
+
+
+the o
+
+ptimi
+
+zer, 
+
+sched
+
+uler 
+
+& rng
+
+ stat
+
+e.", 
+
+↩→
+
+
+
+
+
+35 )
+
+
+
+
+
+36 # 
+
+使用 BF
+
+16 混合
+
+精度训练
+
+
+
+
+
+37 bf
+
+16: b
+
+ool =
+
+ HfAr
+
+g(
+
+
+
+
+
+38 de
+
+fault
+
+=True
+
+,
+
+
+
+
+
+39 he
+
+lp="W
+
+hethe
+
+r to 
+
+use b
+
+f16 (
+
+mixed
+
+) pre
+
+cisio
+
+n ins
+
+tead 
+
+of 32
+
+-bit.
+
+",
+
+
+
+
+
+40 )
+
+
+
+
+
+41
+
+
+
+
+
+42
+
+
+
+
+
+43 de
+
+f tra
+
+in():
+
+
+
+
+
+44 # 
+
+解析命令行
+
+参数
+
+
+
+
+
+45 pa
+
+rser 
+
+= HfA
+
+rgume
+
+ntPar
+
+ser(A
+
+rgume
+
+nts)
+
+
+
+
+
+46 ar
+
+gs = 
+
+parse
+
+r.par
+
+se_ar
+
+gs_in
+
+to_da
+
+tacla
+
+sses(
+
+)[0]
+
+
+
+
+
+47 # 
+
+加载分词器
+
+
+
+
+
+48 to
+
+keniz
+
+er = 
+
+AutoT
+
+okeni
+
+zer.f
+
+rom_p
+
+retra
+
+ined(
+
+
+
+
+
+49 ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+50 mo
+
+del_m
+
+ax_le
+
+ngth=
+
+args.
+
+model
+
+_max_
+
+lengt
+
+h,
+
+
+
+
+
+51 pa
+
+dding
+
+_side
+
+="rig
+
+ht",
+
+
+
+
+
+52 ad
+
+d_eos
+
+_toke
+
+n=Fal
+
+se,
+
+
+
+
+
+53 )
+
+
+
+
+
+54 # 
+
+加载模型，
+
+并使用 F
+
+lashA
+
+ttent
+
+ion
+
+
+
+
+
+55 mo
+
+del =
+
+ Auto
+
+Model
+
+ForCa
+
+usalL
+
+M.fro
+
+m_pre
+
+train
+
+ed(ar
+
+gs.mo
+
+del_n
+
+ame_o
+
+r_pat
+
+h,
+
+
+
+
+
+attn_
+
+imple
+
+menta
+
+tion=
+
+"flas
+
+h_att
+
+entio
+
+n_2")
+
+ ↩→
+
+
+
+
+
+56 # 
+
+初始化训练
+
+器、准备训
+
+练数据并开
+
+始训练
+
+
+
+
+
+57 kw
+
+args 
+
+= dic
+
+t(
+
+
+
+
+
+58 mo
+
+del=m
+
+odel,
+
+
+
+
+
+59 ar
+
+gs=ar
+
+gs,
+
+
+
+
+
+60 to
+
+keniz
+
+er=to
+
+keniz
+
+er,
+
+
+
+
+
+61 tr
+
+ain_d
+
+atase
+
+t=PTD
+
+atase
+
+t(arg
+
+s, to
+
+keniz
+
+er),
+
+
+
+
+
+62 )
+
+
+
+
+
+63
+
+
+
+
+
+64 tr
+
+ainer
+
+ = Tr
+
+ainer
+
+(**kw
+
+args)
+
+
+
+
+
+65 tr
+
+ainer
+
+.trai
+
+n()
+
+
+
+
+
+66 tr
+
+ainer
+
+.save
+
+_mode
+
+l(arg
+
+s.out
+
+put_d
+
+ir + 
+
+"/che
+
+ckpoi
+
+nt-fi
+
+nal")
+
+
+
+
+
+67 tr
+
+ainer
+
+.save
+
+_stat
+
+e()
+
+
+
+
+
+68
+
+
+
+
+
+69
+
+
+
+
+
+70 if
+
+ __na
+
+me__ 
+
+== "_
+
+_main
+
+__":
+
+
+
+
+
+71 tr
+
+ain()
+
+
+
+
+
+其中预训练
+
+数据集类 
+
+PTDat
+
+aset 
+
+的定义如下
+
+，proc
+
+ess()
+
+ 函数涵盖
+
+了预训练
+
+
+
+
+
+131
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+数据的主要
+
+处理步骤，
+
+包括数据读
+
+取、分词、
+
+批次化等主
+
+要操作。
+
+
+
+
+
+1 imp
+
+ort t
+
+orch
+
+
+
+
+
+2 fro
+
+m dat
+
+asets
+
+ impo
+
+rt lo
+
+ad_da
+
+taset
+
+
+
+
+
+3 fro
+
+m ite
+
+rtool
+
+s imp
+
+ort c
+
+hain
+
+
+
+
+
+4
+
+
+
+
+
+5
+
+
+
+
+
+6 cla
+
+ss PT
+
+Datas
+
+et:
+
+
+
+
+
+7
+
+
+
+
+
+8 def
+
+ __in
+
+it__(
+
+self,
+
+ args
+
+, tok
+
+enize
+
+r):
+
+
+
+
+
+9 sel
+
+f.arg
+
+s = a
+
+rgs
+
+
+
+
+
+10 se
+
+lf.bl
+
+ock_s
+
+ize =
+
+ self
+
+.args
+
+.mode
+
+l_max
+
+_leng
+
+th
+
+
+
+
+
+11 se
+
+lf.to
+
+keniz
+
+er = 
+
+token
+
+izer
+
+
+
+
+
+12 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+proce
+
+ss()
+
+
+
+
+
+13 se
+
+lf.in
+
+put_i
+
+ds = 
+
+self.
+
+group
+
+_text
+
+s(sel
+
+f.inp
+
+ut_id
+
+s)
+
+
+
+
+
+14 se
+
+lf.la
+
+bels 
+
+= sel
+
+f.inp
+
+ut_id
+
+s.cop
+
+y()
+
+
+
+
+
+15
+
+
+
+
+
+16 # 
+
+数据集长度
+
+
+
+
+
+17 de
+
+f __l
+
+en__(
+
+self)
+
+:
+
+
+
+
+
+18 re
+
+turn 
+
+len(s
+
+elf.i
+
+nput_
+
+ids)
+
+
+
+
+
+19
+
+
+
+
+
+20 # 
+
+获取第 i
+
+ 条数据
+
+
+
+
+
+21 de
+
+f __g
+
+etite
+
+m__(s
+
+elf, 
+
+i):
+
+
+
+
+
+22 re
+
+turn 
+
+dict(
+
+input
+
+_ids=
+
+self.
+
+input
+
+_ids[
+
+i], l
+
+abels
+
+=self
+
+.labe
+
+ls[i]
+
+)
+
+
+
+
+
+23
+
+
+
+
+
+24 # 
+
+数据分词
+
+
+
+
+
+25 de
+
+f enc
+
+ode(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+26 ou
+
+tput 
+
+= sel
+
+f.tok
+
+enize
+
+r(exa
+
+mples
+
+["tex
+
+t"], 
+
+trunc
+
+ation
+
+=True
+
+)
+
+
+
+
+
+27 re
+
+turn 
+
+outpu
+
+t
+
+
+
+
+
+28
+
+
+
+
+
+29 # 
+
+数据批次化
+
+处理
+
+
+
+
+
+30 de
+
+f gro
+
+up_te
+
+xts(s
+
+elf, 
+
+examp
+
+les):
+
+
+
+
+
+31 co
+
+ncate
+
+nated
+
+_exam
+
+ples 
+
+= lis
+
+t(cha
+
+in(*e
+
+xampl
+
+es))
+
+
+
+
+
+32 to
+
+tal_l
+
+ength
+
+ = le
+
+n(con
+
+caten
+
+ated_
+
+examp
+
+les)
+
+
+
+
+
+33 if
+
+ tota
+
+l_len
+
+gth >
+
+= sel
+
+f.blo
+
+ck_si
+
+ze:
+
+
+
+
+
+34 to
+
+tal_l
+
+ength
+
+ = (t
+
+otal_
+
+lengt
+
+h // 
+
+self.
+
+block
+
+_size
+
+) *
+
+
+
+
+
+self.
+
+block
+
+_size
+
+ ↩→
+
+
+
+
+
+35 re
+
+sult 
+
+= [
+
+
+
+
+
+36 to
+
+rch.s
+
+tack(
+
+conca
+
+tenat
+
+ed_ex
+
+ample
+
+s[i:i
+
+ + se
+
+lf.bl
+
+ock_s
+
+ize])
+
+ for 
+
+i
+
+
+
+
+
+in ra
+
+nge(0
+
+, tot
+
+al_le
+
+ngth,
+
+ self
+
+.bloc
+
+k_siz
+
+e) ↩→
+
+
+
+
+
+37 ]
+
+
+
+
+
+38 re
+
+turn 
+
+resul
+
+t
+
+
+
+
+
+39
+
+
+
+
+
+40 # 
+
+调用数据集
+
+加载、分词
+
+、批次化
+
+
+
+
+
+41 de
+
+f pro
+
+cess(
+
+self)
+
+:
+
+
+
+
+
+42 in
+
+put_i
+
+ds = 
+
+[]
+
+
+
+
+
+43 li
+
+st_da
+
+ta_di
+
+ct = 
+
+load_
+
+datas
+
+et('t
+
+ext',
+
+
+
+
+
+data_
+
+files
+
+=self
+
+.args
+
+.data
+
+set)[
+
+'trai
+
+n'] ↩
+
+→
+
+
+
+
+
+44 to
+
+keniz
+
+ed_da
+
+taset
+
+ = li
+
+st_da
+
+ta_di
+
+ct.ma
+
+p(
+
+
+
+
+
+45 se
+
+lf.en
+
+code,
+
+
+
+
+
+46 ba
+
+tched
+
+=True
+
+,
+
+
+
+
+
+47 re
+
+move_
+
+colum
+
+ns='t
+
+ext',
+
+
+
+
+
+48 )
+
+
+
+
+
+49 fo
+
+r exa
+
+mple 
+
+in to
+
+keniz
+
+ed_da
+
+taset
+
+:
+
+
+
+
+
+50 if
+
+ len(
+
+examp
+
+le['i
+
+nput_
+
+ids']
+
+) > 0
+
+:
+
+
+
+
+
+51 in
+
+put_i
+
+ds.ap
+
+pend(
+
+torch
+
+.tens
+
+or(ex
+
+ample
+
+['inp
+
+ut_id
+
+s']))
+
+
+
+
+
+52 re
+
+turn 
+
+input
+
+_ids
+
+
+
+
+
+132
+
+
+
+
+
+6.5 预
+
+训练代码实
+
+践
+
+
+
+
+
+进一步，为
+
+了实现数据
+
+并行训练（
+
+单机多卡）
+
+，我们可以
+
+使用 to
+
+rchru
+
+n 启动
+
+
+
+
+
+上述代码。
+
+具体的运行
+
+指令如下面
+
+的代码所示
+
+。其中，第
+
+一行的 n
+
+proc_
+
+per_n
+
+od
+
+
+
+
+
+e 参数用
+
+于指定训练
+
+的 GPU
+
+ 数量，m
+
+aster
+
+_port
+
+ 参数用于
+
+指定训练时
+
+通信的端口
+
+
+
+
+
+号。随后的
+
+参数都是指
+
+定训练时的
+
+超参数。例
+
+如，bf1
+
+6 用于确
+
+定是否使用
+
+ BF16
+
+
+
+
+
+进行训练，
+
+num_t
+
+rain_
+
+epoch
+
+s 用于指
+
+定训练轮数
+
+，per_
+
+devic
+
+e_tra
+
+in_ba
+
+tch_s
+
+i
+
+
+
+
+
+ze 用于
+
+指定单张 
+
+GPU 上
+
+的批次大小
+
+，grad
+
+ient_
+
+accum
+
+ulati
+
+on_st
+
+eps 用
+
+于指定
+
+
+
+
+
+梯度累计步
+
+数，lea
+
+rning
+
+_rate
+
+ 用于指定
+
+最大学习率
+
+，warm
+
+up_ra
+
+tio 用
+
+于指定学
+
+
+
+
+
+习率预热的
+
+数据比例，
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe 用于
+
+指定学习率
+
+衰减策略，
+
+deeps
+
+pee
+
+
+
+
+
+d 用于指
+
+定使用 D
+
+eepSp
+
+eed 的
+
+参数文件（
+
+例如 Ze
+
+RO 策略
+
+），gra
+
+dient
+
+_chec
+
+kpoi
+
+
+
+
+
+nting
+
+ 用于确定
+
+是否使用激
+
+活重计算技
+
+术。
+
+
+
+
+
+1 tor
+
+chrun
+
+ --np
+
+roc_p
+
+er_no
+
+de=2 
+
+--mas
+
+ter_p
+
+ort=5
+
+999 p
+
+retra
+
+in.py
+
+ \
+
+
+
+
+
+2 --m
+
+odel_
+
+name_
+
+or_pa
+
+th me
+
+ta-ll
+
+ama/L
+
+lama-
+
+2-7b-
+
+hf/ \
+
+
+
+
+
+3 --d
+
+ata_p
+
+ath d
+
+ata/p
+
+retra
+
+in.js
+
+on \
+
+
+
+
+
+4 --b
+
+f16 T
+
+rue \
+
+
+
+
+
+5 --o
+
+utput
+
+_dir 
+
+outpu
+
+t/lla
+
+ma-7b
+
+ \
+
+
+
+
+
+6 --n
+
+um_tr
+
+ain_e
+
+pochs
+
+ 3 \
+
+
+
+
+
+7 --p
+
+er_de
+
+vice_
+
+train
+
+_batc
+
+h_siz
+
+e 8 \
+
+
+
+
+
+8 --g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s 8 \
+
+
+
+
+
+9 --e
+
+valua
+
+tion_
+
+strat
+
+egy "
+
+no" \
+
+
+
+
+
+10 --
+
+save_
+
+strat
+
+egy "
+
+steps
+
+" \
+
+
+
+
+
+11 --
+
+save_
+
+steps
+
+ 200 
+
+\
+
+
+
+
+
+12 --
+
+save_
+
+total
+
+_limi
+
+t 200
+
+ \
+
+
+
+
+
+13 --
+
+learn
+
+ing_r
+
+ate 2
+
+e-5 \
+
+
+
+
+
+14 --
+
+weigh
+
+t_dec
+
+ay 0.
+
+ \
+
+
+
+
+
+15 --
+
+warmu
+
+p_rat
+
+io 0.
+
+03 \
+
+
+
+
+
+16 --
+
+lr_sc
+
+hedul
+
+er_ty
+
+pe "c
+
+osine
+
+" \
+
+
+
+
+
+17 --
+
+loggi
+
+ng_st
+
+eps 1
+
+ \
+
+
+
+
+
+18 --
+
+deeps
+
+peed 
+
+ds_z3
+
+_bf16
+
+.json
+
+ \
+
+
+
+
+
+19 --
+
+tf32 
+
+True 
+
+\
+
+
+
+
+
+20 --
+
+gradi
+
+ent_c
+
+heckp
+
+ointi
+
+ng Tr
+
+ue
+
+
+
+
+
+下面将介绍
+
+ Deep
+
+Speed
+
+ 的训练文
+
+件，其可以
+
+设置 Ze
+
+RO 的超
+
+参数等参数
+
+。这
+
+
+
+
+
+是一个 j
+
+son 文
+
+件，其中 
+
+zero_
+
+optim
+
+izati
+
+on 包括
+
+了 ZeR
+
+O 的训练
+
+参数，在这
+
+个参
+
+
+
+
+
+数字典里，
+
+stage
+
+ 可以设置
+
+为 1、2
+
+、3 中的
+
+一个整数值
+
+，用来表示
+
+ ZeRO
+
+ 的划分等
+
+
+
+
+
+级；sta
+
+ge3_m
+
+ax_li
+
+ve_pa
+
+ramet
+
+ers 和
+
+ stag
+
+e3_ma
+
+x_reu
+
+se_di
+
+stanc
+
+e 是 Z
+
+eRO-3
+
+
+
+
+
+阶段控制模
+
+型参数缓存
+
+量的超参数
+
+，其设置的
+
+值越小，占
+
+用的显存量
+
+越小但通信
+
+
+
+
+
+成本会提高
+
+；stag
+
+e3_ga
+
+ther_
+
+16bit
+
+_weig
+
+hts_o
+
+n_mod
+
+el_sa
+
+ve 用于
+
+控制 Ze
+
+RO-3
+
+
+
+
+
+时存档点是
+
+否被分片，
+
+如果设置为
+
+ fals
+
+e 则保存
+
+时会分片，
+
+后续使用时
+
+需要使用
+
+
+
+
+
+里面脚本进
+
+行合并，否
+
+则在保存时
+
+不会分片，
+
+但在训练保
+
+存存档点的
+
+时间会变长
+
+。
+
+
+
+
+
+133
+
+
+
+
+
+1 {
+
+
+
+
+
+2 "bf
+
+16": 
+
+{
+
+
+
+
+
+3 "en
+
+abled
+
+": "a
+
+uto"
+
+
+
+
+
+4 },
+
+
+
+
+
+5 "ze
+
+ro_op
+
+timiz
+
+ation
+
+": {
+
+
+
+
+
+6 "st
+
+age":
+
+ 3,
+
+
+
+
+
+7 "ov
+
+erlap
+
+_comm
+
+": tr
+
+ue,
+
+
+
+
+
+8 "co
+
+ntigu
+
+ous_g
+
+radie
+
+nts":
+
+ true
+
+,
+
+
+
+
+
+9 "su
+
+b_gro
+
+up_si
+
+ze": 
+
+1e9,
+
+
+
+
+
+10 "r
+
+educe
+
+_buck
+
+et_si
+
+ze": 
+
+"auto
+
+",
+
+
+
+
+
+11 "s
+
+tage3
+
+_pref
+
+etch_
+
+bucke
+
+t_siz
+
+e": "
+
+auto"
+
+,
+
+
+
+
+
+12 "s
+
+tage3
+
+_para
+
+m_per
+
+siste
+
+nce_t
+
+hresh
+
+old":
+
+ "aut
+
+o",
+
+
+
+
+
+13 "s
+
+tage3
+
+_max_
+
+live_
+
+param
+
+eters
+
+": 1e
+
+9,
+
+
+
+
+
+14 "s
+
+tage3
+
+_max_
+
+reuse
+
+_dist
+
+ance"
+
+: 1e9
+
+,
+
+
+
+
+
+15 "s
+
+tage3
+
+_gath
+
+er_16
+
+bit_w
+
+eight
+
+s_on_
+
+model
+
+_save
+
+": tr
+
+ue
+
+
+
+
+
+16 },
+
+
+
+
+
+17 "g
+
+radie
+
+nt_ac
+
+cumul
+
+ation
+
+_step
+
+s": "
+
+auto"
+
+,
+
+
+
+
+
+18 "g
+
+radie
+
+nt_cl
+
+ippin
+
+g": "
+
+auto"
+
+,
+
+
+
+
+
+19 "s
+
+teps_
+
+per_p
+
+rint"
+
+: 200
+
+0,
+
+
+
+
+
+20 "t
+
+rain_
+
+batch
+
+_size
+
+": "a
+
+uto",
+
+
+
+
+
+21 "t
+
+rain_
+
+micro
+
+_batc
+
+h_siz
+
+e_per
+
+_gpu"
+
+: "au
+
+to",
+
+
+
+
+
+22 "w
+
+all_c
+
+lock_
+
+break
+
+down"
+
+: fal
+
+se
+
+
+
+
+
+23 }
 
 
 
