@@ -1,0 +1,2897 @@
+1
+𝐦𝐢𝐧𝖒,𝚫𝚽 𝓛(𝒙, 𝚽 + 𝚫𝚽, 𝖒)
+𝚫𝚽
+(LoRA/Full)
+Transformer Layer 0
+T Transformer Layer ransformer Layer
+Transformer Layer 1
+Joint
+Opt. Transformer Layer
+Transformer Layer
+Transformer Layer 0
+TrTarnasnfosfromrmereLraLyaeyrer
+Transformer Layer 1
+𝐦𝐢𝐧𝖒,𝚫𝚽 𝓛 𝒙( , 𝚽 + 𝚫𝚽, 𝖒)
+𝚫𝚽
+(LoRA/Full)
+Transformer Layer 0
+T Transformer Layer ransformer Layer
+Transformer Layer 1
+Joint
+Opt. Transformer Layer
+Transformer Layer
+Transformer Layer 0
+TrTarnasnfosfromrmereLraLyaeyrer
+Transformer Layer 1
+TinyFusion: Diffusion Transformers Learned Shallow
+TinyFusion:扩散变压器学习浅
+Gongfan Fang,* Kunjun Li,* Xinyin Ma, Xinchao
+Wang† National University of Singapore
+方、*、李坤君*、马、王新超
+{gongfan, kunjun, maxinyin}@u.nus.edu, xinchao@nus.edu.sg
+maxinyin}@u.nus.edu 龚凡昆郡，xinchao@nus.edu.sg
+Abstract
+摘要
+Diffusion Transformers have demonstrated remarkable
+capabilities in image generation but often come with excessive parameterization, resulting in considerable inference overhead in real-world applications. In this work, we
+present TinyFusion, a depth pruning method designed to re扩散变换在图像生成方面表现出了非凡的能力，但
+通常伴随着过多的参数化，导致在实际应用中相当大
+的推理开销。在这篇文章中，我们提出了深度剪枝方
+法 TinyFusion
+𝝓𝟒
+𝝓𝟒
+𝝓𝟑
+𝝓𝟑
+𝝓𝟐
+𝝓𝟐
+𝝓𝟏
+𝝓𝟏
+2
+Local Block
+本地块
+Differentiabl
+e Sampling
+of Layer Mask 𝖒Recoverability Estimation with 𝚫𝚽
+𝚫𝚽层掩模𝖒Recoverability 估计的可微分采样
+move redundant layers from diffusion transformers via
+end- to-end learning. The core principle of our approach
+is to create a pruned model with high recoverability,
+allowing it to regain strong performance after fine-tuning.
+To accom- plish this, we introduce a differentiable
+sampling technique to make pruning learnable, paired
+with a co-optimized pa- rameter to simulate future finetuning. While prior works focus on minimizing loss or
+error after pruning, our method explicitly models and
+optimizes the post-fine-tuning perfor- mance of pruned
+models. Experimental results indicate that this learnable
+paradigm offers substantial benefits for layer pruning of
+diffusion transformers, surpassing exist- ing importancebased and error-based methods. Addition- ally,
+TinyFusion exhibits strong generalization across di- verse
+architectures, such as DiTs, MARs, and SiTs. Experiments with DiT-XL show that TinyFusion can craft a
+shallow diffusion transformer at less than 7% of the pre通过端到端学习将冗余层从扩散变压器中移出。我们
+方法的核心原则是创建一个具有高度可恢复性的修剪
+模型，允许它在微调后重新获得强大的性能。为了实
+现这一点，我们引入了一种可微分的采样技术来使剪
+枝变得可学习，并与一个共同优化的参数配对来模拟
+未来的微调。虽然先前的工作集中在修剪后最小化损
+失或误差，但是我们的方法显式地建模和优化修剪模
+型的微调后性能。实验结果表明，这种可学习的范例
+为扩散变换器的层修剪提供了实质性的好处，超过了
+现 有 的 基 于 重 要 性 和 基 于 错 误 的 方 法 。 此
+外，TinyFusion 在不同的架构上表现出很强的通用
+性，比如 DiTs、MARs 和 SiTs。用 DiT-XL 进行的实验
+表明，TinyFusion 能以不到预扩散变压器的 7%制造一
+个浅扩散变压器
+training cost, achieving a 2× speedup with an FID score
+of 2.86, outperforming competitors with comparable effi培训成本，实现了 2 倍的加速，FID 得分为 2.86，在
+效率相当的情况下优于竞争对手
+ciency. Code is available at https://github.com/
+VainF/TinyFusion
+效率。代码可从以下网址获得 https://github.com/
+VainF/TinyFusion
+1. Introduction
+2. 介绍
+Diffusion Transformers have emerged as a cornerstone architecture for generative tasks, achieving notable success in
+areas such as image [11, 26, 40] and video synthe- sis
+[25, 59]. This success has also led to the widespread
+availability of high-quality pre-trained models on the Internet, greatly accelerating and supporting the development of
+various downstream applications [5, 16, 53, 55]. However,
+pre-trained diffusion transformers usually come with con扩散变压器已经成为生成任务的基础架构，在图像等领
+域取得了显著的成功[11,26,40]和 视 频 合 成 [25,59].
+这 一 成 功 也 导 致 了 高 质 量 的 预 训 练 模 型 在 互 联
+网 上 的 广 泛 使 用 ， 极 大 地 加 速 和 支 持 了 各 种 下
+游 应 用 程 序 的 开 发 [5,16,53,55].然而，预先训练
+的扩散变压器通常附带有
+*Equal contribution
+*平等贡献
+†Corresponding author a
+通讯作者
+r
+X
+i
+v:2
+4
+1
+2.0
+1
+1
+9
+9
+v
+1 [c
+s.C
+V] 2
+D
+e
+c
+a
+r
+X
+i
+v:2
+4
+1
+2.0
+1
+1
+9
+9
+v
+1
+[
+c
+s.C
+V
+]
+2
+3
+Figure 1. This work presents a learnable approach for pruning
+the depth of pre-trained diffusion transformers. Our method
+simulta- neously optimizes a differentiable sampling process of
+layer masks and a weight update to identify a highly
+recoverable solution, en- suring that the pruned model
+maintains competitive performance after fine-tuning.
+图一。这项工作提出了一种可学习的方法来修剪预训练扩散
+变压器的深度。我们的方法同时优化了层掩码的可微分采样
+过程和权重更新，以确定高度可恢复的解决方案，确保修剪
+模型在微调后保持有竞争力的性能。
+siderable inference costs due to the huge parameter scale,
+which poses significant challenges for deployment. To resolve this problem, there has been growing interest from
+both the research community and industry in developing
+lightweight models [12, 23, 32, 58].
+巨大的参数规模带来了可观的推理成本，这给部署带
+来了巨大的挑战。为了重新解决这个问题，研究界和
+工 业 界 对 开 发 轻 型 模 型 的 兴 趣 越 来 越 大
+[12,23,32,58].
+The efficiency of diffusion models is typically influenced by various factors, including the number of
+sampling steps [33, 43, 45, 46], operator design [7, 48,
+52], compu扩散模型的效率通常受各种因素的影响，包括取样
+步骤的数量[33,43,45,46],操作员设计[7,48,52],计
+算机tational precision [19, 30, 44], network width [3, 12] and
+depth [6, 23, 36]. In this work, we focus on model
+compres- sion through depth pruning [36, 54], which
+removes entire layers from the network to reduce the
+latency. Depth prun- ing offers a significant advantage in
+practice: it can achieve a linear acceleration ratio relative
+to the compression rate on both parallel and non-parallel
+devices. For example, as will be demonstrated in this
+work, while 50% width prun- ing [12] only yields a 1.6×
+speedup, pruning 50% of the layers results in a 2×
+speedup. This makes depth pruning a flexible and practical
+method for model compression.
+静 态 精 度 [19,30,44], 网 络 宽 度 [3,12] 和 深 度
+[6,23,36].在这项工作中，我们集中于通过深度剪枝
+的模型压缩[36,54],从网络中删除整个层以减少延
+迟。深度压缩在实践中提供了一个显著的优势:它可以
+在并行和非并行设备上实现相对于压缩率的线性加速
+比。例如，正如本研究将展示的，当 50%宽度修剪时
+[12]仅产生 1.6 倍的加速，修剪 50%的层会产生 2 倍的
+加速。这使得深度修剪成为模型压缩的灵活且实用的
+方法。
+This work follows a standard depth pruning framework: unimportant layers are first removed, and the pruned
+model is then fine-tuned for performance recovery. In
+the literature, depth pruning techniques designed for diffusion transformers or general transformers primarily focus on heuristic approaches, such as carefully designed
+importance scores [6, 36] or manually configured pruning
+这项工作遵循标准的深度修剪框架:首先删除不重
+4
+要的层，然后微调修剪后的模型以恢复性能。在文
+献中，为扩散变压器或通用变压器设计的深度剪枝
+技术主要集中于启发式方法，例如精心设计的重要
+性分数[6,36]或者手动配置修剪
+5
+schemes [23, 54]. These methods adhere to a loss minimization principle [18, 37], aiming to identify solutions
+that maintain low loss or error after pruning. This paper
+investigates the effectiveness of this widely used principle
+in the context of depth compression. Through
+experiments, we examined the relationship between
+calibration loss ob- served post-pruning and the
+performance after fine-tuning. This is achieved by
+extensively sampling 100,000 models via random pruning,
+exhibiting different levels of calibra- tion loss in the
+searching space. Based on this, we analyzed the
+effectiveness of existing pruning algorithms, such as the
+feature similarity [6, 36] and sensitivity analysis [18],
+which indeed achieve low calibration losses in the solution
+space. However, the performance of all these models after
+fine- tuning often falls short of expectations. This
+indicates that the loss minimization principle may not be
+well-suited for diffusion transformers.
+计划[23,54].这 些 方 法 遵 循 损 失 最 小 化 原 则
+[18,37],旨在识别修剪后保持低损失或误差的解决方
+案。本文研究了这一广泛使用的原则在深度压缩环境
+中的有效性。通过实验，我们检验了修剪后的校准损
+失和微调后的性能之间的关系。这是通过随机剪枝对
+100，000 个模型进行广泛采样来实现的，在搜索空间
+中表现出不同程度的校准损失。在此基础上，分析了
+现有剪枝算法的有效性，如特征相似度[6,36]和敏感
+性分析[18],这确实实现了解决方案空间中的低校准损
+耗。然而，所有这些模型在微调后的性能往往达不到
+预期。这表明损耗最小化原理可能不太适合扩散变压
+器。
+Building on these insights, we reassessed the underlying principles for effective layer pruning in diffusion
+trans- formers. Fine-tuning diffusion transformers is an
+extremely time-consuming process. Instead of searching
+for a model that minimizes loss immediately after pruning,
+we propose identifying candidate models with strong
+recoverability, en- abling superior post-fine-tuning
+performance. Achieving this goal is particularly
+challenging, as it requires the in- tegration of two distinct
+processes, pruning and fine-tuning, which involve nondifferentiable operations and cannot be directly optimized
+via gradient descent.
+基于这些认识，我们重新评估了扩散变压器中有效
+层修剪的基本原理。微调扩散变压器是一个非常耗时
+的过程。我们建议识别具有强可恢复性的候选模型，
+从而实现卓越的微调后性能，而不是在修剪后立即搜
+索最小化损失的模型。实现这个目标尤其具有挑战
+性，因为它需要集成两个不同的过程，修剪和微调，
+这涉及不可微的操作，并且不能通过梯度下降直接优
+化。
+To this end, we propose a learnable depth pruning
+method that effectively integrates pruning and fine-tuning.
+As shown in Figure 1, we model the pruning and finetuning of a diffusion transformer as a differentiable sampling process of layer masks [13, 17, 22], combined with a
+co-optimized weight update to simulate future fine-tuning.
+Our objective is to iteratively refine this distribution so that
+networks with higher recoverability are more likely to be
+sampled. This is achieved through a straightforward strategy: if a sampled pruning decision results in strong recoverability, similar pruning patterns will have an increased probability of being sampled. This approach promotes the exploration of potentially valuable solutions while disregarding less effective ones. Additionally, the proposed method is
+highly efficient, and we demonstrate that a suitable solu- tion
+can emerge within a few training steps.
+为此，我们提出了一种可学习的深度剪枝方法，有效
+地集成了剪枝和微调。如图所示 1,我们将扩散变换器的
+修剪和微调建模为层掩模的可微分采样过程[13,17,22],
+结合共同优化的权重更新来模拟未来的微调。我们的目
+标是反复优化这种分布，以便具有更高可恢复性的网络
+更有可能被采样。这是通过一个简单的策略实现的:如果
+一个抽样的剪枝决策导致强的可恢复性，则相似的剪枝
+模式被抽样的可能性将增加。这种方法促进了对潜在有
+价值的解决方案的探索，而忽略了不太有效的解决方
+案。此外，提出的方法是非常有效的，我们证明了一个
+合适的解决方案可以出现在几个训练步骤。
+To evaluate the effectiveness of the proposed method, we
+conduct extensive experiments on various transformerbased diffusion models, including DiTs [40], MARs [29],
+SiTs [34]. The learnable approach is highly efficient. It is
+able to identify redundant layers in diffusion transform- ers
+with 1-epoch training on the dataset, which effectively crafts
+shallow diffusion transformers from pre-trained mod- els
+with high recoverability. For instance, while the models
+pruned by TinyFusion initially exhibit relatively high cal为了评估所提出的方法的有效性，我们对各种基于变
+压器的扩散模型进行了大量的实验，包括 DiTs[40],火
+星[29],坐[34].这 种 可 学 的 方 法 非 常 有 效 。
+它 能 够 利 用 数 据 集 上 的 1 个 历 元 训 练 来
+识 别 扩 散 变 换 器 中 的 冗 余 层 ， 这 有 效 地
+从 具 有 高 恢 复 性 的 预 训 练 模 型 中 制 作 浅
+层 扩 散 变 换 器 。 例 如 ， 虽 然 通 过
+T i n y F u s i o n 修 剪 的 模 型 最 初 表 现 出 相
+对 较 高 的 c a l -
+6
+ibration loss after removing 50% of layers, they
+recover quickly through fine-tuning, achieving a
+significantly more competitive FID score (5.73 vs.
+22.28) compared to base- line methods that only
+minimize immediate loss, using just 1% of the pretraining cost. Additionally, we also
+ex- plore the role of knowledge distillation in
+enhancing re- coverability [20, 23] by introducing a
+MaskedKD variant. MaskedKD mitigates the negative
+impact of the massive or outlier activations [47] in
+hidden states, which can signifi- cantly affect the
+performance and reliability of fine-tuning. With
+MaskedKD, the FID score improves from 5.73 to 3.73
+with only 1% of pre-training cost. Extending the training
+to 7% of the pre-training cost further reduces the FID to
+2.86, just 0.4 higher than the original model with
+doubled depth. Therefore, the main contribution of this
+work lies in a learnable method to craft shallow
+diffusion transformers from pre-trained ones, which
+explicitly optimizes the re- coverability of pruned
+models. The method is general for
+振动损失在移除 50%的层后，它们通过微调快速恢
+复，与仅最小化即时损失的基线方法相比，获得了更
+具竞争力的 FID 分数(5.73 对 22.28)，仅使用 1%的预
+训练成本。此外，我们还探讨了知识提炼在提高可重
+用性中的作用[20,23]通过引入 MaskedKD 变
+体。MaskedKD 减轻了大量或异常激活的负面影响[47]
+这可能会显著影响微调的性能和可靠性。使用
+MaskedKD，FID 分数从 5.73 提高到 3.73，而只需 1%的
+预培训成本。将训练扩展到预训练成本的 7%进一步将
+FID 降低到 2.86，仅比深度加倍的原始模型高 0.4。因
+此，这项工作的主要贡献在于一种可学习的方法，从
+预训练的扩散变换器来制作浅层扩散变换器，这种方
+法显式地优化了修剪模型的可覆盖性。该方法一般用
+于
+various architectures, including DiTs, MARs and SiTs.
+各种架构，包括 DiTs，MARs 和 SiTs。
+3. Related Works
+4. 相关作品
+Network Pruning and Depth Reduction. Network
+prun- ing is a widely used approach for compressing pretrained diffusion models by eliminating redundant
+parameters [3, 12, 31, 51]. Diff-Pruning [12] introduces a
+gradient- based technique to streamline the width of
+UNet, fol- lowed by a simple fine-tuning to recover the
+performance. SparseDM [51] applies sparsity to pretrained diffusion models via the Straight-Through
+Estimator (STE) [2], achieving a 50% reduction in MACs
+with only a 1.22 in- crease in FID on average. While
+width pruning and spar- sity help reduce memory
+overhead, they often offer lim- ited speed improvements,
+especially on parallel devices like GPUs. Consequently,
+depth reduction has gained signifi- cant attention in the
+past few years, as removing entire lay- ers enables better
+speedup proportional to the pruning ra- tio [24, 27, 28, 36,
+54, 56, 58]. Adaptive depth reduction techniques, such as
+MoD [41] and depth-aware transform- ers [10], have also
+been proposed. Despite these advances, most existing
+methods are still based on empirical or heuris- tic
+strategies, such as carefully designed importance crite- ria
+[36, 54], sensitivity analyses [18] or manually designed
+schemes [23], which often do not yield strong performance
+guarantee after fine-tuning.
+网络修剪和深度缩减。网络修剪是通过消除冗余参数
+来 压 缩 预 训 练 扩 散 模 型 的 广 泛 使 用 的 方 法
+[3,12,31,51].差 异 修 剪 [12]引入基于梯度的技术
+来简化 UNet 的宽度，然后通过简单的微调来恢复性
+能。SparseDM[51]通过直通估计器(STE)将稀疏性应用
+于预训练的扩散模型[2],MAC 减少 50%，而 FID 平均仅
+增加 1.22%。虽然宽度修剪和稀疏性有助于减少内存
+开销，但它们通常只能提供有限的速度提升，尤其是
+在 GPU 等并行设备上。因此，在过去的几年中，深度
+7
+减少已经获得了极大的关注，因为移除整个层能够
+实 现 与 修 剪 比 率 成 比 例 的 更 好 的 加 速
+[24,27,28,36,54,56,58]. 自 适 应 深 度 减 少 技
+术 ， 例 如 M o D [41]和深度感知转换器[10],也被提
+出来了。尽管取得了这些进展，大多数现有的方法
+仍然是基于经验或启发式策略，如精心设计的重要
+性标准[36,54],敏感性分析[18]或者人工设计的方
+案[23],这通常在微调后不能产生强有力的性能保
+证。
+Efficient Diffusion Transformers. Developing
+efficient diffusion transformers has become an
+appealing focus within the community, where
+significant efforts have been made to enhance efficiency
+from various perspectives, in- cluding linear attention
+mechanisms [15, 48, 52], compact
+高效扩散变压器。开发有效的扩散变压器已经成为
+社区内吸引人的焦点，其中已经从各种角度进行了
+显 著 的 努 力 来 提 高 效 率 ， 包 括 线 性 注 意 机 制
+[15,48,52],小型的，紧凑的
+architectures [50], non-autoregressive transformers [4, 14,
+结构[50],非自回归变压器[4,14,
+38, 49], pruning [12, 23], quantization [19, 30, 44], feature
+38,49],修剪[12,23],量化[19,30,44],特征
+8
+Learnable Distribution
+可学分布
+𝐦𝐢𝐧𝖒,𝚫𝚽 𝓛(𝒙, 𝚽 + 𝚫𝚽, 𝖒)
+9
+1:2 Local Blocks
+𝝓𝟒Transformer Layer 𝔪4 1 0
+𝝓𝟑 Transformer Layer 𝔪3 0 1
+1:2 Local Blocks
+𝝓𝟐 Transformer Layer 𝔪21 0
+𝝓𝟏 Transformer Layer 𝔪10 1
+1:2 Local Blocks
+𝝓𝟒Transformer Layer 𝔪4 1 0
+𝝓𝟑 Transformer Layer 𝔪3 0 1
+1:2 Local Blocks
+𝝓𝟐 Transformer Layer 𝔪21 0
+𝝓𝟏 Transformer Layer 𝔪10 1
+𝐦𝐢𝐧𝖒 𝚫𝚽 𝓛 𝒙 𝚽 𝚫𝚽 𝖒 , ( , + , )
+Diff.
+Sampling
+差异。抽
+样
+∼
+∼
+Retained Layer
+保留层
+Weight
+Update
+10
+Retained Layer
+Retained Layer
+重量更新
+⊕
+⊕
+Weight Update
+重量更新
+Δ
+�
+�
+4
+⋅ 𝔪4
+Δ𝜙3 ⋅
+𝔪3
+Δ𝜙4
+⋅ 𝔪4
+Δ𝜙3
+⋅ 𝔪3
+Mixed Sampling ⇒ Exploration still in Progress
+混合取样勘探仍在进行中
+Diff.
+Sampling
+差异。抽
+样
+∼
+∼
+Weight Update 重量更
+新
+⊕
+⊕
+Weight
+Update
+重量更
+新
+11
+1 2 L
+1 2 L
+Δ𝜙2 ⋅ 𝔪2 Δ𝜙1 ⋅ 𝔪1 Δ𝜙 ⋅ 𝔪 𝜙 ⋅ 𝔪 2 2 Δ 1 1
+Confident Sampling ⇒ Good solution identified
+自信的采样确定了良好的解决方案
+Figure 2. The proposed TinyFusion method learns to perform a differentiable sampling of candidate solutions, jointly optimized with a
+weight update to estimate recoverability. This approach aims to increase the likelihood of favorable solutions that ensure strong postfine- tuning performance. After training, local structures with the highest sampling probabilities are retained.
+图二。提出的 TinyFusion 方法学习执行候选解的可区分采样，与权重更新联合优化以估计可恢复性。这种方法旨在增加有利
+解决方案的可能性，以确保强大的微调后性能。在训练之后，具有最高采样概率的局部结构被保留。
+caching [35, 57], etc. In this work, we focus on compressing the depth of pre-trained diffusion transformers and introduce a learnable method that directly optimizes
+recover- ability, which is able to achieve satisfactory results
+with low re-training costs.
+贮藏[35,57],等等。在这项工作中，我们集中于压缩
+预训练扩散变压器的深度，并介绍了一种可学习的方
+法，直接优化恢复能力，能够以较低的重新训练成本
+获得满意的结果。
+5. Method
+6. 方法
+6.1. Shallow Generative Transformers by Pruning
+6.2. 基于剪枝的浅层生成变压器
+This work aims to derive a shallow diffusion transformer
+by pruning a pre-trained model. For simplicity, all vectors
+in this paper are column vectors. Consider a L-layer transformer, parameterized by ΦL×D = [ϕ , ϕ , · · · , ϕ ]
+⊺
+,
+where each element ϕi
+encompasses all learnable parameters of a transformer layer as a D-dim column vector,
+这项工作的目的是通过修剪一个预先训练好的模型得
+到一个浅层扩散变压器。为简单起见，本文中所有向
+量均为列向量。考虑由 φl×d =[ϕ，ϕ，ϕ ⊺] ]参数化
+的 l 层变压器，其中每个元素 ϕi 包含变压器层的所有
+可学习参数作为 d 维列向量，
+which includes the weights of both attention layers and
+MLPs. Depth pruning seeks to find a binary layer mask
+mL×1 = [m1, m2, · · · , mL]
+⊺
+, that removes a layer by:
+其包括关注层和 MLPs 的权重。深度修剪寻求找到二进
+制层掩码 m1×1 =[m1，m2，，mL]⊺，它通过以下方式
+移除层:
+where ∆Φ = {∆ϕ1
+, ∆ϕ2
+, · · · , ∆ϕM } represents
+appro- priate update from fine-tuning. The objective
+formulated by Equation 2 poses two challenges: 1) The
+non-differentiable
+12
+i i i i i
+i i i i i
+其中∏φ= {∆ϕ1，∆ϕ2，∆ϕM }代表微调的适当更
+新。由等式表达的目标 2 提出了两个挑战:1)不可微
+nature of layer selection prevents direct optimization using gradient descent; 2) The inner optimization over the
+retained layers makes it computationally intractable to
+ex- plore the entire search space, as this process
+necessitates se- lecting a candidate model and finetuning it for evaluation. To address this, we propose
+TinyFusion that makes both the pruning and
+recoverability optimizable.
+层选择的性质阻止了使用梯度下降的直接优化；2)
+对保留层的内部优化使得开发整个搜索空间在计算
+上难以处理，因为该过程需要选择候选模型并对其
+进行微调以进行评估。为了解决这个问题，我们提
+出了 TinyFusion，使得修剪和可恢复性都是可优化
+的。
+6.3. TinyFusion: Learnable Depth Pruning
+6.4. TinyFusion:可学习的深度修剪
+A Probabilistic Perspective. This work models Equation 2 from a probabilistic standpoint. We hypothesize that
+the mask m produced by “ideal” pruning methods (might
+be not unique) should follow a certain distribution. To
+model this, it is intuitive to associate every possible mask
+概率观点。这部作品模拟了等式 2 从概率的角度来
+看。我们假设由“理想的”修剪方法(可能不是唯一的)
+产生的掩码 m 应该遵循一定的分布。为了对此进行建
+模，将每个可能的掩码关联起来是很直观的
+x = m ϕ (x ) + (1 − m
+)x
+x = m (x)+(1m)x ϕ
+=
+(
+ϕi
+(xi),if mi = 1, =( i(xi),if ϕ ·米= 1，
+13
+xi,
+xi,
+m with a probability value
+p(m), thus forming a categorim 具有概率值 p(m)，从
+而形成一个范畴
+(1)
+(1)
+where the xi and ϕi
+(xi) refers to the input and output of
+layer ϕi
+. To obtain the mask, a common paradigm in prior
+work is to minimize the loss L after pruning, which can
+其中，ϕi(xi 和 xi 指的是层 ϕi.的输入和输出，以
+获得掩码，现有工作中的常见范例是在修剪之后最
+小化损失 l，这可以
+be formulated as minm Ex [L(x, Φ, m)]. However, as
+we
+公式化为 minm Ex [L(x，φ，m)]。然而，当我们
+will show in the experiments, this objective – though widely
+将在实验中表明，这个目标——虽然广泛
+adopted in discriminative tasks – may not be well-suited to
+pruning diffusion transformers. Instead, we are more interested in the recoverability of pruned models. To achieve
+this, we incorporate an additional weight update into the
+optimization problem and extend the objective by:
+在辨别任务中采用-可能不太适合修剪扩散变压器。相
+反，我们对修剪模型的可恢复性更感兴趣。为了实现
+这一点，我们将额外的权重更新合并到优化问题中，
+并通过以下方式扩展目标:
+ment of pruning masks begins with a uniform distribution. cal distribution. Without any prior knowledge, the
+cal distribution. Without any prior
+i
+i
+14
+ating = 40, 116, 600 possible solutions. To
+overcome
+ating = 40, 116, 600 possible solutions.
+To overcome
+修剪遮罩的步骤从均匀分布开始。
+However, directly sampling from this initial distribution
+is highly inefficient due to the vast search space. For instance, pruning a 28-layer model by 50% involves
+evalu然而，由于巨大的搜索空间，从该初始分布直接采
+样是非常低效的。例如，将 28 层模型修剪 50%涉及
+评估
+28
+28
+14
+14
+this challenge, this work introduces an advanced and learn这项挑战，这项工作引入了一种先进的学习able algorithm capable of using evaluation results as feedback to iteratively refine the mask distribution. The basic
+idea is that if certain masks exhibit positive results, then
+other masks with similar pattern may also be potential solutions and thus should have a higher likelihood of sam能够使用评估结果作为反馈来迭代改进掩模分布的算
+法。基本思想是，如果某些掩码显示出肯定的结果，
+那么具有相似模式的其他掩码也可能是潜在的解决方
+案，因此应该具有更高的匹配可能性
+min
+部mm
+min Ex [L(x, Φ + ∆Φ,
+m)]
+min Ex
+[L(x，
+φ+∏φ
+，m)]
+∆Φ∆Φ
+, (2)
+15
+, (2) pling in subsequent
+evaluations, allowing
+for a more fo在随后
+的评估
+中，考
+虑到更多的
+cused search on promising solutions. However, the defi- 专注于寻找有希望的解决方案。然而，定义Rec
+|
+overability: Post-F
+{
+in
+z
+e-Tuning
+Perform
+}
+ance
+可接受性:调整后的性能
+nition of “similarity pattern” is still unclear so far.
+16
+“相似模式”的定义至今仍不
+明确。
+With the N:M scheme, there are possible masks.
+We
+With the N:M scheme, there are possible
+masks. We
+17
+Sampling Local Structures. In this work, we demonstrate that local structures, as illustrated in Figure 2, can
+serve as effective anchors for modeling the relationships
+between different masks. If a pruning mask leads to certain local structures and yields competitive results after
+fine- tuning, then other masks yielding the same local
+patterns are also likely to be positive solutions. This can be
+achieved by dividing the original model into K nonoverlapping blocks,
+采样局部结构。在这项工作中，我们演示了局部结
+构，如图所示 2,可以作为对不同掩码之间的关系进行
+建模的有效锚。如果剪枝掩码导致某些局部结构，并
+在微调后产生竞争性结果，则产生相同局部模式的其
+他掩码也可能是正解。这可以通过将原始模型分成 K
+个不重叠的块来实现，
+represented as Φ = [Φ1, Φ2, · · · , ΦK]
+⊺
+. For simplicity, we
+assume each block Φk = [ϕk1, ϕk2, · · · , ϕkM ]
+⊺
+contains
+exactly M layers, although they can have varied lengths.
+表示为 φ=[φ1，φ2，，φk]⊺.为了简单起见，我们
+假设每个块 φk =[ kϕ 1，ϕk2，ϕ ⊺ km] ]正好包含 m 层，
+尽管它们可以具有不同的长度。
+Instead of performing global layer pruning, we propose an
+N:M scheme for local layer pruning, where, for each block
+Φk with M layers, N layers are retained. This results in a
+代替执行全局层修剪，我们提出了用于局部层修剪的
+N:M 方案，其中，对于具有 M 层的每个块 φk，保留 N
+层。这导致了
+set of local binary masks m = [m1, m2, . . . , mK]
+⊺
+.
+Simi- larly, the distribution of a local mask mk is modeled
+using a categorical distribution p(mk). We perform
+independent
+局部二进制掩码集合 m = [m1，m2，.。。，mK]⊺.类
+似地，使用分类分布 p(mk)来模拟局部掩码 mk 的分
+布。我们独立表演
+sampling of local binary masks and combine them for
+prun- ing, which presents the joint distribution:
+对本地二进制掩码进行采样，并将它们组合起来进行
+prun ing，从而呈现联合分布:
+p(m) = p(m1) · p(m2) · · · p(mK) (3)
+p(m) = p(m1) p(m2) p(mK)
+(3)
+If some local distributions p(mk) exhibit high confidence
+in the corresponding blocks, the system will tend to sample those positive patterns frequently and keep active explorations in other local blocks. Based on this concept, we
+introduce differential sampling to make the above process
+learnable.
+如果一些局部分布 p(mk)在相应的块中表现出高置信
+度，则系统将倾向于频繁地采样那些正模式，并在其
+他局部块中保持活跃的探索。基于这个概念，我们引
+入差分采样，使上述过程可以学习。
+Differentiable Sampling. Considering the sampling process of a local mask mk, which corresponds a local block Φk
+and is modeled by a categorical distribution p(mk).
+可微分抽样。考虑对应于局部块 φk 并且由分类分布
+p(mk)建模的局部掩码 mk 的采样过程。 M
+M
+N
+N男::M男普通
+𝑥𝑖+1
+B
+r
+A
+𝑥𝑖
+Pretrained 𝑊 Identity f(x)=x
+𝑥𝑖+1
+B
+r
+A
+𝑥𝑖
+Pretrained 𝑊 Identity f(x)=x
+18
+𝑚𝑖
+⨂
++ (1 − 𝑚𝑖)
+⨂
+𝑚𝑖
+⨂
++ (1 ) − 𝑚𝑖
+⨂
+𝑁 ×
+𝑁 ×
+Figure 3. An example of forward propagation with differentiable
+pruning mask mi and LoRA for recoverability estimation.
+图 3。用于可恢复性估计的具有可微分修剪掩模 mi 和 LoRA
+的前向传播的例子。
+Notably, when τ → 0, the STE gradients will approximate
+the true gradients, yet with a higher variance which is negative for training [22]. Thus, a scheduler is typically em值得注意的是，当 τ → 0 时，STE 梯度将接近真实梯
+度，但具有较高的方差，这对训练是不利的[22].因
+此 ， 调 度 器 通 常 是 e m -
+ployed to initiate training with a high temperature, gradually reducing it over time.
+采用高温开始训练，随着时间的推移逐渐降低温度。
+Joint Optimization with Recoverability. With differentiable sampling, we are able to update the underlying probability using gradient descent. The training objective in
+this work is to maximize the recoverability of sampled
+masks. We reformulate the objective in Equation 2 by
+incorporat- ing the learnable distribution:
+具有可恢复性的联合优化。通过不同的采样，我们能
+够使用梯度下降来更新潜在的概率。这项工作的培训
+目标是最大限度地提高取样口罩的可恢复性。我们重
+新表述了等式中的目标 2 通过引入可学习的分布:
+minmin Ex,{mk ∼p(mk )}
+[L(x, Φ + ∆Φ, {mk}],(6)
+敏 敏 Ex ， { MK∞p(MK)}[L(x ， φ+∏φ ，
+{mk}]，(6)
+{p(m )} ∆Φ
+{ p(m)}∏φ
+Recoverability: Post-Fine-Tuning Performance
+可恢复性:微调后的性能
+where {p(mk)} = {p(m1), · · · , p(mK)} refer to the
+cat- egorical distributions for different local blocks.
+Based on this formulation, we further investigate how to
+19
+incorporate
+其中{p(mk)} = {p(m1)，，p(mk)}表示不同局部
+块的几何分布。基于这个公式，我们进一步研究
+如何合并
+the fine-tuning information into the training. We
+propose a joint optimization of the distribution and a
+weight update
+将微调信息纳入培训。我们提出了分布的联合优化和
+权重更新 ∆Φ. Our key idea is to introduce a co-optimized update ∆Φ ∆Φ.我们的主要思想是引入一个共同优化的更新∏φ
+construct a special matrix
+mˆ
+构造一个特殊的矩阵
+to enumerate all possi- 列举所有可能-
+20
+for joint training. A
+straightforward way to craft the update
+进行联合训练。制作 更新的简单方法
+ble masks. For example, 2:3 layer pruning will lead to
+the candidate matrix mˆ 2:3 = [[1, 1, 0] , [1, 0, 1] , [0,
+1, 1]]. In this case, each block will have three
+probabilities p(mk) = [pk1, pk2, pk3]. For simplicity, we
+omit mk and k and use pi to represent the probability of
+sampling i-th element in mˆ N:M . A popular method
+to make a sampling process difble 面具。比如 2:3 层剪枝会导致候选矩阵 mˇ2:3
+=[[1，1，0]，[1，0，1]，[0，1，1]]。在这种情
+况 下 ， 每 个 块 将 具 有 三 个 概 率 p(mk) =
+[pk1，pk2，pk3]。为了简单起见，我们省略了 mk
+和 k，而用 pi 来表示在 MˇN:M 中采样第 I 个元素的
+概率ferentiable is Gumbel-Softmax [13, 17, 22]: 可变参数是 Gumbel-Softmax[13,17,22]:
+is to directly optimize the original network. However, the
+parameter scale in a diffusion transformer is usually huge,
+and a full optimization may make the training process
+costly and not that efficient. To this end, we show that
+Parameter- Efficient Fine-Tuning methods such as LoRA
+[21] can be a good choice to obtain the required ∆Φ. For
+a single linear
+21
+P
+exp( + log
+P
+exp + log
+就是直接优化原有网络。然而，扩散变压器中的参
+数规模通常很大，完全优化可能会使训练过程成本
+高昂且效率不高。为此，我们展示了参数高效微调
+方法，如 LoRA[21]可以是获得所需∏φ 的好选择。对
+于单个线性
+one-hot exp(( gi + log pi ) /τ )
+!
+. (4)
+一热 exp((gi + log pi)/τ)！。
+(4)
+matrix W in Φ, we simulate the fine-tuned weights as:
+y
+y
+j
+j
+jj
+22
+φ 中的矩阵 W，我们模拟微调的权重为:
+Wfine-tuned = W + α∆W = W + αBA, (7)
+wfine-tuned = W+α W ⇼ = W+αBA， (7)
+where gi is random noise drawn from the Gumbel distribution Gumbel(0, 1) and τ refers to the temperature term.
+The output y is the index of the sampled mask. Here a
+Straight- Through Estimator [2] is applied to the one-hot
+operation, where the onehot operation is enabled during
+forward and is treated as an identity function during
+backward. Leverag- ing the one-hot index y and the
+candidate set mˆ N:M , we can
+其中，gi 是取自 Gumbel 分布 Gumbel(0，1)的随机噪
+声，τ 指温度项。输出 y 是采样掩码的索引。这里是
+一个直通估计器[2]应用于 one-hot 操作，其中 onehot 操作在前进期间启用，在后退期间被视为标识函
+数。利用独热索引 y 和候选集 M \u N:M，我们可以
+draw a mask m ∼ p(m) through a simple index operation:
+通过一个简单的索引操作绘制一个掩码 m∞p(m ):
+where α is a scalar hyperparameter that scales the
+contribu- tion of ∆W. Using LoRA significantly
+reduces the num- ber of parameters, facilitating efficient
+exploration of differ- ent pruning decisions. As shown in
+Figure 3, we leverage the sampled binary mask value mi
+as the gate and forward the network with Equation 1,
+which suppresses the layer outputs if the sampled mask
+is 0 for the current layer. In addition, the previously
+mentioned STE will still provide non-zero gradients to
+the pruned layer, allowing it to be fur-
+23
+其中，α 是一个标量超参数，用于衡量 w 的贡献。
+使用 LoRA 可显著减少参数数量，有助于有效探索不
+同的修剪决策。如图所示 3,我们利用采样的二进制
+掩码值 mi 作为门，并用等式转发网络 1,如果当前层
+的采样掩码为 0，则抑制层输出。此外，前面提到的
+STE 仍然会提供非零梯度修剪层，允许它是毛皮
+m = y
+⊺ mˆ
+m = y m⊺ ˆ
+(5) (5)
+24
+ther updated. This is helpful
+in practice, since some layers
+已更新。这在实
+践中是有帮助
+的，因为一些层
+25
+Method Depth #Param Iters IS ↑ FID ↓ sFID ↓ Prec. ↑ Recall ↑ Sampling it/s ↑
+方法 深度 #Param Iters 是↑ FID ↓ sFID ↓ Prec。
+↑
+回忆↑ 采样 it/s ↑
+DiT-XL/2 [40] 28 675 M 7,000 K 278.24 2.27 4.60 0.83 0.57 6.91
+DiT-XL/2 [40] 28 675 M 2,000 K 240.22 2.73 4.46 0.83 0.55 6.91
+DiT-XL/2 [40] 28 675 M 1,000 K 157.83 5.53 4.60 0.80 0.53 6.91
+U-ViT-H/2 [1] 29 501 M 500 K 265.30 2.30 5.60 0.82 0.58 8.21
+ShortGPT [36] 28⇒19 459 M 100 K 132.79 7.93 5.25 0.76 0.53 10.07
+TinyDiT-D19 (KD) 28⇒19 459 M 100 K 242.29 2.90 4.63 0.84 0.54 10.07
+TinyDiT-D19 (KD) 28⇒19 459 M 500 K 251.02 2.55 4.57 0.83 0.55 10.07
+DiT-XL/2[40] 28 675 米 7000K 278.2
+4
+2.27 4.60 0.8
+3
+0.5
+7
+6.91
+DiT-XL/2[40] 28 675 米 2000K 240.2
+2
+2.73 4.46 0.8
+3
+0.5
+5
+6.91
+DiT-XL/2[40] 28 675 米 100 万 157.8
+3
+5.53 4.60 0.8
+0
+0.5
+3
+6.91
+维生素 H/2[1] 29 501 米 50 万 265.3
+0
+2.30 5.60 0.8
+2
+0.5
+8
+8.21
+ShortGPT[36] 28 1 ⇒ 9 459 米 10 万英
+镑
+132.7
+9
+7.93 5.25 0.7
+6
+0.5
+3
+10.07
+TinyDiT-D19 (KD) 28 1 ⇒ 9 459 米 10 万英
+镑
+242.2
+9
+2.90 4.63 0.8
+4
+0.5
+4
+10.07
+TinyDiT-D19 (KD) 28 1 ⇒ 9 459 米 50 万 251.0
+2
+2.55 4.57 0.8
+3
+0.5
+5
+10.07
+DiT-L/2 [40] 24 458 M 1,000 K 196.26 3.73 4.62 0.82 0.54 9.73
+U-ViT-L [1] 21 287 M 300 K 221.29 3.44 6.58 0.83 0.52 13.48
+U-DiT-L [50] 22 204 M 400 K 246.03 3.37 4.49 0.86 0.50 -
+Diff-Pruning-50% [12] 28 338 M 100 K 186.02 3.85 4.92 0.82 0.54 10.43
+Diff-Pruning-75% [12] 28 169 M 100 K 83.78 14.58 6.28 0.72 0.53 13.59
+ShortGPT [36] 28⇒14 340 M 100 K 66.10 22.28 6.20 0.63 0.56 13.54
+Flux-Lite [6] 28⇒14 340 M 100 K 54.54 25.92 5.98 0.62 0.55 13.54
+Sensitivity Analysis [18] 28⇒14 340 M 100 K 70.36 21.15 6.22 0.63 0.57 13.54
+Oracle (BK-SDM) [23] 28⇒14 340 M 100 K 141.18 7.43 6.09 0.75 0.55 13.54
+TinyDiT-D14 28⇒14 340 M 100 K 151.88 5.73 4.91 0.80 0.55 13.54
+TinyDiT-D14 28⇒14 340 M 500 K 198.85 3.92 5.69 0.78 0.58 13.54
+TinyDiT-D14 (KD) 28⇒14 340 M 100 K 207.27 3.73 5.04 0.81 0.54 13.54
+TinyDiT-D14 (KD) 28⇒14 340 M 500 K 234.50 2.86 4.75 0.82 0.55 13.54
+DiT-L/2[40] 24 458 米 100 万 196.26 3.73 4.62 0.8
+2
+0.5
+4
+9.73
+维生素 L[1] 21 287 米 30 万 221.29 3.44 6.58 0.8
+3
+0.5
+2
+13.4
+8
+U-DiT-L[50] 22 204 米 40 万 246.03 3.37 4.49 0.8
+6
+0.5
+0
+-
+差异修剪-50%[12] 28 338 米 10 万英
+镑
+186.02 3.85 4.92 0.8
+2
+0.5
+4
+10.4
+3
+差异修剪-75%[12] 28 169 米 10 万英
+镑
+83.78 14.58 6.28 0.7
+2
+0.5
+3
+13.5
+9
+ShortGPT[36] 28 1 ⇒ 4 340 米 10 万英
+镑
+66.10 22.28 6.20 0.6
+3
+0.5
+6
+13.5
+4
+助焊剂-Lite[6] 28 1 ⇒ 4 340 米 10 万英
+镑
+54.54 25.92 5.98 0.6
+2
+0.5
+5
+13.5
+4
+敏感性分析[18] 28 1 ⇒ 4 340 米 10 万英
+镑
+70.36 21.15 6.22 0.6
+3
+0.5
+7
+13.5
+4
+甲骨文公司(黑色 SDM)
+[23]
+28 1 ⇒ 4 340 米 10 万英
+镑
+141.18 7.43 6.09 0.7
+5
+0.5
+5
+13.5
+4
+蒂尼迪特-D14 28 1 ⇒ 4 340 米 10 万英
+镑
+151.88 5.73 4.91 0.8
+0
+0.5
+5
+13.5
+4
+蒂尼迪特-D14 28 1 ⇒ 4 340 米 50 万 198.85 3.92 5.69 0.7
+8
+0.5
+8
+13.5
+4
+蒂尼迪-D14 (KD) 28 1 ⇒ 4 340 米 10 万英
+镑
+207.27 3.73 5.04 0.8
+1
+0.5
+4
+13.5
+4
+26
+蒂尼迪-D14 (KD) 28 1 ⇒ 4 340 米 50 万 234.50 2.86 4.75 0.8
+2
+0.5
+5
+13.5
+4
+DiT-B/2 [40]
+U-DiT-B [50]
+12
+22
+130 M
+-
+1,000 K
+400 K
+119.63
+85.15
+10.12
+16.64
+5.39
+6.33
+0.73
+0.64
+0.55
+0.63
+28.30
+-
+TinyDiT-D7 (KD) 14⇒7 173 M 500 K 166.91 5.87 5.43 0.78 0.53 26.81
+DiT-B/2[40]
+U-DiT-B[50]
+12
+22
+130 米
+-
+100 万
+40 万
+119.63
+85.15
+10.12
+16.64
+5.39
+6.33
+0.73
+0.64
+0.55
+0.63
+28.30
+-
+TinyDiT-D7 (KD) 14⇒7 173 米 50 万 166.91 5.87 5.43 0.78 0.53 26.81
+Table 1. Layer pruning results for pre-trained DiT-XL/2. We focus on two settings: fast training with 100K optimization steps and
+sufficient fine-tuning with 500K steps. Both fine-tuning and Masked Knowledge Distillation (a variant of KD, see Sec. 4.4) are used for
+recovery.
+表 1。预训练 DiT-XL/2 的层修剪结果。我们关注两个设置:100K 优化步骤的快速训练和 500K 步骤的充分微调。微调和掩蔽知
+识蒸馏(KD 的一种变体，参见第。4.4)用于恢复。
+might not be competitive at the beginning, but may emerge 12
+开始时可能没有竞争力，但可能会崭露头角 12
+as competitive candidates with sufficient fine-tuning.
+作为有竞争力的候选人。
+Pruning Decision. After training, we retain those local
+structures with the highest probability and discard the additional update ∆Φ. Then, standard fine-tuning techniques
+can be applied for recovery.
+修剪决定。在训练之后，我们保留那些具有最高概率
+的局部结构，并且丢弃额外的更新∏φ。然后，可以
+应用标准微调技术进行恢复。
+7. Experiments
+8. 实验
+8
+8
+6
+6
+4
+四
+2
+2
+0 20
+40
+60
+80
+0 20
+40
+60
+80
+Compressio
+n Ratio (%)
+压缩比(%)
+Depth Prun
+Width Prun
+ing
+ing
+11.60
+Linear Speedup
+6.45
+4.46
+1.992.30
+3.41
+2.76 3.36 2.71
+1.081.171.27
+1.04 1.401.551.74
+1.26
+1.36 1.64 1.912.20
+Depth Prun
+Width Prun
+ing
+ing
+11.60
+Linear Speedup
+6.45
+4.46
+1.992.30
+3.41
+2.76 3.36 2.71
+1.081.171.27
+1.04 1.401.551.74
+1.26
+1.36 1.64 1.912.20
+1
+1
+27
+4.39
+4.39
+8.1. Experimental Settings
+8.2. 实验设置
+Our experiments were mainly conducted on Diffusion
+Transformers [40] for class-conditional image generation
+on ImageNet 256 × 256 [8]. For evaluation, we follow [9, 40] and report the Fre´chet inception distance
+(FID), Sliding Fre´chet Inception Distance (sFID), Inception
+Scores
+我 们 的 实 验 主 要 在 扩 散 变 压 器 上 进 行 [40] 对 于
+ImageNet 256 × 256 上的类条件图像生成[8].对 于
+评 估 ， 我 们 遵 循 [9,40]并报告频率起始距离
+(FID)、滑动频率起始距离(sFID)、起始分数
+(IS), Precision and Recall using the official reference images [9]. Additionally, we also extend our methods to
+other models, including MARs [29] and SiTs [34].
+Experimental details can be found in the following
+sections and appendix.
+(是)、精度和召回使用官方参考图像[9].此外，我们
+还将我们的方法扩展到其他模型，包括火星[29]坐下
+来[34].实验细节可以在下面的章节和附录中找到。
+8.3. Results on Diffusion Transformers
+8.4. 扩散变压器的结果
+DiT. This work focuses on the compression of DiTs [40].
+We consider two primary strategies as baselines: the first
+DiT。这项工作的重点是 DiTs 的压缩[40].我们考虑两
+个主要的策略作为基线:第一个
+Figure 4. Depth pruning closely aligns with the theoretical linear
+speed-up relative to the compression ratio.
+28
+图 4。深度修剪与相对于压缩比的理论线性加速非常一
+致。
+involves using manually crafted patterns to eliminate
+lay- ers. For instance, BK-SDM [23] employs heuristic
+assump- tions to determine the significance of specific
+layers, such as the initial or final layers. The second
+strategy is based on systematically designed criteria to
+evaluate layer impor- tance, such as analyzing the
+similarity between block in- puts and outputs to
+determine redundancy [6, 36]; this ap- proach typically
+aims to minimize performance degradation after
+pruning. Table 1 presents representatives from both
+strategies, including ShortGPT [36], Flux-Lite [6], DiffPruning [12], Sensitivity Analysis [18] and BK-SDM
+[23], which serve as baselines for
+comparison.Additionally,
+涉及使用手工制作的模式，以消除铺设。例如，SDM
+银行[23]采用启发式假设来确定特定层的重要性，例
+如初始层或最终层。第二种策略基于系统设计的标准来
+评估层的重要性，例如分析块输入和输出之间的相似性
+来确定冗余[6,36];这种方法通常旨在减少修剪后的
+性能下降。桌子 1 展示两种策略的代表，包括
+ShortGPT[36],助焊剂-Lite[6],差异修剪[12],敏感
+性分析[18]和 BK-SDM[23],作为比较的基线。此外，
+ShortGPT rnable
+100
+101
+Lea
+ShortGPT rnable
+100
+101
+Lea
+29
+2.00
+2.00
+1.75
+1.75
+1.50
+1.50
+1.25
+1.25
+1.00
+1.00
+0.75
+0.75
+0.50
+0.50
+0.25
+0.25
+0.00
+0.00
+Sensitivity
+灵敏度
+Min:
+Method Depth Params Epochs FID IS
+MAR-Large 32 479 M 400 1.78 296.0
+MAR-Base 24 208 M 400 2.31 281.7
+TinyMAR-D16 32⇒16 277 M 40 2.28 283.4
+SiT-XL/2 28 675 M 1,400 2.06 277.5
+TinySiT-D14 28⇒14 340 M 100 3.02 220.1
+Min:
+Method Depth Params Epochs FID IS
+MAR-Large 32 479 M 400 1.78 296.0
+MAR-Base 24 208 M 400 2.31 281.7
+TinyMAR-D16 32⇒16 277 M 40 2.28 283.4
+SiT-XL/2 28 675 M 1,400 2.06 277.5
+TinySiT-D14 28⇒14 340 M 100 3.02 220.1
+Dens Densi
+30
+Flux-Lite Oracle
+通量精简 Oracle
+C
+a
+libration Loss
+校准损失
+Table 2. Depth pruning results on MARs [29] and SiTs [34].
+表二。火星上的深度修剪结果[29]坐下来[34].
+we evaluate our method against innovative architectural
+de- signs, such as UViT [1], U-DiT [50], and DTR [39],
+which have demonstrated improved training efficiency
+over con- ventional DiTs.
+我们用创新的建筑设计来评估我们的方法，比如
+UViT[1],U-DiT[50],还有 DTR[39],这显示出比传统的
+DiTs 更高的培训效率。
+Table 1 presents our findings on compressing a pretrained DiT-XL/2 [40]. This model contains 28
+transformer layers structured with alternating Attention
+and MLP lay桌子 1 介绍我们在压缩预训练的 DiT-XL/2 上的发现
+[40].该模型包含 28 个变压器层，采用交替注意和 MLP
+层结构
+ers. The proposed method seeks to identify shallow transformers with {7, 14, 19} sub-layers from these 28
+layers, to maximize the post-fine-tuning performance.
+With only 7% of the original training cost (500K steps
+compared to
+呃 。 所 提 出 的 方 法 试 图 从 这 28 层 中 识 别 具 有
+{7，14，19}子层的浅变压器，以最大化后微调性能。
+只有原始培训成本的 7%(50 万步，相比之下
+7M steps), TinyDiT achieves competitive performance relative to both pruning-based methods and novel
+architectures. For instance, a DiT-L model trained from
+scratch for 1M steps achieves an FID score of 3.73 with
+458M parameters. In contrast, the compressed TinyDiTD14 model, with only 340M parameters and a faster
+sampling speed (13.54 it/s vs. 9.73 it/s), yields a
+significantly improved FID of 2.86. On parallel devices
+like GPUs, the primary bottleneck in trans- formers arises
+from sequential operations within each layer, which
+becomes more pronounced as the number of layers
+increases. Depth pruning mitigates this bottleneck by removing entire transformer layers, thereby reducing
+compu- tational depth and optimizing the workload. By
+compar- ison, width pruning only reduces the number of
+neurons within each layer, limiting its speed-up potential. As
+shown in Figure 4, depth pruning closely matches the
+theoretical linear speed-up as the compression ratio
+increases, outper- forming width pruning methods such as
+Diff-Pruning [12].
+相对于基于修剪的方法和新颖的体系结构，TinyDiT 实现
+了有竞争力的性能。例如，从零开始训练 1M 步的 DiT-L
+模型在 458M 参数下获得了 3.73 的 FID 分数。相比之下，
+只有 340M 参数和更快采样速度 (13.54 it/s 对 9.73
+it/s)的压缩 TinyDiT-D14 模型产生了 2.86 的显著改善的
+FID。在 GPU 等并行设备上，变压器的主要瓶颈来自每层
+内的顺序操作，随着层数的增加，这一问题变得更加突
+出。深度修剪通过重新移动整个转换器层来缓解这一瓶
+颈，从而减少计算深度并优化工作负载。相比之下，宽
+度修剪只会减少每一层中神经元的数量，限制其加速潜
+力。如图所示 4,随着压缩比的增加，深度修剪与理论上
+的线性加速非常匹配，输出形成宽度修剪的方法，例如
+差异修剪[12].
+MAR & SiT. Masked Autoregressive (MAR) [29] mod- els
+employ a diffusion loss-based autoregressive framework in a
+continuous-valued space, achieving high-quality image
+generation without the need for discrete tokenization. The
+MAR-Large model, with 32 transformer blocks, serves as
+the baseline for comparison. Applying our pruning method,
+we reduced MAR to a 16-block variant, TinyMAR-D16,
+achieving an FID of 2.28 and surpassing the performance of
+the 24-block MAR-Base model with only 10% of the
+original training cost (40 epochs vs. 400 epochs). Our approach also generalizes to Scalable Interpolant Transformers (SiT) [34], an extension of the DiT architecture that
+employs a flow-based interpolant framework to bridge data
+MAR & SiT。掩蔽自回归[29]模型在连续值空间中采用基
+于扩散损失的自回归框架，无需离散符号化即可实现高
+质量的图像生成。具有 32 个变压器块的 MAR-Large 模型
+用作比较的基线。应用我们的剪枝方法，我们将 MAR 减
+少到 16 个块的变体 TinyMAR-D16，实现了 2.28 的 FID，
+并超过了 24 个块的 MAR-Base 模型的性能，其训练成本
+仅为原始训练成本的 10%(40 个历元对 400 个历元)。我
+们的方法也可以推广到可伸缩的插值变换器 (SiT)
+31
+[34],DiT 体系结构的扩展，采用基于流的插值框架来
+桥接数据
+Figure 5. Distribution of calibration loss through random
+sampling of candidate models. The proposed learnable method
+achieves the best post-fine-tuning FID yet has a relatively high
+initial loss com- pared to other baselines.
+32
+图 5。通过候选模型的随机抽样校准损失的分布。所提出
+的可学习方法实现了最佳的微调后 FID，但是与其他基线
+相比具有相对较高的初始损失。
+Strategy Loss IS FID Prec. Recall
+Max. Loss 37.69 NaN NaN NaN NaN
+Med. Loss 0.99 149.51 6.45 0.78 0.53
+Min. Loss 0.20 73.10 20.69 0.63 0.58
+Sensitivity 0.21 70.36 21.15 0.63 0.57
+ShortGPT [36] 0.20 66.10 22.28 0.63 0.56
+Flux-Lite [6] 0.85 54.54 25.92 0.62 0.55
+Oracle (BK-SDM) 1.28 141.18 7.43 0.75 0.55
+战略 失败 是 桅栓 Prec
+。
+回忆
+最大值失败 37.69 圆盘
+烤饼
+圆盘
+烤饼
+圆盘
+烤饼
+圆盘
+烤饼
+医学。失败 0.99 149.5
+1
+6.45 0.78 0.53
+量滴失败 0.20 73.10 20.69 0.63 0.58
+灵敏度 0.21 70.36 21.15 0.63 0.57
+ShortGPT[36] 0.20 66.10 22.28 0.63 0.56
+助焊剂-Lite[6] 0.85 54.54 25.92 0.62 0.55
+甲骨文公司(黑色 SDM)
+1.28
+141.1
+8
+7.43 0.75 0.55
+Table 3. Directly minimizing the calibration loss may lead to
+non-optimal solutions. All pruned models are fine-tuned
+without knowledge distillation (KD) for 100K steps. We
+evaluate the fol- lowing baselines: (1) Loss – We randomly
+prune a DiT-XL model to generate 100,000 models and select
+models with different cali- bration losses for fine-tuning; (2)
+Metric-based Methods – such as Sensitivity Analysis and
+ShortGPT; (3) Oracle – We retain the first and last layers while
+uniformly pruning the intermediate layers fol- lowing [23]; (4)
+Learnable – The proposed learnable method.
+表 3。直接最小化校准损耗可能导致非最佳解决方案。所
+有修剪后的模型在没有知识提取(KD)的情况下被微调 100K
+步。我们评估以下基线:(1)损耗-我们随机修剪 DiT-XL 模
+型以生成 100，000 个模型，并选择具有不同校准损耗的
+模型进行微调；(2)基于度量的方法——如敏感性分析和
+ShortGPT(3)Oracle——我们保留第一层和最后一层，同
+时统一删减后面的中间层[23];(4)可学——建议的可学方
+法。
+and noise distributions. The SiT-XL/2 model,
+comprising 28 transformer blocks, was pruned by 50%,
+creating the TinySiT-D14 model. This pruned model
+retains competi- tive performance at only 7% of the
+original training cost (100 epochs vs. 1400 epochs). As
+shown in Table 2, these results demonstrate that our
+pruning method is adaptable across different diffusion
+transformer variants, effectively reducing the model size
+and training time while maintain- ing strong performance.
+和噪声分布。包含 28 个变压器块的 SiT-XL/2 模型被
+削减了 50%，创建了 TinySiT-D14 模型。这种修剪后的
+模型仅用原始训练成本的 7%就保持了竞争性能(100 个
+时期对 1400 个时期)。如表中所示 2,这些结果表明，
+我们的剪枝方法适用于不同的扩散变压器变量，有效
+地减少了模型大小和训练时间，同时保持强大的性
+能。
+8.5. Analytical Experiments
+8.6. 分析实验
+Is Calibration Loss the Primary Determinant? An essential question in depth pruning is how to identify redundant layers in pre-trained diffusion transformers. A
+common approach involves minimizing the calibration loss,
+based on the assumption that a model with lower calibration loss after pruning will exhibit superior performance.
+However, we demonstrate in this section that this
+hypothesis may not hold for diffusion transformers. We
+begin by ex- amining the solution space through random
+depth pruning at a 50% ratio, generating 100,000
+candidate models with
+校准损耗是主要决定因素吗？深度修剪中的一个基本
+问题是如何识别预训练扩散变换器中的冗余层。基于
+修剪后具有较低校准损耗的模型将表现出优越性能的
+假设，一种常见的方法包括最小化校准损耗。然而，
+我们在这一节中证明，这一假设可能不适用于扩散变
+压器。我们首先通过以 50%的比率进行随机深度修剪
+来检查解决方案空间，生成 100，000 个候选模型
+Learnable 0.98 151.88 5.73 0.80 0.55
+Learnable 0.98 151.88 5.73 0.80 0.55
+Pattern ∆WIS ↑FID ↓ sFID ↓ Prec. ↑ Recall ↑ Pattern ∆WIS ↑FID ↓ sFID ↓ Prec. ↑ Recall ↑
+33
+27
+27
+26
+26
+25
+25
+24
+24
+23
+23
+22
+22
+21
+21
+20
+20
+19
+19
+18
+18
+17
+17
+16
+16
+15
+15
+14
+14
+13
+13
+12
+12
+11
+11
+10
+10
+9
+9
+8
+8
+7
+七
+6
+6
+5
+5
+4
+四
+3
+3
+2
+2
+1
+一
+Table 4. Performance comparison of TinyDiT-D14 models compressed using various pruning schemes and recoverability
+estima- tion strategies. All models are fine-tuned for 10,000
+steps, and FID scores are computed on 10,000 sampled images
+with 64 timesteps.
+表 4。使用不同剪枝方案和可恢复性估计策略压缩的
+TinyDiT-D14 模型的性能比较。所有模型都微调了 10，000
+步，FID 分数是在 64 个时间步的 10，000 个采样图像上计算
+的。
+calibration losses ranging from 0.195 to 37.694 (see Figure 5). From these candidates, we select models with the
+highest and lowest calibration losses for fine-tuning. Notably, both models result in unfavorable outcomes, such as
+unstable training (NaN) or suboptimal FID scores (20.69),
+as shown in Table 3. Additionally, we conduct a sensitivity analysis [18], a commonly used technique to identify
+crucial layers by measuring loss disturbance upon layer removal, which produces a model with a low calibration loss
+of 0.21. However, this model’s FID score is similar to that
+of the model with the lowest calibration loss. Approaches
+like ShortGPT [36] and a recent approach for compressing
+the Flux model [6], which estimate similarity or minimize
+mean squared error (MSE) between input and output
+states, reveal a similar trend. In contrast, methods with
+mod- erate calibration losses, such as Oracle (often
+considered less competitive) and one of the randomly
+pruned models, achieve FID scores of 7.43 and 6.45,
+respectively, demon- strating significantly better
+performance than models with minimal calibration loss.
+These findings suggest that, while calibration loss may
+influence post-fine-tuning performance to some extent, it is
+not the primary determinant for diffu- sion transformers.
+Instead, the model’s capacity for perfor- mance recovery
+during fine-tuning, termed “recoverability,” appears to be
+more critical. Notably, assessing recoverabil- ity using
+traditional metrics is challenging, as it requires a learning
+process across the entire dataset. This observation also
+explains why the proposed method achieves superior results
+(5.73) compared to baseline methods.
+校准损失范围从 0.195 到 37.694(见图 5).从 这 些 候 选
+模 型 中 ， 我 们 选 择 具 有 最 高 和 最 低 校 准 损 耗 的
+模 型 进 行 微 调 。 不 ， 两 种 模 型 都 导 致 不 利 的 结
+果 ， 如 不 稳 定 的 训 练 ( N a N ) 或 次 优 的 F I D 分 数
+( 2 0 . 6 9 ) ， 如 表 所 示 3.此 外 ， 我 们 还 进 行 了 敏
+感 性 分 析 [18],一种常用技术，通过测量层移动时的损
+失扰动来识别关键层，产生一个校准损失为 0.21 的低模
+型。然而，该模型的 FID 分数与具有最低校准损失的模
+型的分数相似。像 ShortGPT 这样的方法[36]以及最近一
+种压缩通量模型的方法[6],其估计输入和输出状态之间
+相似性或最小化均方误差(MSE ),揭示了相似的趋势。相
+比之下，具有适度校准损失的方法，如 Oracle(通常被
+认为竞争力较弱)和随机修剪模型之一，分别获得 7.43
+和 6.45 的 FID 分数，表明其性能明显优于具有最小校准
+损失的模型。这些发现表明，虽然校准损耗可能在某种
+程度上影响微调后的性能，但它不是扩散变压器的主要
+决定因素。相反，模型在微调期间的性能恢复能力(称
+为“可恢复性”)似乎更为关键。值得注意的是，使用传
+统指标评估可恢复性具有挑战性，因为它需要跨整个数
+据集的学习过程。这一观察也解释了为什么与基线方法
+相比，所提出的方法获得了更好的结果(5.73)。
+Learnable Modeling of Recoverability. To overcome the
+0
+0 2000 4000 6000 8000 10000
+0
+0 2000 4000 6000 8000 10000
+1:2 LoRA 54.75 33.39 29.5
+6
+0.5
+6
+0.6
+2
+2:4 LoRA 53.07 34.21 27.6
+1
+0.5
+5
+0.6
+3
+7:14 LoRA 34.97 49.41 28.4
+8
+0.4
+6
+0.5
+6
+1:2 Full 53.11 35.77 32.6
+8
+0.5
+4
+0.6
+1
+2:4 Full 53.63 34.41 29.9
+3
+0.5
+5
+0.6
+2
+7:14 Full 45.03 38.76 31.3 0.5 0.6
+1:2 LoRA 54.75 33.39 29.5
+6
+0.5
+6
+0.6
+2
+2:4 LoRA 53.07 34.21 27.6
+1
+0.5
+5
+0.6
+3
+7:14 LoRA 34.97 49.41 28.4
+8
+0.4
+6
+0.5
+6
+1:2 Full 53.11 35.77 32.6
+8
+0.5
+4
+0.6
+1
+2:4 Full 53.63 34.41 29.9
+3
+0.5
+5
+0.6
+2
+7:14 Full 45.03 38.76 31.3 0.5 0.6
+Layer Index in DiT- Layer Index in DiT-
+34
+limitations of traditional metric-based methods, this study
+introduces a learnable approach to jointly optimize
+pruning and model recoverability. Table 3 illustrates different configurations of the learnable method, including
+the local pruning scheme and update strategies for
+recoverabil- ity estimation. For a 28-layer DiT-XL/2 with
+a fixed 50%
+可恢复性的可学建模。为了克服传统的基于度量的方
+法的局限性，本研究引入了一种可学习的方法来联合
+优化剪枝和模型可恢复性。桌子 3 说明了可学习方法
+的不同配置，包括用于可恢复性估计的局部修剪方案
+和更新策略。对于固定 50%的 28 层 DiT-XL/2
+Train iterations
+35
+ing 7 layers, resulting in × 2 = 6,864 possible
+soluing 7 layers, resulting in × 2 = 6,864
+possible solu训练迭代
+Figure 6. Visualization of the 2:4 decisions in the learnable
+prun- ing, with the confidence level of each decision
+highlighted through varying degrees of transparency. More
+visualization results for 1:2 and 7:14 schemes are available in
+the appendix.
+图 6。可学习过程中 2:4 决策的可视化，通过不同程度的
+透明度突出每个决策的置信度。附录中提供了 1:2 和 7:14
+方案的更多可视化结果。
+layer pruning rate, we examine three splitting schemes:
+1:2, 2:4, and 7:14. In the 1:2 scheme, for example,
+every two transformer layers form a local block, with
+one layer pruned. Larger blocks introduce greater
+diversity but sig- nificantly expand the search space.
+For instance, the 7:14 scheme divides the model into
+two segments, each retain层剪枝率，我们检查三个分裂方案 :1:2，2:4 和
+7:14。例如，在 1:2 方案中，每两个变换器层形成
+一个局部块，其中一层被修剪。较大的块引入了更
+大的多样性，但是显著地扩展了搜索空间。例
+如，7:14 方案将模型分为两个部分，每个部分保留14
+14
+7
+七
+tions. Conversely, smaller blocks significantly reduce op选项。相反，较小的模块会显著降低 optimization difficulty and offer greater flexibility. When
+the distribution of one block converges, the learning on
+other blocks can still progress. As shown in Table 3, the
+1:2 con- figuration achieves the optimal performance
+after 10K fine- tuning iterations. Additionally, our
+empirical findings un- derscore the effectiveness of
+recoverability estimation using LoRA or full fine-tuning.
+Both methods yield positive post- fine-tuning outcomes,
+with LoRA achieving superior results (FID = 33.39)
+compared to full fine-tuning (FID = 35.77) under the 1:2
+scheme, as LoRA has fewer trainable parame- ters
+(0.9% relative to full parameter training) and can adapt
+more efficiently to the randomness of sampling.
+优化难度并提供更大的灵活性。当一个块的分布收
+敛时，其他块上的学习仍然可以进行。如表中所示
+3,在 10K 微调迭代之后，1:2 配置实现了最佳性能。
+此外，我们的经验发现低于使用 LoRA 或完全微调的
+可恢复性估计的有效性。两种方法都产生了积极的微
+调后结果，与 1:2 方案下的完全微调(FID = 35.77)相
+比，LoRA 取得了更好的结果(FID = 33.39)，因为
+LoRA 具有更少的可训练参数(相对于完全参数训练为
+0.9%)，并且可以更有效地适应采样的随机性。
+Visualization of Learnable Decisions. To gain deeper
+in- sights into the role of the learnable method in pruning,
+we visualize the learning process in Figure 6. From
+bottom to top, the i-th curve represents the i-th layer of the
+pruned model, displaying its layer index in the original
+DiT-XL/2. This visualization illustrates the dynamics of
+pruning de- cisions over training iterations, where the
+transparency of each data point indicates the probability of
+being sampled. The learnable method shows its capacity to
+explore and handle various layer combinations. Pruning
+decisions for certain layers, such as the 7-th and 8-th in the
+compressed model, are determined quickly and remain
+stable through- out the process. In contrast, other layers,
+like the 0-th layer, require additional fine-tuning to
+estimate their recoverabil- ity. Notably, some decisions
+may change in the later stages
+可学习决策的可视化。为了更深入地了解可学习方法
+在修剪中的作用，我们将学习过程形象化为图 6.从下
+到上，第 I 条曲线代表修剪模型的第 I 层，显示
+其在原始 D i T - X L / 2 中的层索引。这种可视化说
+明 了 训 练 迭 代 中 修 剪 决 策 的 动 态 ， 其 中 每 个 数
+据 点 的 透 明 度 表 示 被 采 样 的 概 率 。 可 学 习 的 方
+法 显 示 了 其 探 索 和 处 理 各 种 层 组 合 的 能 力 。 某
+些层的修剪决定，例如压缩模型中的第 7 层和第
+8 层，被快速确定，并在整个过程中保持稳定。
+相比之下，其他层，如第 0 层，需要额外的微调
+来 估 计 它 们 的 可 恢 复 性 。 值 得 注 意 的 是 ， 有 些
+决定可能会在后期发生变化
+36
+Figure 7. Images generated by TinyDiT-D14 on ImageNet 224×224, pruned and distilled from a
+DiT-XL/2.
+图 7。由 TinyDiT-D14 在 ImageNet 224×224 上生成的图像，从 DiT-XL/2 中进行修剪和提取。
+0.4
+0.4
+0.3
+0.3
+0.2
+0.2
+0.1
+0.1
+0.0
+0.0
+10
+2
+1
+0
+1
+10
+0
+0
+10
+0
+10
+1
+1
+0
+2
+102
+101
+100
+0
+100
+101
+102
+Activ
+ation
+Value
+(log)
+激活值
+(对数)
+(a) DiT-XL/2 (Teacher)
+(b) DiT-XL/2(教师)
+Den Dens
+Min Activation: -
+-Std: -
++Std:
+Max Activation:
+Min Activation: -
+-Std: -
++Std:
+Max Activation:
+37
+0.5
+0.5
+0.4
+0.4
+0.3
+0.3
+0.2
+0.2
+0.1
+0.1
+0.0
+0.0 102
+101
+100 0 100
+101
+102 101 100 0 100 101
+Activation Value (log)
+激活值(对数)
+(c) TinyDiT-D14 (Student)
+(d) 蒂尼迪特-D14(学生)
+Figure 8. Visualization of massive activations [47] in DiTs. Both
+teacher and student models display large activation values in
+their hidden states. Directly distilling these massive activations
+may result in excessively large losses and unstable training.
+图 8。大规模激活的可视化[47]在 DiTs 中。教师和学生模型
+在它们的隐藏状态下都显示大的激活值。直接提炼这些海量
+激活，可能会导致损失过大，训练不稳定。
+once these layers have been sufficiently optimized. The
+training process ultimately concludes with high sampling
+probabilities, suggesting a converged learning process
+with distributions approaching a one-hot configuration.
+After training, we select the layers with the highest
+probabilities for subsequent fine-tuning.
+一旦这些层被充分优化。训练过程最终以高采样概率
+结束，这表明分布接近一个热点配置的收敛学习过
+程。训练后，我们选择概率最高的层进行后续微调。
+8.7. Knowledge Distillation for Recovery
+8.8. 知识蒸馏复兴运动
+In this work, we also explore Knowledge Distillation (KD)
+as an enhanced fine-tuning method. As demonstrated in
+Ta- ble 5, we apply the vanilla knowledge distillation
+approach proposed by Hinton [20] to fine-tune a TinyDiTD14, using the outputs of the pre-trained DiT-XL/2 as a
+teacher model for supervision. We employ a Mean Square
+Error (MSE) loss to align the outputs between the shallow
+student model and the deeper teacher model, which
+effectively reduces the FID at 100K steps from 5.79 to
+4.66.
+在这项工作中，我们还探索了知识蒸馏(KD)作为一种
+增强的微调方法。如表中所示 5,我们应用辛顿提出的普
+通知识提炼方法[20]使用预先训练的 DiT-XL/2 的输出作为
+监督的教师模型来微调 TinyDiT-D14。我们采用均方误差
+(MSE)损失来对齐浅层学生模型和深层教师模型之间的输
+出，这有效地将 100K 步长的 FID 从 5.79 降低到 4.66。
+Masked Knowledge Distillation. Additionally, we evaluate representation distillation (RepKD) [23, 42] to transfer
+hidden states from the teacher to the student. It is important
+to note that depth pruning does not alter the hidden dimension of diffusion transformers, allowing for direct alignment
+蒙面知识蒸馏。此外，我们评估了表示蒸馏(RepKD)
+[23,42]把隐藏状态从老师身上转移到学生身上。值得注意
+的是，深度修剪不会改变扩散变换器的隐藏尺寸，从而允许
+直接对准
+Den Dens
+Min Activation: -
+-Std: -
++Std:
+Max Activation:
+fine-tuning Strategy Initfine-tuning
+Logits KD
+RepKD
+Masked KD (0.1σ)
+Masked KD (2σ)
+Masked KD (4σ)
+Min Activation: -
+-Std: -
++Std:
+Max Activation:
+fine-tuning Strategy Initfine-tuning
+Logits KD
+RepKD
+Masked KD (0.1σ)
+Masked KD (2σ)
+Masked KD (4σ)
+38
+Table 5. Evaluation of different fine-tuning strategies for
+recovery. Masked RepKD ignores those massive activations
+(|x| > kσx) in both teacher and student, which enables
+effective knowledge transfer between diffusion transformers.
+表 5。评估不同的恢复微调策略。Masked RepKD 忽略了教师
+和学生中的大量激活(|x| > kσx)，从而实现了扩散转换器
+之间的有效知识转移。
+of intermediate hidden states. For practical
+implementation, we use the block defined in Section 3.2 as
+the basic unit, ensuring that the pruned local structure in
+the pruned DiT aligns with the output of the original
+structure in the teacher model. However, we encountered
+significant training dif- ficulties with this straightforward
+RepKD approach due to massive activations in the hidden
+states, where both teacher and student models occasionally
+exhibit large activation values, as shown in Figure 8.
+Directly distilling these ex- treme activations can result in
+excessively high loss values, impairing the performance of
+the student model. This issue has also been observed in
+other transformer-based genera- tive models, such as
+certain LLMs [47]. To address this, we propose a Masked
+RepKD variant that selectively ex- cludes these massive
+activations during knowledge transfer.
+中间隐藏状态。对于实际实施，我们使用第节中定义
+的模块 3.2 作为基本单元，确保经修剪的 DiT 中的经
+修剪的局部结构与教师模型中的原始结构的输出对
+齐。然而，由于隐藏状态中的大量激活，我们使用这
+种简单的 RepKD 方法遇到了很大的训练困难，其中教
+师和学生模型偶尔会显示较大的激活值，如图所示 8.
+直 接 提 取 这 些 异 常 激 活 会 导 致 过 高 的 损 失
+值 ， 削 弱 学 生 模 型 的 性 能 。 在 其 他 基 于 变 压
+器 的 通 用 模 型 中 也 观 察 到 了 这 个 问 题 ， 例 如
+某 些 L L M [47].为 了 解 决 这 个 问 题 ， 我 们 提 出
+了 一 个 屏 蔽 R e p K D 变 体 ， 它 在 知 识 转 移 过 程
+中 选 择 性 地 排 除 这 些 大 规 模 激 活 。
+We employ a simple thresholding method, |x − µx| < kσx,
+which ignores the loss associated with these extreme acti我们采用一种简单的阈值方法| x x | < kσx，它忽
+略了与这些极端活动相关的损耗
+vations. As shown in Table 5, the Masked RepKD
+approach with moderate thresholds of 2σ and 4σ achieves
+satisfactory results, demonstrating the robustness of our
+method.
+vations。如表中所示 5,具有中等阈值 2σ 和 4σ 的掩
+蔽 RepKD 方法获得了令人满意的结果，证明了我们方法的
+鲁棒性。
+Generated Images. In Figure 7, We visualize the generated images of the learned TinyDiT-D14, distilled from an
+生成的图像。在图中 7,我们想象着博学的小 D14 的形
+象，这些形象是从
+39
+off-the-shelf DiT-XL/2 model. More visualization results
+for SiTs and MARs can be found in the appendix.
+现成的 DiT-XL/2 型号。更多 SiTs 和 MARs 的可视化结
+果可以在附录中找到。
+9. Conclusions
+10. 结论
+This work introduces TinyFusion, a learnable method for
+accelerating diffusion transformers by removing redundant
+layers. It models the recoverability of pruned models as an
+optimizable objective and incorporates differentiable sampling for end-to-end training. Our method generalizes to
+various architectures like DiTs, MARs and SiTs.
+这项工作介绍了 TinyFusion，这是一种通过移除冗余
+层来加速扩散变压器的可学方法。它将修剪模型的可
+恢复性建模为可优化的目标，并结合了端到端训练的
+可 区 分 采 样 。 我 们 的 方 法 适 用 于 各 种 架 构 ， 如
+DiTs、MARs 和 SiTs。
+References
+参考
+[1] Fan Bao, Shen Nie, Kaiwen Xue, Yue Cao, Chongxuan Li,
+Hang Su, and Jun Zhu. All are worth words: A vit
+backbone for diffusion models. In Proceedings of the
+IEEE/CVF con- ference on computer vision and pattern
+recognition, pages 22669–22679, 2023.
+[2] 范豹、申聂、、薛、、李崇宣、、。所有都值得一说:
+扩散模型的 vit 主干。IEEE/CVF 计算机视觉和模式识
+别会议论文集，第 22669-22679 页，2023。
+[3] Yoshua Bengio, Nicholas Le´onard, and Aaron Courville.
+Estimating or propagating gradients through stochastic
+neurons for conditional computation. arXiv preprint
+arXiv:1308.3432, 2013.
+[4] 约舒阿·本吉奥，尼古拉斯·勒奥纳德和亚伦·库维
+尔 。 为 条 件 计 算 通 过 随 机 神 经 元 估 计 或 传 播 梯
+度。arXiv 预印本 arXiv:1308.3432，2013。
+[5] Thibault Castells, Hyoung-Kyu Song, Bo-Kyeong Kim, and
+Shinkook Choi. Ld-pruner: Efficient pruning of latent
+diffu- sion models using task-agnostic insights. In
+Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, pages 821–830, 2024.
+[6] Thibault Castells ， Hyoung-Kyu Song ， Bo-Kyeong
+Kim 和 Shinkook Choi。Ld-pruner:使用任务不可知的
+洞察力有效地修剪潜在扩散模型。IEEE/CVF 计算机视
+觉和模式识别会议论文集，第 821-830 页，2024。
+[7] Huiwen Chang, Han Zhang, Lu Jiang, Ce Liu, and William
+T Freeman. Maskgit: Masked generative image
+transformer. In Conference on Computer Vision and
+Pattern Recognition, pages 11315–11325, 2022.
+[8] 张慧文，，，刘策和威廉·T·弗里曼。遮罩生成图像
+转换器。在计算机视觉和模式识别会议上，第 11315-
+11325 页，2022。
+[9] Junsong Chen, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze
+Xie, Yue Wu, Zhongdao Wang, James Kwok, Ping Luo,
+Huchuan Lu, and Zhenguo Li. Pixart-α: Fast training of diffusion transformer for photorealistic text-to-image synthesis,
+2023.
+[10]、陈、俞金城、葛崇健、姚乐伟、谢恩泽、、王中道、郭
+炳江、罗平、陆沪川和。Pixart-α:用于照片级真实文本
+到图像合成的 dif- fusion 变换器的快速训练，2023。
+[11]Javier Mart´ın Daniel Verdu´. Flux.1 lite: Distilling flux1.dev
+for efficient text-to-image generation. 2024.
+[12]哈维尔·马丁·丹尼尔·维尔杜。Flux.1 lite:提取
+flux1.dev 以实现高效的文本到图像生成。2024.
+[13]Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, and Christopher Re´. Flashattention: Fast and memory-efficient exact attention with io-awareness. Advances in Neural Information
+Processing Systems, 35:16344–16359, 2022.
+[14]崔道，丹芙，斯特凡诺·厄蒙，阿特丽·茹德拉和克里斯
+多佛·雷。Flashattention:具有 io 感知能力的快速且高
+效的精确注意力。神经信息处理系统进展，35:16344–
+16359，2022。
+[15]Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and
+Li Fei-Fei. Imagenet: A large-scale hierarchical image
+database. In 2009 IEEE conference on computer vision and
+pattern recognition, pages 248–255. Ieee, 2009.
+[16]邓佳，魏东，理查德·索彻，李·，和。Imagenet:一个
+大规模分层图像数据库。2009 年 IEEE 计算机视觉和模式
+识别会议，第 248-255 页。Ieee，2009 年。
+[17]Prafulla Dhariwal and Alexander Nichol. Diffusion models
+beat gans on image synthesis. Advances in neural information processing systems, 34:8780–8794, 2021.
+[18]普拉芙拉·德里瓦尔和亚历山大·尼科尔。扩散模型在图
+像 合 成 上 击 败 了 甘 斯 。 神 经 信 息 处 理 系 统 进
+展，34:8780–8794，2021。
+[19] Maha Elbayad, Jiatao Gu, Edouard Grave, and Michael Auli.
+Depth-adaptive transformer. arXiv preprint
+arXiv:1910.10073, 2019.
+[20] 玛哈·艾尔巴亚德、陶佳·古、爱德华·格雷夫和迈克尔
+· 奥 利 。 深 度 自 适 应 变 压 器 。 arXiv 预 印 本
+arXiv:1910.10073，2019。
+[21] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim
+Entezari, Jonas Mu¨ller, Harry Saini, Yam Levi, Dominik
+Lorenz, Axel Sauer, Frederic Boesel, et al. Scaling recti- fied
+flow transformers for high-resolution image synthesis.
+[22] Patrick Esser ， Sumith Kulal ， Andreas
+Blattmann，Rahim Entezari，Jonas Mu ller ，Harry
+Saini ， Yam Levi ， 张 秀 坤 · 洛 伦 茨 ， Axel
+Sauer，Frederic Boesel，等,《用于高分辨率图像合成
+的缩放整流流量变换器》。
+40
+In Forty-first International Conference on Machine
+Learn- ing, 2024. 2024 年第四十一届机器学习国际会议。
+[23] Gongfan Fang, Xinyin Ma, and Xinchao Wang. Structural
+pruning for diffusion models. In Advances in Neural Information Processing Systems, 2023.
+[24] 方，，马，王新超。扩散模型的结构修剪。神经信息处
+理系统进展，2023。
+[25] Gongfan Fang, Hongxu Yin, Saurav Muralidharan, Greg
+Heinrich, Jeff Pool, Jan Kautz, Pavlo Molchanov, and Xinchao Wang. Maskllm: Learnable semi-structured sparsity
+for large language models. arXiv preprint
+arXiv:2409.17481, 2024.
+[26] 方、、尹、绍拉夫·穆拉利哈兰、格雷格·海因里希、
+杰夫·普尔、扬·考茨、帕夫洛·莫尔查诺夫和辛·王
+超。Maskllm:大型语言模型的可学习半结构化稀疏
+性。arXiv 预印本 arXiv:2409.17481，2024。
+[27] Zhengcong Fei, Mingyuan Fan, Changqian Yu, Debang Li,
+and Junshi Huang. Scaling diffusion transformers to 16 billion parameters. arXiv preprint arXiv:2407.11633, 2024.
+[28] 费正聪、范明远、于昌谦、李、黄军师。将扩散变压器
+缩 放 到 16 亿 个 参 数 。 arXiv 预 印 本
+arXiv:2407.11633，2024。
+[29] Zhengcong Fei, Mingyuan Fan, Changqian Yu, Debang Li,
+Youqiang Zhang, and Junshi Huang. Dimba: Transformermamba diffusion models. arXiv preprint arXiv:2406.01159,
+2024.
+[30] 费正聪，范明远，俞昌谦，，李，张友强，黄军师。迪
+姆 巴 : 变 压 器 - 曼 巴 扩 散 模 型 。 arXiv 预 印 本
+arXiv:2406.01159，2024。
+[31] Shanghua Gao, Zhijie Lin, Xingyu Xie, Pan Zhou, MingMing Cheng, and Shuicheng Yan. Editanything: Empowering unparalleled flexibility in image editing and generation.
+In Proceedings of the 31st ACM International Conference
+on Multimedia, Demo track, 2023.
+[32] 高、、谢兴宇、、程明明、严水成。Editanything:赋
+予图像编辑和生成无与伦比的灵活性。第 31 届 ACM 多
+媒体国际会议论文集，演示音轨，2023。
+[33] Emil Julius Gumbel. Statistical theory of extreme values
+and some practical applications: a series of lectures. US
+Gov- ernment Printing Office, 1954.
+[34] 埃米尔·朱利叶斯·冈贝尔。极值统计理论及一些实际
+应用:系列讲座。美国政府印刷局，1954 年。
+[35] Song Han, Jeff Pool, John Tran, and William Dally. Learning both weights and connections for efficient neural network. Advances in neural information processing systems,
+28, 2015.
+[36] 宋寒、杰夫·普尔、约翰·特兰、威廉·戴利。学习有
+效神经网络的权重和连接。神经信息处理系统进
+展，28，2015。
+[37] Yefei He, Luping Liu, Jing Liu, Weijia Wu, Hong Zhou,
+and Bohan Zhuang. Ptqd: Accurate post-training
+quantization for diffusion models. Advances in Neural
+Information Pro- cessing Systems, 36, 2024.
+[38] 何、、刘、、、、庄博涵。Ptqd:扩散模型的精确训练
+后量化。神经信息处理系统进展，36，2024。
+[39] Geoffrey Hinton, Oriol Vinyals, Jeff Dean, et al. Distilling the knowledge in a neural network. arXiv preprint
+arXiv:1503.02531, 2(7), 2015.
+[40] Geoffrey Hinton ，Oriol Vinyals， Jeff Dean ，等
+41
+人 ， 从 神 经 网 络 中 提 取 知 识 。 arXiv 预 印 本
+arXiv:1503.02531，2(7)，2015。
+[41] Edward J Hu, yelong shen, Phillip Wallis, Zeyuan AllenZhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu
+Chen. LoRA: Low-rank adaptation of large language
+models. In In- ternational Conference on Learning
+Representations, 2022.
+[42] 爱德华·J·胡，·沈，菲利普·沃利斯，·艾伦·
+朱，，Shean Wang，，和陈。大型语言模型的低阶适
+应。2022 年国际学习代表会议。
+[43] Eric Jang, Shixiang Gu, and Ben Poole. Categorical
+reparameterization with gumbel-softmax. arXiv preprint
+arXiv:1611.01144, 2016.
+[44] 埃里克·张、石祥·古和本·普尔。用 gumbelsoftmax 进 行 分 类 重 新 参 数 化 。 arXiv 预 印 本
+arXiv:1611.01144，2016。
+[45] Bo-Kyeong Kim, Hyoung-Kyu Song, Thibault Castells,
+and Shinkook Choi. Bk-sdm: Architecturally compressed
+stable diffusion for efficient text-to-image generation. In
+Workshop on Efficient Systems for Foundation Models@
+ICML2023, 2023.
+[46] Bo-Kyeong Kim ， Hyoung-Kyu Song ， Thibault
+Castells 和 Shinkook Choi。Bk-sdm:用于高效文本
+到图像生成的架构压缩稳定扩散。基础模型高效系统
+研讨会@ ICML2023，2023。
+[47] Bo-Kyeong Kim, Geonmin Kim, Tae-Ho Kim, Thibault
+Castells, Shinkook Choi, Junho Shin, and Hyoung-Kyu
+Song. Shortened llama: A simple depth pruning for large
+lan- guage models. arXiv preprint arXiv:2402.02834, 11,
+2024.
+[48] 金博京、金俊民、金泰浩、蒂博特·卡斯特尔斯、崔
+新国、申俊浩和宋永奎。缩短的羊驼:大型语言模型
+的 简 单 深 度 修 剪 。 arXiv 预 印 本
+arXiv:2402.02834，11，2024。
+[49] PKU-Yuan Lab and Tuzhan AI etc. Open-sora-plan, 2024.
+[50] 北京大学袁实验室和涂展艾等。开放式索拉计划，2024
+年。
+[51] Black Forest Labs. FLUX, 2024.
+[52] 黑森林实验室。通量，2024。
+[53] Youngwan Lee, Yong-Ju Lee, and Sung Ju Hwang. Ditpruner: Pruning diffusion transformer models for text-toimage synthesis using human preference scores.
+[54] 李永万，李永柱和黄成柱。Dit- pruner:使用人类偏
+好分数修剪文本到图像合成的扩散变换器模型。
+42
+[55] Youngwan Lee, Kwanyong Park, Yoorhim Cho, Yong-Ju
+Lee, and Sung Ju Hwang. Koala: self-attention matters in knowledge distillation of latent diffusion models for
+memory-efficient and fast image synthesis. arXiv e-prints,
+pages arXiv–2312, 2023.
+[56] 李永万，关永朴，赵佑贤，李永柱和黄成柱。考拉:用
+于记忆有效和快速图像合成的潜在扩散模型的知识提炼
+中 的 自 我 注 意 材 料 。 arXiv 电 子 版 ， 第 arXiv–
+2312、2023 页。
+[57] Tianhong Li, Yonglong Tian, He Li, Mingyang Deng, and
+Kaiming He. Autoregressive image generation without vector quantization. arXiv preprint arXiv:2406.11838, 2024.
+[58] 李，，田永龙，，邓，。无矢量量化的自回归图像生
+成。arXiv 预印本 arXiv:2406.11838，2024。
+[59] Xiuyu Li, Yijiang Liu, Long Lian, Huanrui Yang, Zhen
+Dong, Daniel Kang, Shanghang Zhang, and Kurt Keutzer.
+Q-diffusion: Quantizing diffusion models. In Proceedings
+of the IEEE/CVF International Conference on Computer
+Vi- sion, pages 17535–17545, 2023.
+[60] 李秀玉，，龙莲，杨焕瑞，董振，康大牛，张上
+航，Kurt Keutzer。量化扩散模型。IEEE/CVF 国际计
+算机视觉会议论文集，第 17535-17545 页，2023 年。
+[61] Yanyu Li, Huan Wang, Qing Jin, Ju Hu, Pavlo Chemerys,
+Yun Fu, Yanzhi Wang, Sergey Tulyakov, and Jian Ren.
+Snap- fusion: Text-to-image diffusion model on mobile
+devices within two seconds. Advances in Neural
+Information Pro- cessing Systems, 36, 2024.
+[62] 、李、、金青、胡巨著、帕夫洛·切梅利斯、傅云、、
+谢尔盖·图利亚科夫和任健。Snap- fusion:移动设备
+上两秒内文本到图像的扩散模型。神经信息处理系统进
+展，36，2024。
+[63] Shanchuan Lin, Anran Wang, and Xiao Yang. Sdxllightning: Progressive adversarial diffusion distillation.
+arXiv preprint arXiv:2402.13929, 2024.
+[64] 林山川，王和肖扬。Sdxl-闪电:渐进对抗性扩散蒸
+馏。arXiv 预印本 arXiv:2402.13929，2024。arXiv
+preprint arXiv:2402.13929
+[65] Cheng Lu, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan
+Li, and Jun Zhu. Dpm-solver: A fast ode solver for
+diffusion probabilistic model sampling in around 10 steps.
+Advances in Neural Information Processing Systems,
+35:5775–5787, 2022.
+[66] 、周、、范豹、、李崇宣、。Dpm-solver:用于扩散概
+率模型采样的快速 ode 求解器，大约 10 步。神经信息
+处理系统进展，35:5775–5787，2022。
+[67] Nanye Ma, Mark Goldstein, Michael S Albergo, Nicholas
+M Boffi, Eric Vanden-Eijnden, and Saining Xie. Sit:
+Explor- ing flow and diffusion-based generative models with
+scalable interpolant transformers. arXiv preprint
+arXiv:2401.08740, 2024.
+[68] 叶楠·马、马克·戈尔茨坦、迈克尔·S·阿尔伯戈、
+尼古拉斯·M·博菲、埃里克·范登-艾金登和谢赛
+宁。Sit:探索基于流动和扩散的可扩展插值变压器生成
+模型。arXiv 预印本 arXiv:2401.08740，2024。
+[69] Xinyin Ma, Gongfan Fang, Michael Bi Mi, and Xinchao
+Wang. Learning-to-cache: Accelerating diffusion transformer via layer caching, 2024.
+[70] 马，方，米开朗琪罗，王新潮。从学习到缓存:通过层缓
+存加速扩散转换，2024。
+[71] Xin Men, Mingyu Xu, Qingyu Zhang, Bingning Wang,
+Hongyu Lin, Yaojie Lu, Xianpei Han, and Weipeng Chen.
+Shortgpt: Layers in large language models are more redundant than you expect. arXiv preprint arXiv:2403.03853, 2024.
+[72] 忻 门 、 许 明 宇 、 、 王 炳 宁 、 、 路 耀 杰 、 韩 先 培 、
+陈。Shortgpt:大型语言模型中的层比您预期的更加冗
+余。arXiv 预印本 arXiv:2403.03853，2024。
+[73] Pavlo Molchanov, Stephen Tyree, Tero Karras, Timo Aila,
+and Jan Kautz. Pruning convolutional neural networks for resource efficient inference. arXiv preprint arXiv:1611.06440,
+2016.
+[74] Pavlo Molchanov、Stephen Tyree、Tero Karras、Timo
+Aila 和 Jan Kautz。修剪卷积神经网络用于资源有效推
+理。arXiv 预印本 arXiv:1611.06440，2016。
+[75] Zanlin Ni, Yulin Wang, Renping Zhou, Jiayi Guo, Jinyi Hu,
+Zhiyuan Liu, Shiji Song, Yuan Yao, and Gao Huang.
+Revisiting non-autoregressive transformers for efficient image synthesis. In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition, pages 7007–
+7016, 2024.
+[76] 倪赞林、、、周、、胡锦一、、宋世基、、。重新审视非
+自回归变压器的有效图像合成。IEEE/CVF 计算机视觉和
+模式识别会议论文集，第 7007–7016 页，2024。
+[77] Byeongjun Park, Sangmin Woo, Hyojun Go, Jin-Young Kim,
+and Changick Kim. Denoising task routing for diffusion
+models. arXiv preprint arXiv:2310.07138, 2023.
+[78] 秉军公园，桑敏宇，孝俊戈，金镇永和张基金。扩散模型的
+去噪任务路由。arXiv 预印本 arXiv:2310.07138，2023。
+[79] William Peebles and Saining Xie. Scalable diffusion models
+with transformers. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 4195–4205,
+2023.
+[80] 威廉·皮布尔斯和谢赛宁。带变压器的可扩展扩散模
+型。IEEE/CVF 国际计算机视觉会议论文集，第 4195-4205
+页，2023。
+43
+[81] David Raposo, Sam Ritter, Blake Richards, Timothy
+Lillicrap, Peter Conway Humphreys, and Adam Santoro. Mixture-of-depths: Dynamically allocating compute in transformer-based language models. arXiv
+preprint arXiv:2404.02258, 2024.
+[82] 大卫·拉波索、萨姆·里特、布莱克·理查兹、蒂莫西
+·莉莉卡普、彼得·康威·汉弗莱斯和亚当·圣托罗。
+深度混合:在基于 transformer 的语言模型中动态分配
+计算。arXiv 预印本 arXiv:2404.02258，2024。
+[83] Adriana Romero, Nicolas Ballas, Samira Ebrahimi Kahou,
+Antoine Chassang, Carlo Gatta, and Yoshua Bengio.
+Fitnets: Hints for thin deep nets. arXiv preprint
+arXiv:1412.6550, 2014.
+[84] 阿德里亚娜·罗梅罗、尼古拉斯·巴拉斯、周欣宇·易
+卜拉希米·卡胡、安托万·查桑、卡洛·加塔和约舒阿
+·本吉奥。Fitnets:薄深网的提示。arXiv 预印本
+arXiv:1412.6550，2014。
+[85] Tim Salimans and Jonathan Ho. Progressive distillation
+for fast sampling of diffusion models. arXiv preprint
+arXiv:2202.00512, 2022.
+[86] 蒂姆·萨利曼斯和乔纳森·何。扩散模型快速取样的渐
+进蒸馏。arXiv 预印本 arXiv:2202.00512，2022。
+[87] Yuzhang Shang, Zhihang Yuan, Bin Xie, Bingzhe Wu, and
+Yan Yan. Post-training quantization on diffusion models. In
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 1972–1981, 2023.
+[88] 尚，袁智航，，吴炳哲，。扩散模型的训练后量
+化 。 IEEE/CVF 计 算 机 视 觉 和 模 式 识 别 会 议 论 文
+集，1972-1981，2023 页。
+[89] Jiaming Song, Chenlin Meng, and Stefano Ermon.
+Denoising diffusion implicit models. arXiv preprint
+arXiv:2010.02502, 2020.
+[90] 宋家明，孟和斯特凡诺埃尔蒙。去噪扩散隐式模
+型。arXiv 预印本 arXiv:2010.02502，2020。
+[91] Yang Song, Prafulla Dhariwal, Mark Chen, and Ilya
+Sutskever. Consistency models. arXiv preprint
+arXiv:2303.01469, 2023.
+[92] 宋洋、普拉富拉·德里瓦尔、陈唐山和伊利亚·苏茨基
+弗 。 一 致 性 模 型 。 arXiv 预 印 本
+arXiv:2303.01469，2023。
+[93] Mingjie Sun, Xinlei Chen, J Zico Kolter, and Zhuang Liu.
+Massive activations in large language models. arXiv preprint
+arXiv:2402.17762, 2024.
+[94] 孙明洁，陈，科特和。大型语言模型中的大量激
+活。arXiv 预印本 arXiv:2402.17762，2024。
+[95] Yao Teng, Yue Wu, Han Shi, Xuefei Ning, Guohao Dai,
+Yu Wang, Zhenguo Li, and Xihui Liu. Dim: Diffusion
+mamba for efficient high-resolution image synthesis. arXiv
+preprint arXiv:2405.14224, 2024.
+[96] 姚腾，，，，宁，，戴，，，，刘。Dim:用于高效高分
+辨 率 图 像 合 成 的 扩 散 mamba 。 arXiv 预 印 本
+arXiv:2405.14224，2024。
+[97] Keyu Tian, Yi Jiang, Zehuan Yuan, Bingyue Peng, and Liwei Wang. Visual autoregressive modeling: Scalable image
+generation via next-scale prediction. 2024.
+[98] 田克宇，，袁泽焕，彭冰月，。视觉自回归建模:通过
+下一尺度预测的可缩放图像生成。2024.
+[99] Yuchuan Tian, Zhijun Tu, Hanting Chen, Jie Hu, Chao Xu,
+and Yunhe Wang. U-dits: Downsample tokens in u-shaped
+diffusion transformers. arXiv preprint arXiv:2405.02730,
+2024.
+[100]、涂志军、陈汉庭、、和。u-dits:u 形扩散变换器中
+的 下 采 样 标 记 。 arXiv 预 印 本
+44
+arXiv:2405.02730，2024。
+[101]Kafeng Wang, Jianfei Chen, He Li, Zhenpeng Mi, and
+Jun Zhu. Sparsedm: Toward sparse efficient diffusion
+models. arXiv preprint arXiv:2404.10445, 2024.
+[102]王克峰、、、米和。稀疏有效扩散模式。arXiv 预印
+本 arXiv:2404.10445 ， 2024 。 arXiv preprint
+arXiv:2404.10445
+[103]Enze Xie, Junsong Chen, Junyu Chen, Han Cai, Yujun
+Lin, Zhekai Zhang, Muyang Li, Yao Lu, and Song Han.
+Sana: Ef- ficient high-resolution image synthesis with
+linear diffusion transformers. arXiv preprint
+arXiv:2410.10629, 2024.
+[104]谢 恩 泽 、 、 陈 、 、 、 张 哲 凯 、 李 沐 阳 、 、 宋
+寒。Sana:用线性扩散变压器进行有效的高分辨率图
+像合成。arXiv 预印本 arXiv:2410.10629，2024。
+[105]Ling Yang, Zhilong Zhang, Yang Song, Shenda Hong,
+Run- sheng Xu, Yue Zhao, Wentao Zhang, Bin Cui, and
+Ming- Hsuan Yang. Diffusion models: A comprehensive
+survey of methods and applications. ACM Computing
+Surveys, 56(4): 1–39, 2023.
+[106]凌阳、、、沈大洪、、、、、明。扩散模型:方法和
+应 用 的 综 合 调 查 。 美 国 计 算 机 学 会 计 算 调
+查，56(4):1–39，2023。
+[107]Fang Yu, Kun Huang, Meng Wang, Yuan Cheng, Wei
+Chu, and Li Cui. Width & depth pruning for vision
+transformers. In Conference on Artificial Intelligence
+(AAAI), 2022.
+[108]郁芳、黄昆、王猛、程远、魏初和崔莉。视觉变形器
+的宽度和深度修剪。人工智能大会 (AAAI)，2022
+年。
+[109]Tao Yu, Runseng Feng, Ruoyu Feng, Jinming Liu, Xin
+Jin, Wenjun Zeng, and Zhibo Chen. Inpaint anything:
+Segment anything meets image inpainting. arXiv
+preprint arXiv:2304.06790, 2023.
+[110]陶瑜，冯润生，冯若瑜，，，曾文军，陈志波。修复
+任何东西:分割任何东西满足图像修复。arXiv 预印
+本 arXiv:2304.06790，2023。
+[111]Dingkun Zhang, Sijia Li, Chen Chen, Qingsong Xie, and
+Haonan Lu. Laptop-diff: Layer pruning and normalized
+dis-
+[112]张定坤，，，，谢，陆浩南。Laptop-diff:层修剪和
+规范化 dis-
+45
+tillation for compressing diffusion models. arXiv preprint
+arXiv:2404.11098, 2024.
+压 缩 扩 散 模 型 的 tillation 。 arXiv 预 印 本
+arXiv:2404.11098，2024。
+[113]Xuanlei Zhao, Xiaolong Jin, Kai Wang, and Yang You.
+Real-time video generation with pyramid attention broadcast. arXiv preprint arXiv:2408.12588, 2024.
+[114]赵轩雷、金小龙、王凯和尤杨。金字塔注意力广播的实
+时视频生成。arXiv 预印本 arXiv:2408.12588，2024。
+[115]Yang Zhao, Yanwu Xu, Zhisheng Xiao, and Tingbo Hou.
+Mobilediffusion: Subsecond text-to-image generation on
+mobile devices. arXiv preprint arXiv:2311.16567, 2023.
+[116]杨钊，许，肖智胜，侯廷波。Mobilediffusion:移动设
+备 上 的 亚 秒 级 文 本 到 图 像 生 成 。 arXiv 预 印 本
+arXiv:2311.16567，2023。
+[117]Zangwei Zheng, Xiangyu Peng, Tianji Yang, Chenhui
+Shen, Shenggui Li, Hongxin Liu, Yukun Zhou, Tianyi Li,
+and Yang You. Open-sora: Democratizing efficient video
+production for all, 2024.
+[118]郑藏伟、彭翔宇、杨天吉、申、李生贵、、、、
+和。Open-sora:大众化高效视频制作，2024。
+1
+TinyFusion: Diffusion Transformers Learned Shallow
+TinyFusion:扩散变压器学习浅
+Supplementary Material
+补充材料
+11. Experimental Details
+12. 实验细节
+Models. Our experiments evaluate the effectiveness of
+three models: DiT-XL, MAR-Large, and SiT-XL. Diffusion
+Transformers (DiTs), inspired by Vision Transformer (ViT)
+principles, process spatial inputs as sequences of patches.
+The DiT-XL model features 28 transformer layers, a
+hidden
+模特。我们的实验评估了三个模型的有效性:DiTXL、MAR-Large 和 SiT-XL。受视觉转换器(ViT)原理的
+启发，扩散转换器(DiTs)将空间输入处理为面片序
+列。DiT-XL 模型具有 28 个变压器层，一个隐藏的
+size of 1152, 16 attention heads, and a 2 × 2 patch size. It
+employs adaptive layer normalization (AdaLN) to improve
+1152 的大小，16 个注意头，以及 2 × 2 的贴片大
+小。它采用自适应层标准化(AdaLN)来改善
+training stability, comprising 675 million parameters and
+trained for 1400 epochs. Masked Autoregressive models
+(MARs) are diffusion transformer variants tailored for autoregressive image generation. They utilize a continuousvalued diffusion loss framework to generate high-quality
+outputs without discrete tokenization. The MAR-Large
+model includes 32 transformer layers, a hidden size of
+1024, 16 attention heads, and bidirectional attention. Like
+DiT, it incorporates AdaLN for stable training and
+effective to- ken modeling, with 479 million parameters
+trained over 400 epochs. Finally, Scalable Interpolant
+Transformers (SiTs) extend the DiT framework by
+introducing a flow-based in- terpolant methodology,
+enabling more flexible bridging be- tween data and noise
+distributions. While architecturally identical to DiT-XL,
+the SiT-XL model leverages this inter- polant approach to
+facilitate modular experimentation with interpolant
+selection and sampling dynamics.
+训练稳定性，包括 6.75 亿个参数，训练了 1400 个时
+期。掩蔽自回归模型(MARs)是为自回归图像生成定制
+的扩散变换器变体。它们利用连续值扩散损失框架来
+生成高质量的输出，而无需离散符号化。MAR-Large
+模型包括 32 个变形层、1024 的隐藏大小、16 个注意
+力头和双向注意力。像 DiT 一样，它包含 AdaLN，用于
+稳定的训练和有效的 to- ken 建模，在 400 个时期内
+训练了 4.79 亿个参数。最后，可扩展插值变压器
+(sit)通过引入基于流量的插值方法，扩展了 DiT 框
+架，实现了数据和噪声分布之间更灵活的桥接。虽然
+在架构上与 DiT-XL 相同，但 SiT-XL 模型利用这种插值
+方法来促进插值选择和采样动态的模块化实验。
+Datasets. We prepared the ImageNet 256 × 256 dataset by
+applying center cropping and adaptive resizing to main- tain
+the original aspect ratio and minimize distortion. The
+数据集。我们通过应用中心裁剪和自适应调整大小来准
+备 ImageNet 256 × 256 数据集，以保持原始纵横比并
+最小化失真。这
+images were then normalized to a mean of 0.5 and a standard deviation of 0.5. To augment the dataset, we applied
+random horizontal flipping with a probability of 0.5. To
+accelerate training without using Variational Autoencoder
+(VAE), we pre-extracted features from the images using a
+pre-trained VAE. The images were mapped to their latent
+representations, normalized, and the resulting feature arrays
+were saved for direct use during training.
+然后将图像归一化为平均值 0.5 和标准偏差 0.5。为了
+扩充数据集，我们应用了概率为 0.5 的随机水平翻转。
+为了在不使用变分自动编码器(VAE)的情况下加速训练，
+我们使用预训练的 VAE 从图像中预先提取特征。图像被
+映射到它们的潜在表示，归一化，并且结果特征阵列被
+保存用于训练期间的直接使用。
+Training Details The training process began with obtaining pruned models using the proposed learnable pruning
+method as illustrated in Figure 12. Pruning decisions were
+made by a joint optimization of pruning and weight updates
+through LoRA with a block size. In practice, the block size
+is 2 for simplicity and the models were trained for 100
+epochs, except for MAR, which was trained for 40 epochs.
+To enhance post-pruning performance, the Masked Knowledge Distillation (RepKD) method was employed during the
+recovery phase to transfer knowledge from teacher mod训练细节训练过程从使用如图所示的建议的可学习修剪
+方法获得修剪模型开始 12.剪枝决策由剪枝和权重更
+新的联合优化通过具有块大小的 L o R A 做出。实际
+上，为简单起见，块大小为 2，模型被训练 1 0 0 个
+时期，除了 M A R，它被训练 40 个时期。为了提高
+剪枝后的性能，在恢复阶段采用了屏蔽知识提取方
+法来转移教师模型中的知识
+2
+27
+27
+26
+26
+25
+25
+24
+24
+23
+23
+22
+22
+21
+21
+20
+20
+19
+19
+18
+18
+17
+17
+16
+16
+15
+15
+14
+14
+13
+13
+12
+12
+11
+11
+10
+10
+9
+9
+8
+8
+7
+七
+6
+6
+5
+5
+4
+四
+3
+3
+2
+2
+1
+一
+Train iterations
+训练迭代
+Figure 9. 1:2 Pruning Decisions
+图 9。1:2 修剪决策
+27
+27
+26
+26
+25
+25
+24
+24
+23
+23
+22
+22
+21
+21
+20
+20
+19
+19
+18
+18
+17
+17
+16
+16
+15
+15
+14
+14
+13
+13
+12
+12
+11
+11
+10
+10
+9
+9
+8
+8
+7
+七
+6
+6
+5
+5
+4
+四
+0
+0
+0 2000 4000 6000 8000 10000
+0 2000 4000 6000 8000 10000
+Train iterations
+训练迭代
+Figure 10. 2:4 Pruning Decisions
+图 10。2:4 修剪决策
+27
+27
+26
+26
+25
+25
+24
+24
+23
+23
+22
+22
+21
+21
+20
+0
+0 2000 4000 6000 8000 10000
+0
+0 2000 4000 6000 8000 10000
+Layer Index in DiT- Layer Index in DiT3
+2
+3
+2
+Layer Index in DiT- Layer Index in DiT0
+0 2000 4000 6000 8000 10000 0
+0200040006000800010000Layer Index in DiT- Layer Index in DiT-
+3
+20
+19
+19
+18
+18
+17
+17
+16
+16
+15
+15
+14
+14
+13
+13
+12
+12
+11
+11
+10
+10
+9
+9
+8
+8
+7
+七
+6
+6
+5
+5
+4
+四
+3
+3
+2
+2
+1
+一
+Train iterations
+训练迭代
+Figure 11. 7:14 Pruning Decisions
+图 11。7:14 修剪决策
+els to pruned student models. The RepKD approach
+aligns the output predictions and intermediate hidden
+states of the pruned and teacher models, with further
+details provided in the following section. Additionally,
+as Exponential Mov- ing Averages (EMA) are updated
+and used during image generation, an excessively small
+learning rate can weaken EMA’s effect, leading to
+suboptimal outcomes. To address this, a progressive
+learning rate scheduler was implemented to gradually
+halve the learning rate throughout training. The
+els 到修剪过的学生模型。RepKD 方法将输出预测与
+修剪模型和教师模型的中间隐藏状态对齐，在下一
+节中提供了进一步的细节。此外，随着指数移动平
+均值(EMA)在图像生成期间被更新和使用，过小的学
+习率会削弱 EMA 的效果，导致次优结果。为了解决
+这个问题，我们实施了一个渐进式学习率计划程
+序，以便在整个培训过程中逐渐将学习率减半。这
+Transformer Layer Transformer Layer Transformer Layer Transformer Layer
+Transformer Layer Transformer Layer Transformer Layer Transformer Layer
+4
+Update Categorical Distribution
+𝐦𝐢𝐧 𝓛(𝚽 + 𝚫𝚽)
+𝚽
+𝐒𝐡𝐚𝐫𝐞𝐝 𝚫𝚽
+(LoRA/Full)
+Update Categorical Distribution
+𝐦𝐢𝐧 𝓛(𝚽 + 𝚫𝚽)
+𝚽
+𝐒𝐡𝐚𝐫𝐞𝐝 𝚫𝚽
+(LoRA/Full)
+TTfLLocal Block
+本地块
+5
+ y
+Diff.
+Sampling
+~
+Joint
+Opt. Update Transformer Layer
+Transformer Layer
+Transformer Layer
+TrTarnasnfosfromrmereLraLyaeyrer
+Transformer Layer
+Differentiable Sampling of Candidate Solutions Recoverability Estimation Winner Decision
+Sampling
+~
+Opt. Update Transformer Layer
+Transformer Layer Transformer Layer
+TrTarnasnfosfromrmereLraLyaeyrer
+Transformer Layer
+Differentiable Sampling of Candidate Solutions Recoverability Estimation Winner Decision
+mask
+Masked
+Distillation mask
+Massive Activation ( 𝑥 > 𝑘 ⋅ 𝜎𝑥)
+Transformer Block
+Transformer Block Transformer Block
+Transformer Block
+Transformer Block
+Transformer Block
+mask
+Masked
+Distillation mask
+Massive Activation ( 𝑥 > 𝑘 ⋅ 𝜎𝑥)
+Transformer Block
+Transformer Block
+Transformer Block
+Transformer Block
+Transformer Block
+Transformer Block
+Figure 12.
+Learnable depth pruning on a local block
+图 12。局部块上的可学习深度修剪
+Hidden States Hidden States
+隐藏状态 隐藏状态 corresponds to the masked distillation loss applied to the
+hidden states, as illustrated in Figure 13, which encourages
+alignment between the intermediate representations of the
+pruned model and the original model. The corresponding
+hyperparameters αKD, αDiff and αRep can be found in Ta- ble
+6.
+6
+对应于应用于隐藏状态的掩蔽蒸馏损失，如图
+所示 13,这促进了修剪模型和原始模型的中间
+表示之间的对齐。相应的超参数 αKD、αDiff
+和 αRep 可在表中找到 6.
+DiT
+摩尔斯讯号的
+短音
+Learning
+the
+optimal
+sublayers
+学习最
+佳子层
+7
+culty. This is due to the =3,432 candidates, which is
+too
+culty. This is due to the =3,432
+candidates, which is too
+Tiny
+DiT
+Tiny
+DiT
+Hidden State
+Alignment. The
+masked distillation
+loss LRep is critical
+for aligning the
+intermediate
+representations of
+the student and
+teacher
+mo
+del
+s.D
+uri
+ng
+the
+rec
+ove
+ry
+隐藏状态对齐。屏蔽蒸馏损失 LRep 对于对齐学生和教
+师模型的中间表示是至关重要的。在恢复期间
+Figure 13. Masked knowledge distillation with 2:4 blocks.
+图 13。基于 2:4 块的隐蔽知识提取。
+details of each hyperparameter are provided in Table 6.
+表中提供了每个超参数的详细信息 6.
+13. Visualization of Pruning Decisions
+14. 修剪决策的可视化
+Figures 9, 10 and 11 visualize the dynamics of pruning decisions during training for the 1:2, 2:4, and 7:14 pruning
+schemes. Different divisions lead to varying search spaces,
+which in turn result in various solutions. For both the 1:2
+and 2:4 schemes, good decisions can be learned in only
+one epoch, while the 7:14 scheme encounters optimization
+diffi数字 9,10 和 11 在 1:2、2:4 和 7:14 修剪方案的训练期
+间，可视化修剪决策的动态。不同的划分导致不同的
+搜索空间，进而导致不同的解决方案。对于 1:2 和 2:4
+方案，好的决策只能在一个时期中学习，而 7:14 方案
+遇到优化困难
+14
+14
+7
+七
+huge and thus cannot be adequately sampled within a
+single
+巨大，因此无法在单个
+epoch. Therefore, in practical applications, we use the 1:2
+or 2:4 schemes for learnable layer pruning.
+新纪元。因此，在实际应用中，我们使用 1:2 或 2:4
+方案进行可学习的层修剪。
+15. Details of Masked Knowledge
+Distillation
+16. 蒙面知识蒸馏的细节
+Training Loss. This work deploys a standard knowledge
+distillation to learn a good student model by mimicking
+the pre-trained teacher. The loss function is formalized as:
+培训损失。这项工作部署了一个标准的知识提炼，通
+过模仿预先训练的老师来学习一个好的学生模型。损
+失函数被形式化为:
+L = αKD · LKD + αDiff · LDiff + β · LRep (8)
+L = αKD LKD + αDiff LDiff + β
+LRep (8)
+Here, LKD denotes the Mean Squared Error between the
+outputs of the student and teacher models. LDiff repre- sents
+the original pre-training loss function. Finally, LRep
+这里，LKD 表示学生和教师模型输出之间的均方误
+差。LDiff 代表原始的预训练损失函数。最后，LRep
+8
+phase, each layer of the student model is designed to
+repli- cate the output hidden states of a corresponding
+two-layer local block from the teacher model. Depth
+pruning does not alter the internal dimensions of the
+layers, enabling direct alignment without additional
+projection layers. For mod- els such as SiTs, where
+hidden state losses are more pro- nounced due to their
+unique interpolant-based architecture,
+阶段，学生模型的每一层被设计成从教师模型复制相
+应的两层局部块的输出隐藏状态。深度修剪不会改变
+层的内部尺寸，从而无需额外的投影层即可直接对
+齐。对于 sit 等模型，由于其独特的基于插值的架
+构，隐藏状态损失更加明显，
+a smaller coefficient β is applied to LRep to mitigate potential training instability. The gradual decrease in β through较小的系数 β 应用于 LRep 以减轻潜在的训练不稳定
+性。β 通过-逐渐减少
+out training further reduces the risk of negative impacts on
+convergence.
+out 训练进一步降低了对收敛产生负面影响的风险。
+Iterative Pruning and Distillation. Table 7 assesses the
+effectiveness of iterative pruning and teacher selection
+strategies. To obtain a TinyDiT-D7, we can either directly
+prune a DiT-XL with 28 layers or craft a TinyDiT-D14
+first and then iteratively produce the small models. To
+investi- gate the impact of teacher choice and the method
+for obtain- ing the initial weights of the student model, we
+derived the initial weights of TinyDiT-D7 by pruning both
+a pre-trained model and a crafted intermediate model.
+Subsequently, we used both the trained and crafted models
+as teachers for the pruned student models. Across four
+experimental set- tings, pruning and distilling using the
+crafted intermedi- ate model yielded the best performance.
+Notably, models pruned from the crafted model
+outperformed those pruned from the pre-trained model
+regardless of the teacher model employed in the
+distillation process. We attribute this su迭代修剪和提炼。桌子 7 评估迭代修剪和教师选择策
+略的有效性。为了获得 TinyDiT-D7，我们可以直接修
+剪 28 层的 DiT-XL，或者首先制作 TinyDiT-D14，然后
+迭代产生小模型。为了研究教师选择的影响和获得学
+生模型初始权重的方法，我们通过修剪预先训练的模
+型和精心制作的中间模型来导出 TinyDiT-D7 的初始权
+重。随后，我们使用经过训练和精心制作的模型作为
+经过修剪的学生模型的教师。通过四个实验设置，使
+用精心制作的中间模型进行修剪和提取产生了最佳性
+能。值得注意的是，无论提取过程中使用的教师模型
+如何，从精心制作的模型中删减的模型都优于从预先
+训练的模型中删减的模型。我们将此归因于 su-
+Teacher Model Pruned From IS FID sFID Prec
+.
+Recal
+l
+DiT-XL/2 DiT-XL/2 29.46 56.18 26.03 0.43 0.51
+DiT-XL/2 TinyDiT-D14 51.96 36.69 28.28 0.53 0.59
+TinyDiT-D14 DiT-XL/2 28.30 58.73 29.53 0.41 0.50
+TinyDiT-D14 TinyDiT-D14 57.97 32.47 26.05 0.55 0.60
+Learning Rate IS FID sFID Prec. Recall
+lr=2e-4 207.27 3.73 5.04 0.8127 0.5401
+lr=1e-4 194.31 4.10 5.01 0.8053 0.5413
+lr=5e-5 161.40 6.63 6.69 0.7419 0.5705
+Teacher Model Pruned From IS FID sFID Prec
+.
+Recal
+l
+DiT-XL/2 DiT-XL/2 29.46 56.18 26.03 0.43 0.51
+DiT-XL/2 TinyDiT-D14 51.96 36.69 28.28 0.53 0.59
+TinyDiT-D14 DiT-XL/2 28.30 58.73 29.53 0.41 0.50
+TinyDiT-D14 TinyDiT-D14 57.97 32.47 26.05 0.55 0.60
+Learning Rate IS FID sFID Prec. Recall
+lr=2e-4 207.27 3.73 5.04 0.8127 0.5401
+lr=1e-4 194.31 4.10 5.01 0.8053 0.5413
+lr=5e-5 161.40 6.63 6.69 0.7419 0.5705
+9
+Model Optimizer Cosine Sched. Teacher αKD αGT β Grad. Clip Pruning Configs
+DiT-D19 AdamW(lr=2e-4, wd=0.0) ηmin = 1e-4 DiT-XL 0.9 0.1 1e-2 → 0 1.0 LoRA-1:2
+DiT-D14 AdamW(lr=2e-4, wd=0.0 ηmin = 1e-4 DiT-XL 0.9 0.1 1e-2 → 0 1.0 LoRA-1:2
+DiT-D7 AdamW(lr=2e-4, wd=0.0) ηmin = 1e-4 DiT-D14 0.9 0.1 1e-2 → 0 1.0 LoRA-1:2
+SiT-D14 AdamW(lr=2e-4, wd=0.0) ηmin = 1e-4 SiT-XL 0.9 0.1 2e-4 → 0 1.0 LoRA-1:2
+MAR-D16 AdamW(lr=2e-4, wd=0.0) ηmin = 1e-4 MAR-Large 0.9 0.1 1e-2 → 0 1.0 LoRA-1:2
+模型 【计算机】优化程序 余弦 Sched。 教师 αK
+D
+αG
+T
+β 毕业生。
+夹子
+修剪配置
+DiT-D19 AdamW(lr=2e4，wd=0.0)
+ηmin = 1e-4 DiT-XL 0.9 0.1 1e-2 →
+0
+1.0 劳拉-1:2
+迪特-D14 AdamW(lr=2e-4，wd=0.0 ηmin = 1e-4 DiT-XL 0.9 0.1 1e-2 →
+0
+1.0 劳拉-1:2
+DiT-D7 AdamW(lr=2e4，wd=0.0)
+ηmin = 1e-4 迪特-D14 0.9 0.1 1e-2 →
+0
+1.0 劳拉-1:2
+坐下-D14 AdamW(lr=2e4，wd=0.0)
+ηmin = 1e-4 SiT-XL 0.9 0.1 2e-4 →
+0
+1.0 劳拉-1:2
+3 月 16 日 AdamW(lr=2e4，wd=0.0)
+ηmin = 1e-4 超大的 0.9 0.1 1e-2 →
+0
+1.0 劳拉-1:2
+Table 6. Training details and hyper-parameters for mask training
+表 6。面具训练的训练细节和超参数
+Table 7. TinyDiT-D7 is pruned and distilled with different
+teacher models for 10k, sample steps is 64, original weights are
+used for sampling rather than EMA.
+表 7。TinyDiT-D7 用 10k 的不同教师模型进行剪枝和提取，
+样本步数为 64，原始权重用于采样而不是 EMA。
+Table 8. The effect of Learning rato for TinyDiT-D14 finetuning
+w/o knowledge distillation
+1
+Masked KD Finetune
+DiT-L/2 Masked KScratch D Finetune
+DiT-L/2 Scratch
+表 8。学习率对蒂尼迪特-D14 微调无知识提取的影响
+5.5
+5.5
+5.0
+5.0
+4.5
+4.5
+4.0
+4.0
+3.5
+3.5
+3.0
+3.0
+100 200 300 400 500
+100 200 300 400 500
+Steps
+步伐
+Figure 14. FID and training steps.
+图 14。FID 和培训步骤。
+F F
+1
+L
+e
+a
+r
+n
+i
+n
+g
+R
+a
+t
+e
+.
+W
+e
+a
+l
+s
+o search on some key hyperparam- eters
+such as learning rates in Table 8. We
+identify the ef- fectiveness of lr=2e-4 and
+apply it to all models and exper- iments.
+学习率。我们还搜索了一些关键的超参数，如表中的
+学习率 8.我 们 确 定 了 l r = 2 e - 4 的 有 效 性 ， 并 将
+其 应用 于所 有的 模型 和实 验。
+10. Visulization
+10.可视化
+Figure 15 and 16 showcase the generated images from
+TinySiT-D14 and TinyMAR-D16, which were
+compressed from the official checkpoints. These models
+were trained using only 7% and 10% of the original pretraining costs, respectively, and were distilled using the
+proposed masked knowledge distillation method. Despite
+compression, the
+数字 15 和 16 展示从 TinySiT-D14 和 TinyMAR-D16 生成
+的图像，这些图像是从官方检查站压缩而来的。这些
+模型分别只使用原始预训练成本的 7%和 10%进行训
+练，并使用所提出的掩蔽知识提取方法进行提取。尽
+管进行了压缩
+perior performance to two factors: first, the crafted
+model’s structure is better adapted to knowledge
+distillation since it was trained using a distillation method;
+second, the reduced search space facilitates finding a more
+favorable initial state for the student model.
+perior 性能取决于两个因素:首先，精雕细琢的模型
+的结构更好地适应知识提炼，因为它是使用提炼方法
+训练的；第二，减少的搜索空间有助于为学生模型找
+到更有利的初始状态。
+17. Analytical Experiments
+18. 分析实验
+Training Strategies Figure 14 illustrates the effectiveness of standard fine-tuning and knowledge distillation
+(KD), where we prune DiT-XL to 14 layers and then apply various fine-tuning methods. Figure 3 presents the FID
+scores across 100K to 500K steps. It is evident that the
+standard fine-tuning method allows TinyDiT-D14 to achieve
+performance comparable to DiT-L while offering faster inference. Additionally, we confirm the significant
+effective- ness of distillation, which enables the model to
+surpass DiT- L at just 100K steps and achieve better FID
+scores than the 500K standard fine-tuned TinyDiT-D14.
+This is because the distillation of hidden layers provides
+stronger supervision. Further increasing the training steps
+to 500K leads to sig- nificantly better results.
+培训策略图 14 说明了标准微调和知识提取(KD)的有效
+性，其中我们将 DiT-XL 删减到 14 层，然后应用各种
+微调方法。图 3 显示了 100K 至 500K 级的 FID 分数。很
+明显，标准微调方法允许 TinyDiT-D14 获得与 DiT-L
+相当的性能，同时提供更快的参考。此外，我们证实了
+蒸馏的显著有效性，这使得该模型仅用 100K 步就超过了
+DiT- L，并获得了比 500K 标准微调 TinyDiT-D14 更好的
+FID 分数。这是因为隐藏层的提炼提供了更强的监督。
+将训练步数进一步增加到 500K 会产生明显更好的结果。
+1
+models are capable of generating plausible results with
+only 50% of depth.
+模型只需要 50%的深度就能产生可信的结果。
+11. Limitations
+11.限制
+In this work, we explore a learnable depth pruning method
+to accelerate diffusion transformer models for conditional
+image generation. As Diffusion Transformers have shown
+significant advancements in text-to-image generation, it is
+valuable to conduct a systematic analysis of the impact of
+layer removal within the text-to-image tasks. Additionally,
+there exist other interesting depth pruning strategies that
+need to be studied, such as more fine-grained pruning
+strate- gies that remove attention layers and MLP layers
+indepen- dently instead of removing entire transformer
+blocks. We leave these investigations for future work.
+在这项工作中，我们探索了一种可学习的深度剪枝方
+法，以加速扩散变压器模型的条件图像生成。由于扩
+散变压器在文本到图像的生成中已经显示出显著的进
+步，所以在文本到图像的任务中进行层去除的影响的
+系统分析是有价值的。此外，还存在其他需要研究的
+有趣的深度修剪策略，例如更细粒度的修剪策略，该
+策略独立地移除注意层和 MLP 层，而不是移除整个变
+换器块。我们把这些调查留给未来的工作。
+1
+Figure 15. Generated images from TinySiT-D14
+1
+图 15。从 TinySiT-D14 生成的图像
+Figure 16. Generated images from TinyMAR-D16
+图 16。TinyMAR-D16 生成的图像
