@@ -1,0 +1,3 @@
+su
+pip install -U openi -i https://pypi.tuna.tsinghua.edu.cn/simple
+openi dataset download kaierlong/imagenet2012_small imagenet.zip  --cluster NPU --save_path .
