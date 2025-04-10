@@ -4,7 +4,7 @@ openi dataset download kaierlong/imagenet2012_small imagenet.zip  --cluster NPU 
 unzip 
 git clone https://openi.pcl.ac.cn/DeepSpark/DeepSparkHub.git
 cd /root/DeepSparkHub/cv/classification/resnet50/pytorch
-bash scripts/fp32_1card.sh --data-path /root/resnet50/datasets/imagenet
-
+bash scripts/fp32_1card.sh --data-path /root/imagenet
+ln -sf  /root/resnet50/train.py  /tmp/code/train.py
 
 
