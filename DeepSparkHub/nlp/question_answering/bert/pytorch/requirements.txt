@@ -1,0 +1,4 @@
+accelerate >= 0.12.0
+datasets >= 1.8.0
+evaluate == 0.4.1
+transformers == 4.30.2
