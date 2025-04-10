@@ -125,7 +125,7 @@ class PDFTranslator:
 
 # 使用示例
 if __name__ == "__main__":
-    API_KEY = "2dee5f0b-c3ef-4a3f-82e8-7128b6ad51e5"  # 替换为真实API密钥
+    API_KEY = "XXXXXXX"  # 替换为真实API密钥
     
     translator = PDFTranslator("1input.pdf", API_KEY)
     translator.extract_text()
