@@ -8,3 +8,32 @@ bash scripts/fp32_1card.sh --data-path /root/imagenet
 ln -sf  /root/resnet50/train.py  /tmp/code/train.py
 
 
+
+
+
+
+
+
+https://github.com/rougier/numpy-100/blob/master/100_Numpy_exercises.ipynb
+
+https://www.knowprogram.com/python-program-examples/
+
+https://github.com/Shawn91/100_Tensor_exercises/blob/master/100_PyTorch_tensor_exercises_with_solutions.ipynb
+
+https://github.com/Daoxuan5/pytorch-100-
+
+https://transformer-circuits.pub/2021/exercises/index.html
+
+https://github.com/callummcdougall/ARENA_3.0
+
+https://frcs.github.io/4C16-LectureNotes/generative-models-1.html#autoencoders
+
+https://github.com/warner-benjamin/transformer-from-scratch/tree/main
+
+https://cn.bing.com/search?q=%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%8A%A8%E6%89%8B%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%20github&qs=n&form=QBRE&sp=-1&lq=0&pq=%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%8A%A8%E6%89%8B%E8%AE%AD%E7%BB%83%E8%87%AA%E5%B7%B1%E7%9A%84%20github&sc=0-17&sk=&cvid=B2C5E671594E40B5A394306B4414B519
+
+https://github.com/jingyaogong/minimind
+
+
+
+
