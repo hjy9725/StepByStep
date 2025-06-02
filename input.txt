@@ -1,22 +1,1062 @@
-动态规划
-魔塔
-地下城游戏
-动态规划核心框架
-地牢类型游戏
-碰怪物掉血
-吃血瓶加血
-收集钥匙
-至少需要
-多少初始生命值
-最左上角移动到最右下角
-任何时候生命值都要大于0
-int calculateMinimumHP（int[][] grid）
-最小路径和
-左上角到右下角
-最小化骑士的初始生命值，最大化骑士行进路线上的血瓶
-求最大路径和
-关键不在于吃最多的血瓶，而是在于如何损失最少生命值
-求最值问题，借助动态规划技巧，合理设计dp数组和函数定义
-dp函数签名肯定长这样
-int dp(int[][] grid, int i, int j);
-从grid[i][j]到达终点右下角所需的最少生命值
+翻译练习
+翻译 1：经常做运动会提高人的自信
+错误的句子：Exercise regularly can rise one's confidence. 错误 1 Exercise 如果这里是动词，应该用动名词，如果是名词，
+不能用副词修饰
+错误 2 rise 不及物动词
+正确的句子：Regular exercise can increase one's self-confidence. 句子结构：主语+及物动词+宾语(confidence)
+可以用定语从句扩充：
+Participating in sports frequently can boost people's confidence, which
+is important not only to the youth but also to the elderly. 注： 不可以说“regular doing exercise”，因为形容词 regular 不可
+以修饰 doing
+中文：经常参加体育活动能够提高人们的自信心，这不但对年轻人
+而且对老人很重 要。
+翻译 2：教学的质量对学生成绩有很大的影响。
+错误的句子 ：Teaching qualities are important to students improve
+academic performance
+错误 1 quality 表示质量的时候不可数
+错误 2 to 是介词，后面不用加句子
+正确的句子：The quality of teaching can make a huge difference to
+students’ academic performance. 句子结构：主谓宾
+也可以用并列句拓展
+The quality of teaching can make a huge difference to students’ academic performance. and therefore, parents prefer to choose
+prestigious schools for children. 中文：教学的质量被认为是决定学生成绩的关键，因此，家长喜欢
+为孩子选择名校。
+翻译 3：家长和老师应该努力去减少小孩看电视的时间。
+错误的句子：parents and teachers should do their efforts to curb the
+time of watching TV on children. 错误 1 make an effort to 固定表达
+错误 2 curb 一般是抑制某种行为，而不是接 time. 错误 3 “watching TV on children”也不通。
+正 确 的 句 子 ： parents and teachers should make an effort to limit
+children’s screen time. 句子结构：主语（parents and teachers）+及物动词(make)+宾语(effort)
+拓 展 的 句 子 ： Parents and teachers should make an effort to limit
+children's screen time, thereby protecting children's eyesight and
+encourage them to do more out-door activities. 错误：protecting 和 encourage 不对称
+正 确 的 句 子 ： Parents and teachers should make an effort to limit
+children's screen time, thereby protecting children's eyesight and
+encouraging them to do more outdoor activities. 注：这句话的分词最好不要改成定语从句，因为前面不知道是修饰
+“screen time”还是 “limit screen time”
+中文：家长和老师应该努力去减少孩子看电视的时间，这样会保护
+孩子的视力，鼓 励他们做户外运动。
+翻译 4：经济的下滑（economic slowdown）导致失业率的上升
+错误的句子：Economic slowdown made the climbing unemployment
+rate. 错误 1 不要用过去时
+错误 2 用不定冠词好一点，因为正在上升的失业率一般不可能
+是唯一的。
+正 确 的 句 子 ： Economic slowdown has led to a climbing
+unemployment rate. 句子结构：主语+及物动词+宾语
+拓 展 的 句 子 ： Economic slowdown has led to a climbing
+unemployment rate, in view of the fact that employers are reluctant to
+recruit new employees so as to cut overhead. 错误： 可能产生歧义，” recruit new employees” 是雇佣，“reluctant
+to recruit new employees”是不愿意雇用。到底是哪个事情导致“cut
+overhead”?
+正确的句子：Economic slowdown has led to a climbing unemployment
+rate because employers intend to cut overheads and refuse to recruit
+new employees. 中文：经济下滑已经导致失业率上升，因为雇主打算裁员而且拒绝
+雇用新员工。
+另外一个豆瓣的学生写的句子也不错，我发出来：
+Economic slowdown has led to a climbing unemployment rate, as
+people balk at starting up new businesses and a number of giant
+companies downsize their workforce. 中文：经济下滑已经导致失业率上升，因为人们对开展新失业犹豫
+不决，而且很多 大公司裁员。
+翻译 5：经济的发展需要年轻的劳动者
+错误的句子：The economic development requires a great number of
+fresh working forces
+错误 1 working force 没有这个表达
+正确的句子：A country's economic development relies on a supply of
+young workers
+句子结构：
+主语+及物动词+宾语
+也可以用分句扩充，“the problem is that”是表语从句
+A country's economic development relies on a supply of young workers, but the problem is that the aging society has an adverse impact on the
+labour force. 中文：一个国家的经济发展依靠一定量的年轻劳动力，但是问题是
+老龄化的社会对 劳动力有负面影响。
+翻译 6：工作很多的人没有时间去休息
+错误的句子：People do with heavy workload cannot have adequate
+times to rest and recharge batteries
+错误 1 do 不知道功能是干嘛的。
+错误 2 time 不可数
+错误 5 cannot 是表示不可能，这里应该是 do not
+正确的句子：People with a heavy workload do not have adequate time
+to rest
+句子结构： 主语+及物动词+宾语，“to rest and recharge batteries”
+不定式充当 time 的后置定语 也可以用定语从句扩充
+People with a heavy workload do not have adequate time to rest, which
+can be harmful to their fitness. 中文：工作很多的人没有足够的时间去休息和充电，这样对他们的
+健康有害。
+翻译 7: 在中国，很多学生晚上都要自习
+错误的句子：Large number of students in China have to study at night. 错误 1 “a large number of ” 固定搭配
+正确的句子：A large number of students in China have to do self-study
+at night. 句子结构： 主语+及物动词+ 宾语
+也可以用状语从句来扩充
+A large number of students in China have to do self-study at night, so
+extra-curricular activities have to give way to studies. 中文：在中国，许多学生都要在晚上自学，所以课外活动不得不给
+学习让路。
+翻译 8: heritage sites 因为城市发展而受到威胁
+错误的句子：The development of cities have pose a threat on heritage
+sites. 错误 1 have pose 动词错误而且主谓不一致
+错误 2 pose a threat to 固定搭配
+正确的句子：The development of cities has posed a threat to heritage
+sites. 句子的结构: 主语（development）+ 及物动词(pose)+ 宾语(threat)
+还可以用并列句扩充
+The development of cities has posed a threat to heritage sites, but the
+government has no idea whether to protect or demolish these
+constructions. 中文：城市的发展已经威胁到历史遗迹，但是政府还没有办法是否
+去保护还是毁坏 这些建筑。
+翻译 9：我们不能够忽视面对面的交流
+错误的句子：It cannot be ignored by people to have some face-to-face
+communication. 错误 1 it 指代不清楚
+错误 2 “to have face-to-face communication”不定式一般是表示没
+有发生而有可能发生的 事情。
+正确的句子：We should not ignore face-to-face communication. 句子结构：主语+ 及物动词+宾语（communication）
+还可以用状语从句扩充
+We should not ignore face-to-face communication because this has a
+direct impact on social relationships. 还可以用并列句扩充
+Internet can enrich our social lives, but we should not ignore
+face-to-face communication, because this has a direct impact on social
+relationships. 中文：网络能够丰富我们的生活，但是我们不应该忽视面对面的交
+流因为它对社会 关系有直接影响。
+翻译:10：有些公共服务很难收支平衡
+错误的句子：Some public services have problems in break even. 错误 1 break 是动词，在这里 in 是介词，后面应该加动名词
+正确的句子：Some public services have problems in breaking even. 句子结构： 主语+ 及物动词(have)+ 宾语(problems)
+还可以用并列句扩充
+Some public services have problems in breaking even and need
+government funds. 中文：一些公共服务很难收支平衡，需要政府资金。
+翻译 11：我们需要考虑社会和经济的环境
+错误的句子：We have to consider about social and economic context. 错误 1 consider 及物动词，后面不需要加介词
+正确的句子：We have to consider the social and economic context. 句子结构：主语+ 及物动词+ 宾语
+还可以用分词结构扩充
+We have to consider the social and economic context when analysing
+the root causes of juvenile delinquency. 中文：当分析青少年犯罪的根本原因的时候，我们应该考虑社会和
+经济环境。
+翻译 12：密度种植对生物多样性造成了威胁
+错误的句子：Intensive farming poses a threat to stemming the lose of
+bio-diversity. 错误 1 pose a threat to stemming the loss of bio-diversity， 太罗嗦
+了。
+错误 2 lose 是动词，OF 前后一般要有名词
+正确的句子：Intensive farming can pose a threat to bio-diversity. 句子结构：主语+ 及物动词+ 宾语（threat）
+还可以用并列句扩充
+Intensive farming has a great impact on natural flora and can pose a
+threat to bio-diversity. 中文：密集种植对野生植物有巨大影响，对物种多样性有巨大威胁。
+其他选择
+Intensive farming has a seriously negative impact on natural flora, and
+this may pose a threat to sustainable development of agriculture. 中文：密集种植对天然植物有严重的负面影响，这可能对农业的可
+持续发展有威胁。
+翻译 13：平等的教育能帮助解决学生学习成绩不好
+错误的句子：Equal access to education can overcome educational
+underachievement. 错 误 1 overcome educational underachievement 搭 配 不 好 ；
+“educational underachievement” 是指学生成绩不好的意思。
+正确的句子：Equal access to education can help tackle educational
+underachievement. 句子的结构：主语+ 及物动词（help）+ 宾语（to tackle ….这里省
+略了 to）
+还可以用定语从句扩充
+Local authorities should ensure equal access to education, which can
+help tackle educational underachievement, a problem found among
+disadvantaged children. a problem 在 这 里 是 个 同 位 语 ， 指 代 前 面 的 “ educational
+underachievement”；而“found among disadvantaged children” 过去
+分词，充当定语。
+中文：当地政府应该保证平等教育，这样能够帮助落后学生去解决
+学习的落后。
+翻译 14：接触不同的文化可以促进创新
+错误的句子：Contacting with a wide variety of cultures can promote
+the creativity of native culture. 错误 1 Contacting with 中国式英文
+错误 2 native culture 别扭，不知道为什么要说本土文化
+正确的句子：Exposure to different cultures can encourage creativity. 句子的结构：主语+ 及物动词+ 宾语
+还可以用定语从句扩充
+Exposure to different cultures can encourage creativity, which is an
+asset for enterprises or countries. 中文：接触不同的文化能够促进创新，这是企业或者国家的财富。
+翻译 15：政府应该重视社会福利(welfare services)，尤其是医疗服务。
+错误的句子：The government should give a priority to social welfare, especially the healthcare
+错误 1 give priority to 没有 a
+正确的句子：The government should give priority to welfare services,
+especially the healthcare. 句子的结构：主语+ 及物动词+ 宾语
+还可以用名词性从句，定语从句扩充
+some people suggest that the government should give priority to
+welfare services, especially the healthcare, which helps stop the
+disadvantaged population dying needlessly. 中文：一些人认为政府重视社会福利，尤其是医疗服务，这会帮助
+阻止弱势群体无 助地死去。
+翻译 16：教育或许决定了人的工作机会。
+错误的句子： Education may do hold the key to one’s job prospect. 错误：may 和 do 不能连用。
+正确的句子：Education may hold the key to one’s job prospect. 句子结构：主语（education）+及物动词 hold)+宾语(the key)
+拓展的句子：可以使用状语从句
+Education may hold the key to one’s job prospect, especially when
+people intend to find jobs in the hi-tech industry. 翻译 17：使用化石资源对环境会造成破坏。
+错误的句子：Use fossil fuels can cause damage to the environmental
+problem . 错误：USE 是动词，不能作为主语。
+错误：cause damage to 已经表示出对环境的破坏，不需要再说
+problem
+正 确 的 句 子 ： The use of fossil fuels can cause damage to the
+environment. 句子结构：主语(use）+及物动词(can cause)+宾语(damage)
+拓展的句子：可以使用状语从句
+The use of fossil fuels can cause damage to the environment, possibly
+because it creates air pollution. 翻译 18：建造住宅楼有助于解决城市的拥挤问题。
+错误的句子：Building apartment blocks contribute to solve the crowed
+problem in cities
+错误 1 building 是动名词，主谓不一致
+错误 2 contribute to 后面要加名词，而不是动词原形
+错误 3 crowed problem 没有这个表达
+正确的句子：Building apartment blocks helps solve overcrowding in
+cities. 句子结构： 主语+及物动词(helps)+宾语(solve overcrowding， 省略
+了 to, 本来是不定式 to solve overcrowding)
+拓展的句子：Building apartment blocks helps solve overcrowding in
+cities，because it can contain more people with limited space. 错误：contain more people 搭配不是很好
+正确的句子：Apartment blocks, which make the most of land and space, help solve overcrowding in cities. 中文：住宅楼由于其能最大限度地利用土地和空间，所以有助于解
+决城市的拥挤问 题。
+翻译 19：贫穷的人可以通过努力工作来提高社会地位
+错误的句子：People at disadvantage are likely to improve their social
+status by working hard, studying hard. 错误 1 at disadvantage 没有这个表达
+错误 2 working hard, studying hard 没有连词
+正确的句子：People from disadvantaged backgrounds can improve
+their social status by working hard. 句子结构: 主语（people）+ 及物动词 (improve)+ 宾语 (status)，
+“from disadvantaged backgrounds”是 people 的定语
+还可以用并列句扩展
+People from disadvantaged backgrounds can improve their social status
+by working hard and this seems an arduous but rewarding process.
+中文：贫穷的人可以通过努力工作来提高社会地位，这看起来是一
+个辛苦但有效的 过程。
+翻译 20：因为全球化，人们需要和来自不同背景的人工作。
+错误的句子：Because of the globalisation, people should work with
+others who comes from different backgrounds. 错误 1 the globalization 的 the 比较多余
+错误 2 who comes from 没有必要用定语从句
+错误 3 should 有点过分了，“必须”的意思
+正确的句子：Because of globalisation, people need to work with those
+from diverse backgrounds. 注：这里的 those 就是其他人的意思，不能说 those people，这样
+会和主语重复。
+句子结构: 主语(people)+ 及物动词（need）+ 宾语(to work)，
+“because of globalisation” 介宾短语充当状语
+翻译 21：我们需要采取措施去解决一些棘手的问题。
+错误的句子：We must take measurement to tackle thorny problems. 错误 measurement 的意思是测量
+正 确 的 句 子 ： We need to take action to solve some intractable
+problems.
+句子结构：主语 （we）+及物动词(need)+宾语(to take ….)
+翻译 22：媒体通过夸大受害者的伤痛去吸引观众。
+错误的句子 ：Medias exaggerate the hurt of victims to attract public
+attentions. 错误 1：Media 本身就是复数。
+错误 2：hurt 是动词，OF 前后要加名词。
+错误 3：attentions 不可数名词。
+正确的句子：The media attract public attention by sensationalising
+victims’ suffering. 句子结构：主语（the media）+及物动词 (attracts)+宾语 (attention)；
+“by+ …”方式状语
+拓展的句子：The media attract public attention by sensationalising
+victims’ suffering, while ignore harmful consequences bring to them, such as their exposure to the public. 错误 1： while 是从属连词，后面不能直接加动词原形。
+错误 2 ignore 和 bring 两个动词。
+错误 3 them 指代不清楚
+正确的句子：The media attracts public attention by sensationalising
+victims ’ suffering, while ignoring harmful consequences to these
+individuals, such as their exposure to the public. 中文：媒体通过夸大受害者的伤痛去吸引观众，而忽视对这些观众
+的有害结果，比 如将他们在公众面前曝光。
+主+及物动词+宾语+宾语补足语
+翻译 23：基因工程让人们能培养新品种农作物
+错误的句子：Genetic engineering allows people to nurture new species
+crops. 错误 1 species crops 语序有问题
+正 确 的 句 子 ： Genetic engineering allows people to nurture crop
+varieties. 句子结构：主语+ 及物动词+ 宾语（people）+宾语补足语（to
+nurture…）
+拓展的句子：
+Genetic engineering allows people to nurture crop varieties that are
+resistant to drought， thereby improving land productivity. 中文：基因工程使人们能培育出抗旱的农作物品种，因此可以提高
+土地利用率。
+翻译 24：经常运动使得人们保持健康的心态
+错误的句子：Doing exercises regularly helps people maintain a healthy
+state of mind. 错误 1 Doing exercises 一般是不可数
+正确的句子：Doing exercise regularly helps people maintain a healthy
+state of mind. 句子结构：主语+ 及物动词+ 宾语（people）+宾语补足语（to
+maintain…省略了 to）
+还可以用并列句扩充
+Doing exercise regularly helps people maintain a healthy state of mind
+and makes it easier for them to cope with stress. 中文：经常做运动帮助人们保持一个健康的心态，是他们更容易应
+对压力。
+翻译 25：不健康的生活方式让人们处于生病的危险之中。
+错误的句子： Unhealthy lifestyle is likely to make people at risk of
+illness. 错误 1： make somebody do something 或者是 make somebody +形
+容词是更常见的用法。
+错误 2：lifestyle 可数名词，要加冠词，或者复数
+正确的句子：An unhealthy lifestyle may put people at risk of illness. 句子结构：主语（An unhealthy lifestyle）+及物动词（put）+宾语
+（people）+宾语补足 语 （at risk of illness）
+翻译 26：奖学金可以鼓励更多的学生去学习研究生课程。
+错误的句子： Scholarship could be regarded as something to inspire
+more students to take postgraduate curriculum. 错误 1 scholarship 可数名词，应该有复数或者冠词
+错误 2 regarded as something 太过罗嗦
+错误 3 curriculum 不是 course 的替换词，curriculum 的意思是课
+程大纲
+正确的句子：Government grants could encourage more students to take
+postgraduate courses. 句子结构：主语 (government grants)+及物动词(encourage)+宾语
+(students)+宾语补足语(to take postgraduate courses)
+翻译 27：社区改造为罪犯提供了获得职业技能的机会
+错误的句子：Replacing the long sentence by working for the locals
+provides offenders with transferable skills. 错误 1 主语很别扭， 两个东西没有替换性
+正确的句子：Community service provides offenders with opportunities
+to acquire transferable skills. 句子结构：主语+ 及物动词+ 宾语（offenders）+宾语补足语（with
+opportunities to…）
+还可以用并列句扩充
+Community service provides offenders with opportunities to acquire
+transferable skills and gives them a flying start when they are released. 中文：社区服务给犯人提供获得实用技能的机会，给他们好的起点
+当他们被释放后。
+翻译 28：法律应该将醉驾变成刑事犯罪。
+错误的句子 ：the government should introduce a law which is drunk
+driving a criminal offence. 错误 定语从句还原是“a law is drunk driving”显然不对。 中国学
+生有个误区，就是一定 要写个从句，才能加分。
+正确的句子：Legislation should make drink driving a criminal offence. 句子结构：主语（legislation）+及物动词(make)+宾语(drink driving)+
+宾语补足语(a criminal offence)
+翻译 29：乡村地区给人们提供机会去远离现代生活的压力和噪音。
+错误的句子 ：rural area provides people with opportunity to escape
+pressure and noises of modern life. 错误 1：rural area 可数名词，没有冠词，或者复数。
+错误 2：opportunity 在这里用复数比较好。
+正确的句子：Rural areas provide people with opportunities to escape
+pressure and noises of modern life.
+句子结构：主语(rural areas)+及物动词(provide) +宾语(people)+宾语
+补足语(with opportunities)
+拓展的句子： Rural area is beneficial to people's fitness, because it
+provides people with opportunities to escape pressure and noises of
+modern life. 错误：rural area 可数名词，没有冠词，或者复数。
+两个句子的主语都一样，还不如用分词
+正确的句子：Rural areas are beneficial to people's health, providing
+people with opportunities to escape pressure and noises of modern life. 中文：乡村地区对人们的健康有益，因为它给人们提供机会去远离
+现代生活的压力 和噪音。
+翻译 30：人口老龄化促使国家去提高法定退休年龄（statutory
+retirement age）。
+错误的句子：Compulsory retirement age will be abolished, and the
+reason is attributed to population aging and urban. 错误 1：retirement age 是可数名词
+错误 2：reason is attributed to 这个搭配不好
+正确的句子：The ageing population has prompted countries to raise the
+statutory retirement age.
+句 子 结 构 ： 主 语 (ageing population)+ 及 物 动 词 (prompt)+ 宾 语
+(countries)+宾语补足语(to raise…)
+拓展的句子：The ageing population leads to a shortage of skillful
+workers, a problem which has promote countries to raise the statutory
+retirement age. 错误：应该是 skilled workers. Skillful 表示人们做某事的时候所展
+示的技艺娴熟
+正 确的 句 子 ：The ageing population leads to a shortage of highly
+skilled workers, a problem which has prompted countries to raise the
+statutory retirement age. 注：a problem 在这里是同位语，指代前面的 shortage
+中文：人口老龄化导致高级技术工人的短缺，这个问题已经促使国
+家提高了法定退 休年龄。
+主+及物动词+间接宾语+直接宾语
+翻译 31：政府提供一些城市很多资金去保护历史建筑（historic
+buildings）。
+错 误 的 句 子 ： Many areas now pay attention to protect historic
+buildings. 错误：pay attention to 的 to 是介词，后面不能加动词
+正确的句子：Governments should offer some cities funds to preserve
+historic buildings. 句子结构：主语（areas）+及物动词(offer)+间接宾语(some cities)+
+直接宾语（funds）
+拓展的句子：可以使用定语从句
+拓展的句子：Governments should offer some cities funds to preserve
+historic buildings, which are part of our cultural heritage. 被动语态
+翻译 32：学校应该允许老师强制捣蛋的小孩离开教室。
+错误的句子：Schools should allow teachers to make the children with
+disruptive behaviours go out of classrooms. 错误：children with disruptive behaviours 略显罗嗦
+正确的句子：Teachers should be permitted to use force to remove
+disruptive children from the classroom. 原句：Schools should permit teachers to use force to remove disruptive
+children from the classroom. 句子结构：主语（schools） +及物动词(permit)+宾语(teachers)+宾语
+补足语 (to use force…)
+翻译 33：农村的失业问题在某种程度上可以通过城乡转移
+（rural-to-urban shift）解决。
+错 误 的 句 子 ： Unemployment in rural areas can be address by
+rural-to-urban shift. 错误 1 被动语态没有过去分词
+错误 2 shift 是可数名词，最好要有冠词
+正确的句子：Unemployment in rural areas can be addressed partially
+by the rural-to-urban shift. 句子结构：（主语+及物动词+宾语）的被动语态
+拓展的句子：Unemployment in rural areas can be addressed partially
+by the rural-to-urban shift, because rural areas are lack of industry and
+services, which causes high unemployment rate. 错误 1：because 后面的内容只是解释了为什么乡村的失业率很高，
+但是没有解释为什么 城乡转移可以解决这个问题。
+错误 2：rate 可数名词
+错误 3：一般不要 lack of 充当表语
+正确的句子：The lack of infrastructure and government funding in
+rural areas is the main cause of unemployment, which can be addressed
+partially by the rural-to-urban shift. 中文：农村失业问题的主要原因是缺少基础建设和政府资助，这个
+问题在某种程度 可以通过城乡转移解决。
+翻译 34：高层建筑有时候被认为是城市的 eyesore。
+错误的句子（4.5 分）：Occasionally，high﹣rise buildings are tend to
+be regarded as the eyesore of a city. 错误 1 Occasionally 表示的意思是“偶尔地，很少地”
+错误 2 “be + do”永远是错的
+正确的句子：High-rise buildings are sometimes regarded as eyesores of
+the city. 注：这句话里如果说“the eyesore”就是特指，意思就是城市只有
+一处难看的地方，事实 上未必如此。
+句子结构：“somebody regards something as something”是“主语+
+及物动词+宾语+宾语补足 语”的结构。
+而这句话是这个结构的被动语态。
+翻译 35：太空科技的投资应该获得政府的支持
+错误的句子：The investment on space technology should be supported
+by government. 错误 1 investment in 固定搭配
+错误 2 governments or the government
+正确的句子： The investment in space technology should be supported
+by the government.
+句子结构：主语+ 及物动词（support 被动 语态）+ 宾语
+还可以用状语从句和并列句扩充
+The investment in space technology should be supported by the
+government because the commercialization of such technology will
+bring more business opportunities and improve people's living
+standards. 中文：政府应该支持对太空科技的投资因为这些科技的商业化会带
+来更多的商业机 会，提高人们的生活水平。
+翻译 36：历史文物因为它的历史重要性而被保存
+错误的句子：Antique heritages should be completely preserved due to
+its historical importance. 错误 1 Antique heritages 没有这个表达
+错误 2 heritage 是个不可数名词
+错误 3 既然主语是复数，为什么后面用代词“its”
+正确的句子：Historic relics should be preserved for their historical
+significance. 句子结构：主语+ 及物动词（preserve 被动语态）+ 宾语
+翻译 37：学校活动的设置要能让孩子体会到成就感和提升他们的
+幸福
+错误的句子：The main purpose of the school activities which can give
+the children's a sense of accomplishment is to promote the students's
+well being
+错误 1 主语里加了个定语从句， 太长
+错误 2 给学生成功感和提升学生的幸福应该不是方式和目的
+正确的句子：Sports and other school activities can be designed to give
+children a sense of accomplishment and to promote their well-being.. 句子结构：主语+ 及物动词+ 宾语 （design 的被动语态）
+注：也可以说 improve well-being. 注意我在句子里加了个体育，就是简单的一个例子，读者就清楚你
+想表达的东西。 好 的文章是可读的，内容充实的，而很多同学的
+问题是比较死板和枯燥地将一些单词放进 去。
+翻译 38：一些员工 被鼓励着去打破陈规
+错误的句子：Employee can breakthrough the obsoleted rules. 错误 1 breakthrough 是个名词，没动词
+错误 2 obsoleted 没有这个词，只有 obsolete
+错误 3 employee 为什么用单数，只有一个员工？
+正确的句子：Some employees are encouraged to break the mould. 句子的结构：主语（省略）+ 及物动词（encourage 被动）+ 宾语
+（employees 变成了主 语）+宾语补足语（to break the mould）
+还可以用定语从句扩充
+Nowadays, companies prefer those employees who can break the
+mould. 中文：现在公司喜欢能够打破常规的员工。
+翻译 39：上下班的时间变得更长了
+错 误 的 句 子 ： Commuter time was prolonged because of traffic
+congestion. 错误 1 Commuter time 不是固定词伙
+错误 2 was 时态错误
+正确的句子：Commuting time has been prolonged because of traffic
+congestion. 句子结构: 主语+ 及物动词（prolong 被动语态）+ 宾语
+中文：因为堵车上下班时间变得更长。
+翻译 40：电脑技能可以运用到学习工作中
+错误的句子：Computering applying in their academic study as well as
+their career life
+错误 1 applying 谓语不完整
+错误 2 career life 这个词伙不是很恰当
+正确的句子：Computer skills can be applied in their studies as well as
+their working lives.
+句子结构：主语+ 及物动词（apply 的被动语态）+ 宾语
+还可以用定语从句扩充
+Students can acquire computer skills which can be applied in their
+studies as well as their working lives. 中文：学生们可以获得电脑技术，这些技术可以应用在他们的学习
+和工作中。
+翻译 41：大部分的环境破坏都可以归咎于人类的活动。
+错误的句子：The most of environmental degradation is contributed to
+human activities. 错误 1：the most 一般加形容词，作为最高级
+错误 2 ： contribute to 一般用主动，而且和 attributed to 是相反
+的意思。
+正 确 的 句 子 ： Most of environmental degradation is attributed to
+human activities. 句子结构：原句是“主语+及物动词+宾语+宾语补足语” （attribute
+something to something）
+这个句子是被动语态
+翻译 42：许多孩子每天接触暴力内容
+错误的句子： Many children are expose to violent contents in every
+day. 错误 1 content 这个时候经常是不可数
+错误 2 expose 是及物动词， “be + do”不准确
+错误 3 every day 本身可以充当状语，不可以加介词 in
+正确的句子： Many children are exposed to violent content every day. 句子结构: 主语+ 及物动词(被动语态) （are exposed）+ 宾语补足
+语（to violent content）
+原句可能是“something exposes children to violent content”（主语+
+及物动词+宾语+宾语补 足语）
+拓展的句子：Many children are exposed to violent content every day, then acting up the crime. Because they treat it as a normal part of
+everyday life. 错误 1：because 是从属连词，要加两个句子
+错误 2：act up 有问题，没必要用分词。
+正确的句子：Many children are exposed to violent content every day
+and prone to act up, because they treat it as a normal part of everyday
+life. 中文：很多每天接触暴力内容的孩子容易用暴力，因为他们把暴力
+当作日常生活的 一部分。
+翻译 43：家庭环境被认为是小孩成长最重要的影响。
+错误的句子：Family environment is widely thought to be the most
+important influence on children development. 错误 children development 没有所有格
+正确的句子：Family environment is widely thought/believed to be the
+most important influence on children’s development. 句 子 结 构 : 主 语 (family environment)+ 及 物 动 词 的 被 动 语 态
+（thought）+ 宾语补足语(to be)
+翻译 44：随着越来越多的年轻人参加志愿者工作，社区的凝聚力
+（cohesion）会加强
+错误的句子
+with more young people join the volunteer works, community's
+cohension will be enhanced. 错误 1 with 是介词，后面不能加句子
+错误 2 work 不可数名词，不能加复数
+正确的句子：With an increasing number of young people participating
+in volunteer work, community cohesion will be enhanced. 句子结构：主语（community cohesion）+ 及物动词的被动语态 （be
+enhanced）， 而 “with an …..participating in” 是“介词+名词+分
+词”结构，充当状语
+翻译 45：移民有时候被认为是社会团结的一个威胁。
+错误的句子 Immigrants sometimes was recognised as a threat to the
+social cohesion. 错误 1 为什么要过去时？
+错误 2 主谓不一致
+错误 3 cohesion 不可数名词，为什么要用 the 去特指？
+正确的句子：Immigrants are sometimes recognised as a threat to social
+cohesion. 句子结构：原句可能是“people sometimes recognise immigrants as a
+threat。 ” （主语 people+ 及物动词 recognise+宾语 immigrants+
+宾语补足语 as a threat），这句话是 被动语态。
+主语+不及物动词
+翻译 46：没有受过高等教育的年轻人只能找到低技术的工作
+错误的句子：Young people without tertiary education qualifications
+normally have low-skilled jobs. 错误 1 “have low-skilled jobs ”里的“have”语气比较弱，应该
+是只能找到。
+正确的句子：Young people without tertiary education qualifications
+normally end up working in low-skilled jobs. 句子结构：主语+ 不及物动词（end up）+ 状语（分词 working in…）
+还可以用名词性从句，并列句来扩充
+There is a widely held notion that young people without tertiary
+education qualifications normally end up working in low-skilled jobs
+and this can compromise the quality of life. 中文：一个取得广泛共识的概念是没有大学文凭的年轻人通常只能
+找低技术含量的 工作，这也危害到他们的生活质量。
+翻译 47：一些人不支持转基因食品
+错 误 的 句 子 ： People hold the objection to the proliferation of
+genetically modified food. 错误 1 "hold the objection to " 这个表达很不好，而且罗嗦
+正确的句子：Some people disapprove of genetically modified food. 句子结构：主语+ 不及物动词（disapprove）
+还可以用原因状语从句扩充
+Some people disapprove of genetically modified food, as they believe
+that this type of food does more harm than good. 中文：一些人反对转基因食品，因为他们认为这种食品的弊大于利。
+翻译 48：旅游景点竭力满足游客的需要和品味
+错误的句子：Tourist spots devote to fulfilling tourists' tastes and needs. 错误 1 devote 是及物动词，后面要有宾语
+错误 2 fulfil tastes 不是个习惯词伙。
+正确的句子：Tourist spots endeavor to cater for tourists' tastes and
+needs. 句子结构：主语+不及物动词；to do 不定式
+翻译 49：在竞争激烈的社会，有工作的人关心职业发展。
+错误的句子：In the highly competitive society, working adults are
+usually focusing on career advancement. 错误 1 应该用“a”，而不是“the”， 否则，别人还以为世界上只
+有一个激烈竞争的社会
+错误 2 进行时态有点怪
+正确的句子：In a highly competitive society, working adults usually
+focus on career advancement. 句子结构：主语+ 不及物动词(focus), 而“in a highly competitive
+society”是介宾短语 充当状语
+还可以用并列句扩充
+In a highly competitive society, working adults usually focus on career
+advancement, and have difficulty in achieving work-life balance. 中文：在竞争激烈的社会中，有工作的人关心职业发展，很难实现
+工作和生活的平 衡。
+翻译 50：审美观是因文化而异的。
+错误的句子：Perception of beauty is differed from culture to culture.
+错误 differ 是不及物动词，没有被动语态。
+正确的句子： Perception of beauty differs from culture to culture. 句子结构：
+主语+不及物动词；“from culture to culture”介宾短语充当状语。
+翻译 51：因为费用的下降，航空最近几十年发展得很快。
+错误的句子 ：The airline has sharp development in recent decades, with the cost decline. 错误 1：in recent decades 一般要用现在完成时态，这句话没有
+错误 2：“has sharp development”表达比较别扭
+错误 3：with 是个介词，后面不能加句子
+正确的句子：Because of low-cost carriers, the aviation industry has
+developed at an astounding pace over the past decades. 句子结构： 主语（the aviation industry）+不及物动词(developed); “Because of low-cost carriers” 原因 状语；“over the past decades”
+时间状语； “at an astounding pace”程度状语
+翻译 52：动物实验有时候不能够检验出药物的不良副作用。
+错误的句子 ：Animal experiment is occasionally unable to examine
+drugs side effects. 错误 1：Animal experiment 可数名词，要加负数
+错误 2：occasionally 意思是“偶尔地，极少地”
+错误 3：drugs side effects 没有使用所有格
+正 确 的 句 子 ： Animal experiments sometimes fail to detect the
+undesirable side effects of drugs. 句子结构：主语+ 不及物动词（fail）+状语（to ….）
+翻译 53：非法捕杀导致某些动物的灭亡。
+错误的句子 ：Hunting illegally leads to the extinct of species. 错误：extinct 是个形容词，而 lead to 后面要加名词
+正确的句子：Some animals have died out because of illegal hunting
+主语（some animals）+不及物动词（have died out）+状语（because
+of ….）
+翻译 54：电脑对人交流技能的影响随着年龄变化。
+错 误 的 句 子 ： The impact on people's communication skill from
+computer, varies between ages. 错误 1：skill 可数名词，要加复数。
+错误 2：varies between ages 表达不对。
+错误 3：the impact from the computer 表达不对。
+正确的句子：The impact of computers on communication skills varies
+across ages. 句子结构：主语（impact）+不及物动词 （varies）；“of computers on
+literacy skills”都是 定语
+拓 展 的 句 子 ( 使 用 并 列 句 ) ： The impact of computers on
+communication skills varies across ages and teachers have mixed
+feelings on the usage of computers. 中文：电脑对人的文化程度的影响随着年龄变化，老师对电脑的用
+法有复杂的感情。
+主系表结构
+翻译 54：很多女孩都不愿意在男人居多的行业里（male-dominated
+world）找工作。
+错误的句子：A number of girls are not willing to hunting jobs in the
+male-dominated world
+错误 1 willing to do something 固定搭配
+错误 2 a number of 在这里感觉是在某个地方，有一些女孩不愿意
+做什么。
+错误 3 定冠词不恰当，因为世界上男人居多的行业有很多，不可
+能特指 1 个。
+正确的句 子：Many girls are not willing to seek employment in a
+male-dominated world. 句子结构： 主语+系动词+表语(willing)
+也可以用状语从句扩充：
+Numerous women are unwilling to find employment in a
+male-dominated world because they can face barriers to top-level
+promotion. 中文： 很多女孩不愿意在男人为大多数的行业找工作，因为她们
+会面临在高职位 升迁中的阻碍。
+翻译 55：学校的主要功能是给下一代灌输知识（impart knowledge）。
+我错误的句子：the main function of school is impart knowledge to the
+next generation. 错误 1 school 可数名词，要加冠词或者复数
+错误 “is+do”永远是错的
+正确的句子：The main function of schools is to impart knowledge to
+the next generation. 句子结构： 主语+系动词（is）+表语（to impart knowledge to the next
+generation）
+关于语法的问题（包括词性和从句），请和精品班的助教联系答疑。
+翻译 56：艺术不属于学校的主科。
+错误的句子：Arts is not regarded as a core curriculum at school. 错误 1 主谓不一致
+错误 2 curriculum 是所有课程的总称
+正确的句子： The arts are not among core subject areas at school. 句子结构： 主语（The arts）+系动词（are）+表语 （介词 among+
+宾语…充当表语）
+拓展的句子：The arts are not among core subject areas at school. However, we should learn them at school . Because they could add
+spice of our life. 错误 1：because 是从属连词，要连接两个句子。
+错误 2：add spice to life 才是固定搭配
+错误 3： them 有点指代不清楚. 正确的句子：The arts are not among core subject areas at school but
+deserve a place in the curriculum, for these subjects add spice to life. 中文：虽然艺术不属于学校的主要课程，但是它们在课程大纲里值
+得拥有一席之地， 因为这些科目能够给生活添色彩。
+翻译 57：因为不够明朗的经济前景（economic outlook），很多公司
+不可能招聘新的职 员。
+错误的句子： Because of unclear/ambiguous economic outlook, many
+companies are unlikely to recruit new employments. 错误 1 ambiguous 一般不修饰 OUTLOOK
+错误 2 应该是 employees
+正确的句子： Because of the uncertainty about the economic outlook, many companies are unlikely to recruit new employees. 句子结构：主语+系动词+表语
+Because of 是介词词组引导原因状语
+拓展的句子：Because of the uncertainty about the economic outlook, many companies are unlikely to recruit new employers, so a
+considerable number of graduates will face the problem of
+unemployment. 错误：”because of”和“so” 一般避免连用
+错误 2： employees 雇员
+正确的句子：Because of the uncertainty about the economic outlook, many companies are unlikely to recruit new employees and a
+considerable number of graduates fail to find employment. 中文：因为经济前景的不确定，很多公司不可能招聘新人，因此大
+量的毕业生找不 到工作。
+翻译 58：空运产生很多的温室气体
+错 误 的 句 子 ： Air freight is likely to exhaust a large number of
+greenhouse gases. 错误 1 exhaust 这个词动词的时候，没有排放的意思（这个是很常
+见的错误！）
+错误 2 a large number of 很少形容 gases, goods 这种强调数量的东
+西。
+正确的句子：Air freight is likely to create enormous greenhouse gases. 注：这句话也可以使用完成时态：Air freight has produced enormous
+greenhouse gases. 完 成时在这里最大的问题是把 air freight 变成
+了一个持续的完整的事物，而我们都知道空 运是有次数的分别。
+句子结构：主语+ 系动词+ 表语
+也可以用比较状语从句扩充
+Air freight is likely to create more greenhouse gases than other modes
+of transport. 中文：空运可能比其他运输方式产生更多的温室气体。
+翻译 59：孩子很有可能有行为的问题
+错误的句子：The children are likely to meet behavior problems. 错误 1 meet problems 搭配不对
+错误 2 behavioural problems 固定搭配
+正确的句子：Some children are likely to have behavioural problems. 句子结构：主语+ 系动词+ 表语(likely)
+还可以用定语从句扩充
+The children who are exposed to abuse or neglect in the home are likely
+to have behavioural problems.
+中文：在家遭受虐待或者忽视的孩子可能会有行为问题。
+翻译 60：人口的扩大是大量垃圾产生的原因
+错 误 的 句 子 ： population expansion constitutes the main reason of
+enormous garbages. 错误 1 reason for 固定搭配
+错误 2 garbage 和 waste 都是不可数名词
+正确的句子：The rapid population expansion is the main reason for the
+huge accumulation of waste. 句子结构：主语+ 系动词+ 表语(reason)
+还可以用定语从句扩展
+Population expansion is the main reason for the huge accumulation of
+waste, which can take decades to degrade. 中文：人口的扩大是大量垃圾产生的原因，这些垃圾需要几十年才
+能降解。
+翻译 61：严格的惩罚是减少犯罪率的有效手段
+错误的句子：Stiff sentences is an effective method to decrease crime
+rates. 错误 1 主谓不一致 stiff sentences
+错误 2 decrease crime rates 表达不是很好
+正确的句子：Stiff punishment is an effective method to reduce crime. 句子结构: 主语+ 系动词+ 表语；不定式“to reduce crime”
+还可以用名词性从句和状语从句扩充
+It is suggested that stiff punishment is an effective method to reduce
+crime, as offenders are fearful of getting caught and less likely to
+commit crime. 中文：严厉的处罚是减少犯罪的有效方法，因为犯罪者害怕被抓而
+不太可能犯罪。
+翻译 62：我们的环境还是很糟糕
+错误的句子：Our environment still be in a dire state. 错误 1 没有谓语动词
+正确的句子：Our environment is still in a dire state. 句子的结构：主语+ 系动词+ 表语(介宾短语 in a dire state 充当)
+还可以用状语从句扩充
+Unless our modern lifestyle experiences a profound change, our
+environment will still be in a dire state. 或者： Unless we make profound changes in modern lifestyles, our
+environment will remain in a dire state. 中文：除非我们的现代生活方式有深远改变，负责我们的环境还是
+会很糟。
+翻译 63：因为失业率高升，大学生感到有压力去努力学习
+错误的句子：Undergraduates are forced to study under pressure due to
+severe situation of unemployment rate is ascending currently. 错误 1 due to 是介词，后面要加名词（多看手把手第二章，跪求！）
+错误 2 ascend， 坑爹替换词
+正确的句子：
+Undergraduates feel under increasing pressure to study hard, because of
+the soaring unemployment rate. 句子结构：主语(undergraduates)+ 系动词（feel）+ 表语(介宾短语
+under pressure 充当)
+还可以用状语从句扩充
+Students feel pressured to study hard because the unemployment rate is
+increasing. 翻译 64：种族歧视仍然很严重
+错误的句子：People find it hard to overcome the racial discrimination
+against some social groups. 错误 这个句子比较大的问题就是主语是 PEOPLE 就是被歧视的
+人，最后又跑到句末做 against 的宾语。
+正确的句子：Racial discrimination remains a serious problem. 句子的结构：主语+ 系动词(remain)+ 表语
+可以用状语从句扩充
+Racial discrimination remains a serious problem, although governments
+promote equality. 中文：虽然政府促进平等，但是种族歧视仍然是一个严重问题。
+翻译 65:死记乘法表并不是提高算术能力的最好方式。
+错误的句子： Learning time tables by rote are not the best way that
+improves arithmetic ability. 错误 1： 动名词做主语，谓语动词应该是“is”
+错误 2：“way that…”定语从句，太过繁琐
+正确的句子：Learning the times table by rote is not the best way to
+improve numeracy. 句子结构: 主语(Learning the times table by rote)+系动词(is)+表语
+（the best way）；而“to improve numeracy”是后置定语修饰 way。
+翻译 66:贫穷国家的首要问题是满足人们基本生存需求
+错 误 的 句 子 ： Deprived countries concern how to satisfy citizens' requirements of survive. 错误 1 concern 类似于 worry 或者 involve,在这里都不对
+错误 2 requirements 语意理解错误
+错误 3 Of 后面要加名词，而 survive 是动词
+正 确 的 句 子 ： The top priority for deprived countries is to satisfy
+citizens' basic needs. 句子的结构: 主语(priority)+系动词 (is)+表语 (to satisfy citizens’
+basic needs)
+拓展的句子： The top priority for deprived countries is to satisfy
+citizens' basic needs, which is an effective method to sustain social
+stability
+错误：定语从句的先行词不清楚
+正 确 的 句 子 ： The top priority for deprived countries is to satisfy
+citizens' basic needs, and by doing this, governments can sustain social
+stability. 中文：贫穷国家的首要问题是满足人们基本生存需求，这是维持国
+家稳定一个有效 方法。
+翻译 67:基因食物对健康的影响仍然未知。
+错误的句子
+The impact that genetic food has on our health still remains unknown. 错误 1 其实定语从句中，最好要规避这种先行词充当从句宾语的
+情况，读起来比较别 扭。
+错误 2 remains 已经包含 still。
+错误 3 genetic food 这个表达也不是很好。
+正确的句子：The health effect of GE food remains unclear/yet to be
+known. 句子结构：主语（health effect）+系动词（remains）+表语（unclear）
+也可以用状语从句拓展
+The health effect of GE food remains unclear, so clear food labeling is
+strongly advocated. 注：clear food labeling 就是商场食品上清晰的标签（说清楚食物的
+特点）
+中文：基因食物对健康的影响仍然未知，所以清楚的食物标签被强
+烈提倡。
+翻译 68：网络购物对于很多人已经成为生活中的很普通的一部分。
+错误的句子 ：It has become an important part for most people to shop
+online in daily life. 错误 “part of daily life ”是固定的说法
+正确的句子：Online shopping has become a normal part of people’s
+everyday life. 句子结构：主语+系动词+表语
+翻译 69：在一个消费社会里，人们不再满足生活必需品（bare
+necessities）。
+错误的句子 ：in a throw-away society, people are not satisfied with
+bare necessities any more. 错误 1：throw-away society 这个词伙不对。
+错误 2：not … any more 一般是形容量的东西，而 no longer 强调
+动作的持续。
+正确的句子：in the consumer society, bare necessities are not able to
+satisfy people’s needs. 翻译 70：人们不健康的生活方式是他们倾向于依赖科技的结果。
+错误的句子 ：Unhealthy lifestyle is the result of trend to rely on
+science and technology. 错误 1：Unhealthy lifestyle 是可数名词，需要加冠词
+错误 2：“trend toward doing something”还有“tendency to do
+something”
+正确的句子：People’s unhealthy lifestyle is the result of their tendency
+to rely heavily on technology. 句子结构：
+主语（unhealthy lifestyle）+系动词（is）+表语 （the result）; “of…”
+全是定语
+拓展的句子：People’s unhealthy lifestyle is the result of their tendency
+to rely heavily on technology, because this makes their lives more
+convenience. 错误 1：convenience 是名词
+错误 2：because 引导的原因状语从句不清晰，到底是解释
+unhealthy lifestyle，还是解释 rely heavily on technology？
+正确的句子：People’s unhealthy lifestyle is the result of their tendency
+to rely heavily on technology, despite the fact that technology has made
+their lives convenient and improved their lives significantly. 中文：人们不健康的生活方式是他们倾向于依赖科技的结果，尽管
+事实上科技让他 们的生活更加方便，给他们的生活带来很大提高。
+翻译 71：贫穷是社区犯罪上升的原因。
+错 误 的 句 子 ： The reason which cause increasingly number of
+community crimes in society is poverty. 错误 1：reason which cause， 从句的主谓不一致，而且搭配不好
+错误 2：increasingly number 副词不能修饰名词
+错误 3：这个学生硬是把简单的事情罗嗦地说出来，很别扭。雅思
+考试考的是语言的通 顺和地道，而不是考你的句子是否够复杂。
+正确的句子： Poverty is responsible for the crime wave in many
+communities.
+句子结构：主语（poverty）+系动词 （is）+表语(responsible)
+拓展的句子： Because of low-cost carriers, the aviation industry has
+developed at an astounding pace over the past decades, that means
+people's traveling will become more convenience and safety. 错误 1： 一般来说是 this means that
+错误 2：become 是系动词，后面加形容词去修饰主语。
+错误 3：safety 和前面 low –cost carriers 没什么联系。
+正确的句子：Because of low-cost carriers, the aviation industry has
+developed at an astounding pace over the past decades, and this means
+that people are tempted to travel more frequently than before. 中文：因为费用的下降，航空最近几十年发展得很快，这意味着人
+们会比以前更多 旅游。
+翻译 72：电子汽车的发明是我们维护环境所做努力的其中一部分。
+错误的句子：The invention of electric vehicles is a part of our efforts
+aiming at preserving the environment. 错误 1：一般是“part of”
+错误 2：“effort to do something”更为通顺，在这里
+正确的句子：The invention of electric vehicles is part of our effort to
+sustain the environment. 句子结构： 主语（The invention of electric vehicles）+系动词（is）
++表语 （part ）; “of…”全是定 语
+拓展的句子：The invention of electric vehicles is part of our effort to
+sustain the environment, because electric vehicles do not conduct
+exhaust emission, compared with fossil fuel motors
+错误 1：electric vehicles 重复
+错误 2：conduct exhaust emission 搭配问题
+错误 3：fossil fuel motors 用词不好，MOTOR 是马达的意思。
+正确的句子：The invention of electric vehicles is part of our effort to
+sustain the environment because these vehicles create less exhaust
+fumes than conventional cars. 中文：电子汽车的发明是我们维护环境所做努力的其中一部分，因
+为这些汽车比传 统汽车产生较少的废气。
+It 做形式主语或者宾语的句子
+翻译 73：送贵重的礼物（lavish gifts）是中国的习惯
+错误的句子：It is very common for Chinese to send lavish gifts to
+other. 错误的原因：other 是形容词，充当定语，这里需要一个名词性的
+代词，充当介词 to 的 宾语
+正确的句子：It is very common for Chinese people to exchange lavish
+gifts.
+句子结构： 主语+系动词+表语；it 是形式主语，“to exchange lavish
+gifts”不定式是真正 的主语。
+其他选择：Exchanging lavish gifts is a tradition in China
+句子结构： 主语+系动词+表语
+也可以用并列句+状语从句来扩充
+Exchanging lavish gifts is a tradition in China and many people feel
+they lose face when giving or receiving inexpensive gifts. 中文：送贵重礼物是一种中国传统，当收到或者送便宜礼物的时候
+许多人觉得没面 子。
+翻译 74：未来几十年我们很难保护植物多样性
+错误的句子：We will find it difficult for us to protect the biodiversity
+of vegetation in the coming decades. 错误 1 we... for us 重复
+错误 2 vegetation 略显重复
+正确的句子：We will find it difficult to preserve biodiversity in the
+coming decades. 句子结构: 主语+ 谓语+宾语（it，形式宾语） + 宾语补足语
+（difficult），而不定式是 真正的宾语
+还可以扩充为状语从句
+Unless local authorities reduce the impact of city expansion on
+vegetation, we will find it difficult to preserve biodiversity in the
+coming decades. 中文：除非当地政府减少城市扩张对植物的影响，否则在未来几十
+年里我们会发现 保护物种多样性很困难。
+翻译 75：随着年龄增长，很难和朋友和家人保持联系
+错误的句子：As the growing age, people is hard to connect with their
+families and friends frequently. 错误 1 As the growing age 没有这个表达
+错误 2 people is 主谓不一致
+错误 3 人无难易之分
+错误 4 connect frequently 不搭配
+正确的句子：With age, people find it difficult to maintain contact with
+family and friends. 句子结构：主语(people)+ 谓语(find)+宾语（it，形式宾语） + 宾语
+补足语（difficult）， 而不定式是真正的宾语
+注：contact 动词的时候是及物动词，不能加介词，people find it easy
+to contact their friends today. 学生的句子：With age, people find it difficult to maintain contact with
+family and friends, due to fact that they are occupied with career
+development and advance education. 错误= advance education 没有这个表达
+错误 4 connect frequently 不搭配
+正确的句子：With age, people find it difficult to maintain contact with
+family and friends, as they are occupied with work and other
+commitments. 中文：随着年龄的增加，人们发现保持与亲人和朋友的联系变得困
+难，因为他们被 工作和其他任务占据。
+翻译 76：免费上大学使得家景不好的学生有同等的上学机会
+错误的句子：Free tuition fees makes it possible for students from less
+well-off background have equal access to tertiary education. 错误 1 make it possible for somebody to do something. 错误 3 background 用复数
+正确的句子：Free university education makes it possible for students
+from less well-off backgrounds to have equal access to tertiary
+education. 注：access 是不可数名词，access to something 习惯搭配；access 也
+可以是及物动词， 但是一般没有“access education”这个说法。
+注：tertiary education=university education
+句子结构： 句子结构：主语+ 谓语+宾语（it，形式宾语） + 宾语
+补足语（difficult）， 而不定式（to have equal access to tertiary
+education）是真正的宾语
+还可以用名词性从句(believe that )和定语从句(who agree with)扩充
+People who agree with free university education believe that this
+practice makes it possible for students from less well-off backgrounds
+to have equal access to tertiary education. 中文：同意免费大学教育的人们认为该措施会使那些家境不好的学
+生有同等上大学 的机会。
+翻译 77：很多人觉得自己有必要赶时尚。
+错误的句子：Many people think that they are necessary to chaes after
+fashion. 错误：人没有 necessary 这么一说； chase 在这里用作及物动词比
+较好。
+正确的句子：Many people consider it necessary to follow fashion. 句子结构：主语（many people）+及物动词(consider)+形式宾语(it)+
+宾语补足语 (necessary)；真正的宾语是 to follow fashion. 拓展的句子：Many people consider it necessary to follow fashion;
+otherwise, they believe they are behind the times. 中文：很多人觉得有必要赶时尚；否则的话，他们相信自己过时了。
+翻译 78：经费削减让很多年轻人很难接受大学教育。
+错误的句子：
+Cutting the budget of the education pose a threat to the opportunities of
+the young people who want to take part in the higher education. 错误 1: 动名词 Cutting 做主语，但是谓语动词没有用单数。
+错误 2：pose a threat to the opportunities 搭配不好
+错误 3：后面用定语从句也是过分累赘，opportunities to do
+something 是习惯的表达。 很多中国学生习惯的问题是把表达复
+杂化，觉得那样才是好作文，而 native speaker 更加 注意文字的简
+练和清楚。
+正确的句子： Budget cuts make it difficult for many young people to
+receive a college education. 句子结构：主语 （Budget cuts）+及物动词（make）+宾语（it 形
+式宾语）+宾语补足语（difficult）；这个句子真正的宾语是“to receive
+a college education”
+翻译 79：有时候，很难去评估人类行为的环境代价。
+错误的句子：Sometimes, it is difficult to evaluate the environmental
+costs of people’s behaviors. 错误 1：environmental cost 在这里用单数就好，因为是在说整个影
+响，而不是不同的影 响。
+错误 2：behaviour 英式拼写
+错误 3：behaviour 在这里不用 activities 好，因为行为是指人的瞬
+间举动，activities 一般 是持续时间比较长。
+正确的句子：Sometimes, it is difficult to evaluate the environmental
+cost of human activities. 句子结构： 主语(it)+ 系动词（is）+表语 （difficult）；而“to evaluate
+the environmental cost of human activities”不定式充当形式主语。
+拓展的句子：
+Sometimes, although it is difficult to evaluate the environmental cost of
+human activities, there is a necessity for the government enacting
+legislations to restrict some behaviors , which can also arise people's
+concern about environmental degradation. 错误 1：there is a necessity for 别扭
+错误 2：arise 不及物动词
+错误 3：状语从句后，再写那么长的定语从句就多余了
+正 确 的 句 子 ： Sometimes, although it is difficult to evaluate the
+environmental cost of human activities, it is necessary to enact laws to
+restrict some behaviours. 中文：有时候，虽然很难去评估人类行为的环境代价，但是应该颁
+布法律以限制这 些行为。
+There be 句型
+翻译 80：在大城市有一些贫困的社区。
+错误的句子： in large-scale cities have some deprived communities
+错误 in large-scale cities 介宾短语不能够充当主语
+正确的句子： There are some economically deprived communities in
+large cities. 句子结构: there be 句型
+翻译 81：按照能力分班和学生的成绩没有明显的联系。
+错误的句 子：There is no clear link between selection in terms of
+students' ability and their academic performance. 错误: in terms of 是一个被中国学生用烂的词，有时候过分罗嗦
+正确的句子：There is no clear link between grouping students by
+ability and their levels of attainment. 句子结构：there be 句型
+并列句
+翻译 82：体育课可以促进身体健康，增强信心
+错 误 的 句 子 ： The PE class not only improves students physical
+conditions but also boosts their confidence. 错误 1 not only but also 一般引导并列的、联系不密切的东西，而
+不是有因果关系的东西。 在这里，“improve physical conditions”很
+明显会“boosts their confidence”，具备因果关系。
+错误 2 students' 所有格
+正确的句子：The PE class improves students’physical conditions and
+boosts their confidence. 句子结构：两个并列句，结构分别都是主语+ 及物动词+ 宾语
+还可以用状语从句扩充
+We should recognise the importance of the PE class, as it improves
+students' physical conditions and boosts their confidence. 中文：我们应该认识到体育课的重要性，因为它可以促进学生的身
+心健康，增强他 们的自信心。
+其他选择：
+While academic performance is highly valued , we should not lose sight
+of the importance of students' physical condition. 中文： 尽管学术表现被高度重视，但我们不应该忽视学生的身体
+健康的重要性。
+翻译 83:竞争激烈，一些城市处于弱势，因为缺少资源，比如：天
+然气和化石燃料。
+错 误 的 句 子 ： Countries competition are intensively and lack of
+resources such as the natural gas and fossil oil
+错误 1 ：主谓不一致
+错误 2 intensively 副词不能充当表语
+错误 3 AND 后面没有句子
+正确的句子：The competition is intense and some countries are at a
+disadvantage because of the lack of resources such as natural gas and
+fossil fuels. 翻译 84：在发展中国家开设新的分公司可以降低生产成本,产生巨大
+的利润
+错误的句子：Opening new branches in developing countries can reduce
+the cost of production and earn huge profits. 错误 1：opening new branches 不可能是 earn 的主语
+正确的句子： Opening new branches in developing countries can
+reduce the cost of production and generate huge profit
+翻译 85：生活方式的轻微变化也能够产生巨大的变化，并且可以减
+少我们日常活动对环 境的影响。
+错误的句子：The slightly lifestyle changes make a huge difference and
+alleviate impacts caused by our daily activities on the environment. 错误 1：slightly 是副词不能修饰 lifestyles
+错误 2：减少影响不能用 alleviate
+错误 3：impacts caused by 中式
+正确的句子：Small lifestyle changes can make a huge difference and
+can reduce the environmental impact of our daily activities.
+状语从句
+翻译 86：因为没有实习机会，对他们来说提升工作技能是很难的
+错误的句子：It is difficult for them to improve working experience
+because they lack of work placements. 错误 1：提升工作技能不是提升工作经验 experience。
+错误 2：lack 是及物动词，不能加介词。
+正确的句子：It is difficult for them to improve job skills because there
+are no work placements. 翻译 87：大学生没办法赚到钱即使他们获得文凭。
+错误的句子：Although gain qualifications that graduates cannot earn
+any money。
+错误 1：让步状语从句引导词用 although，不需要 that
+错误 2：从句缺少主语
+正确的句子：University students cannot earn money even though they
+have gained qualifications. 翻译 88：因为竞争是激烈和技术的迅速发展，现在经营一家公司是
+一个艰巨的任务。
+错 误 的 句 子 ： As the fierce competition and fast development of
+technology, nowadays, it is a daunting task to run a company. 错误 1：as 是连词，后面要加完整的句子
+正确的句子：Running an organisation in today’s world can be a
+daunting task, because competition is stiff and technology is developing
+rapidly. 名词性从句
+翻译 89：事实是，一些工作已经被砍掉，因为机械化的原因。
+错误的句子：The fact is that some jobs have made redundant because
+of the mechanization. 错误 1：这里应该是被动语态
+错误 2：不需要定冠词 the，没有特指哪种机械化
+正确的句子：The fact is that some jobs have been made redundant
+because of mechanisation. 句子结构：主语（fact）+系动词（is）+表语从句（that 引导，无意
+义，起连接作用）
+That 在句中不做成分，无意义，不可省略。
+翻译:90：确实如此，现在很多人选择走向环保和减少能源的使用。
+错误的句子：The truth is that plenty of people choose to go green and
+decline the use of energy.
+错误 1：一般用 it is true that 的表语从句
+错误 2：plenty of 一般修饰不可数名词
+错误 3：减少使用，不用 decline。
+正确的句子：It is true that many people today have chosen to go green
+and cut down on the use of energy. 句子结构：形式主语（it）+系动词（is）+true（表语）+that 引导
+的主语从句
+That 从句作主语时，常用 it 做形式主语。
+翻译 91：判刑对年轻人是有伤害，因为这么一个事实：犯罪的记录
+会给他们职业留下阴 影。
+错误的句子：Sencentcing is harmful to young people,since this fact that
+the record of criminal can cast a long shadow on their career. 错误 1：sentence 可以直接做名词，且为可数名词
+错误 2：since 是连词，要连接句子，这里应使用介宾结构做状语
+正确的句子：A prison sentence can be damaging to young people, due
+to the fact that the criminal record can cast a long shadow on their
+career. 句子结构：主语（A prison sentence）+系动词（be）+表语（damaging）
+Due to the fact that 引导同位语从句，解释说明 the fact 的具体内
+容。
+翻译 92：我相信快餐广告和肥胖的普遍有直接的联系。
+错误的句子：I believe that fast food advertisement have a direct link on
+rising levels of obesity. 错误 1：advertisement 为可数名词，不能裸奔
+错误 2：最好用 there be 句型，have a link with
+正确的句子：I believe that there is a direct link between fast food
+advertisements and rising levels of obesity. 句子结构：主语（I）+谓语（believe）+宾语从句（that 引导）
+That 在从句中不作任何成分，没有意义，只会起连接作用，一般可
+以省略。
+定语从句
+翻译 93：政府的资金也可以用于污染清理工作，这可以创造一个舒
+适的环境。
+错误的句子：the capital of the government could be used on clean-up
+operation ,such action can create a comfortable environment
+错误 1：政府资金用 funds 就行
+错误 2： be used for sth. 错误 3：缺少连词，这里需要用定语从句
+正确的句子：Money can be used for clean-up operation, which can
+help create a pleasant environment. 句子结构：主语（Money）+谓语（be used，被动态）+补语（for clean-up
+operation）
+Which 引导定语从句，先行词是 clean-up operation, 充当从句 can help 的主语
+翻译 94：很必要加强管制一些广告，这些广告鼓励消费者买一些自
+己不需要的东西。
+错误的句子：It is necessary to enforce some advertisement which
+encourage consumers to buy more than they need. 错误 1：enforce 是强迫的意思，不恰当
+错误 2：定语从句谓语形式和主语不一致，定语从句要还原去检查
+句子正确与否。
+正确的句子：It is necessary to censor some advertisements which
+encourage people to buy more than they need. 句子结构：形式主语（it）+系动词（is）+表语（necessary）+真正
+的主语（to do 不定式）
+Which 引 导 定 语 从 句 ， 先 行 词 是 advertisements ， 充 当 从 句
+encourage 的主语
+翻译 95：这会有助于提高空气质量，这也降低了一些健康问题的风
+险，比如呼吸道疾病。
+错误句子：it is helpful to improve air quality ,which also make healthy
+problems decline,such as respiratory diseases. 错误 1：it is helpful to do sth 的意思是做什么事是有帮助的，不是
+有助于于做什么事。
+错误 2：非限定定语从句的谓语要用单三
+正确的句子：This can help to improve air quality, which can reduce the
+risk of suffering health problems such as respiratory diseases. 句子结构：主语（this）+谓语（help）+宾语（to do 不定式）+宾补
+（air quality）
+Which 引导非限制性定语从句，先行词是前面整句话
+翻译 96：当局应该控制这些夸张报道社会问题的新闻。
+错 误 句 子 ： The authority should limit the news which give an
+exaggerated account of social problems. 错误 1：limit 用的不恰当
+错误 2：news 是不可数名词，定语从句谓语动词要用单三
+正确的句子：Authorities should censor those news reports which give
+an exaggerated account of some social problems.
+句子结构：主语（Authorities）+谓语（censor）+宾语（news reports）
+Which 引导定语从句，先行词是 news reports
+翻译 97：媒体喜欢报道暴力犯罪，因为可以吸引观众。
+错误的句子：The media prefer to report violent crimes, because it can
+attract audience
+错误的原因：it 指代不了前面的 crimes. 正确的句子：The media prefer to report violent crimes, which can help
+attract viewers. 句子结构：主语（The media）+谓语（prefer）+宾语（to do 不定式）
++宾补（violent crimes）
+Which 引导定语从句，先行词是 violent crimes，充当从句 can help
+的主语
+翻译 98：这就是为什么文员（clerical workers）如今经常有健康的问
+题。
+错误句子：It is the reason why clerical workers always suffer healthy
+problems today. 错误：是 health problems
+正确的句子：It is the reason why many clerical workers today suffer
+health problems. 句子结构：主语（It）+系动词（is）+表语（the reason）
+Why（=for which）引导定语从句，先行词是 the reason， 充当从
+句 for 的宾语
+翻译 99：许多员工愿意在那些可以获得晋升机会(promotional
+opportunities)的公司工作。
+错误句子：Many employees are willing to work in the company which
+they can acquire promotional opportunities . 错误 1：the company 不恰当，因为不可能世界上只有一个公司可
+以提供这样的机会。
+错误 2：Which 引导的定语从句一般缺乏成分，而这个句子是个独
+立的句子。
+正确的句子：Many employees prefer to work in companies where they
+can gain promotional opportunities. 句子结构：主语（Many employees）+谓语（prefer）+宾语（to do 不
+定式）
+Where（=in which）引导定语从句，先行词是 companies, 充当从句
+in 的宾语
+翻译 100：很多年轻人选择在英文国家（English-speaking countries）
+学习，在那里，他 们可以在世界著名的大学学习。
+错误句子：Many young people prefer to study in English-speaking
+countries where they can join in world-famous universities. 错误：join in 不是一个很好的动词选择
+正 确 的 句 子 ： Many young people have chosen to study in
+English-speaking countries, where they can study at some world
+famous universities. 句子结构：主语（young people）+谓语（have chosen）+宾语（to do
+不定式）
+Where（=in which）引导定语从句，先行词是 English-speaking
+countries, 充当从句 in 的 宾语
