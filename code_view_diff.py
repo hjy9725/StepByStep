@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # ==================== vLLM配置（适配4B模型）====================
 VLLM_BASE_URL = "http://localhost:8000/v1"
 TARGET_MODEL = "/t9k/mnt/hjy/Qwenq/qwen3-4b-thinking-2507"  # 与启动命令的--model路径一致
-MAX_TOKENS = 20480  
+MAX_TOKENS = 18000  
 # ==========================================================
 # 路径配置（保持与你的服务器一致）
 DEFAULT_INPUT_DIR = r"F:\同步文件夹\考研pdf\电路大合集"  # 输入原始txt文件目录
@@ -72,9 +72,16 @@ def save_optimized_file(content, output_path):
         return False
 
 def process_single_file(input_path, input_dir, output_dir):
+    """处理单个文件：读取→优化→保存→标记已处理"""
     file_name = os.path.basename(input_path)
-    print(f"\n===== 处理 {file_name} =====")
+    print(f"\n===== 开始处理：{file_name} =====")
     
+    # 跳过已处理文件（后缀为.processed.txt）
+    if file_name.endswith(".processed.txt"):
+        print(f"⏭️ {file_name} 已优化完成，跳过")
+        return True
+        
+    # 读取原始文本
     raw_text = read_raw_text(input_path)
     if not raw_text:
         return False
@@ -103,7 +110,7 @@ def process_single_file(input_path, input_dir, output_dir):
 
 def main():
     parser = argparse.ArgumentParser(description='vLLM版电路文本优化器')
-    parser.add_argument('-n', '--num_workers', type=int, default=20, help='并行线程数')
+    parser.add_argument('-n', '--num_workers', type=int, default=5, help='并行线程数')
     parser.add_argument('-i', '--input_dir', default=DEFAULT_INPUT_DIR, help='原始文本输入目录')
     parser.add_argument('-o', '--output_dir', default=DEFAULT_OUTPUT_DIR, help='优化文本输出目录')
     
@@ -115,11 +122,11 @@ def main():
     for root, dirs, files in os.walk(args.input_dir):
         for file in files:
             # 只处理txt文件，且排除已添加.processed后缀的文件
-            if file.endswith('.txt') and not file.endswith('.processed'):
+            if file.endswith('.txt') and not file.endswith('.processed.txt'):
                 txt_files.append(os.path.join(root, file))
     
     if not txt_files:
-        print("未找到未优化的txt文件")
+        print("📭 未找到待优化的txt文件（已排除.processed.txt后缀的已处理文件）")
         return
     
     print(f"发现 {len(txt_files)} 个文件，使用 {args.num_workers} 线程处理")
