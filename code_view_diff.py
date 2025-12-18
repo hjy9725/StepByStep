@@ -8,217 +8,572 @@ import sys
 import threading
 import tkinter as tk
 import warnings
-from collections import deque
+import json
+import logging
+import re
+from concurrent.futures import ThreadPoolExecutor
+from logging.handlers import RotatingFileHandler
 
-# 深度学习库
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-from sklearn.preprocessing import MinMaxScaler
+# === 深度学习 & 机器学习 ===
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from sklearn.preprocessing import RobustScaler
+import xgboost as xgb
+import lightgbm as lgb
+import catboost as cb
+
+# === 大模型 API ===
+from openai import OpenAI
+import dashscope 
 
 warnings.filterwarnings('ignore')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# 声音库
 try:
     import winsound
 except ImportError:
     winsound = None
 
-# ================= 1. 参数控制台 (请在这里修改参数) =================
-class Config:
-    # --- 基础设置 ---
-    STOCK_CODE = "002463"       # [修改] 你的股票代码
-    
-    # --- AI 个性设置 ---
-    # HISTORY_DAYS = 500          # 训练用多少天的数据
-    HISTORY_DAYS = 100          # 训练用多少天的数据
-    RISK_FACTOR = 1.05           # [修改] 贪婪系数
-                                # 1.0 = 相信AI; 1.2 = 比AI更保守(跌更深才买); 0.8 = 激进
-    
-    # --- 盘中动态修正 (新功能) ---
-    ENABLE_DYNAMIC_ADJUST = True # 是否开启盘中修正
-    PANIC_SENSITIVITY = 0.5      # [修改] 恐慌敏感度
-                                 # 如果1分钟内跌幅超过 0.5%，系统会认为主力在砸盘
-                                 # 此时阈值会自动下移，避开锋芒
-    
-    # --- 监控频率 ---
-    REALTIME_INTERVAL = 3        # 3秒刷一次
-
-# ================= 2. 强报警系统 =================
-alarm_active = False
-
-def play_alarm_loop():
-    global alarm_active
-    while alarm_active:
-        if winsound:
-            winsound.Beep(2500, 100) # 更加急促的声音
-            time.sleep(0.05)
-            winsound.Beep(2500, 100)
-            time.sleep(0.5)
-        else:
-            print('\a'); time.sleep(1)
-
-def show_force_alert_window(msg, current_price):
-    global alarm_active
-    if not alarm_active:
-        alarm_active = True
-        t = threading.Thread(target=play_alarm_loop, daemon=True)
-        t.start()
-    
-    root = tk.Tk()
-    root.title(f"⚡ 动态狙击信号")
-    w, h = 600, 550
-    x = (root.winfo_screenwidth() - w) // 2
-    y = (root.winfo_screenheight() - h) // 2
-    root.geometry(f"{w}x{h}+{x}+{y}")
-    root.attributes('-topmost', True)
-    root.configure(bg='red')
-    
-    tk.Label(root, text="🚀 AI 捕捉到买点 🚀", font=("黑体", 32, "bold"), bg='red', fg='yellow').pack(pady=20)
-    tk.Label(root, text=f"股票: {Config.STOCK_CODE}", font=("微软雅黑", 20), bg='red', fg='white').pack()
-    tk.Label(root, text=f"现价: {current_price}", font=("微软雅黑", 36, "bold"), bg='red', fg='white').pack(pady=10)
-    tk.Label(root, text=msg, font=("微软雅黑", 14), bg='red', fg='white', wraplength=550).pack(pady=10)
-    
-    def stop_alarm():
-        global alarm_active
-        alarm_active = False
-        root.destroy()
-
-    tk.Button(root, text="我已处理，停止报警", font=("微软雅黑", 20, "bold"), 
-              command=stop_alarm, bg='white', fg='red').pack(pady=30)
-    root.mainloop()
-
-# ================= 3. AI 大脑 (训练部分) =================
-class AIBrain:
+# ================= 0. 日志系统 (LogSystem) =================
+class LogSystem:
     def __init__(self):
-        self.scaler = MinMaxScaler(feature_range=(0, 1))
-        self.model = None
-        
-    def fetch_and_train(self):
-        print(f"\n🧠 [AI] 正在连接神经网络...")
-        print(f"📡 [AI] 拉取 {Config.STOCK_CODE} 历史数据...")
-        
-        end_date = datetime.datetime.now().strftime("%Y%m%d")
-        start_date = (datetime.datetime.now() - datetime.timedelta(days=Config.HISTORY_DAYS*1.5)).strftime("%Y%m%d")
-        
-        try:
-            df = ak.stock_zh_a_hist(symbol=Config.STOCK_CODE, period="daily", start_date=start_date, end_date=end_date, adjust="qfq")
-            df = df.rename(columns={"日期": "date", "开盘": "open", "收盘": "close", "最高": "high", "最低": "low"})
-        except Exception as e:
-            print(f"❌ 数据拉取失败: {e}")
-            return None
+        self.today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.base_dir = os.path.join(os.getcwd(), "logs", self.today_str)
+        if not os.path.exists(self.base_dir): os.makedirs(self.base_dir)
+        self.sys_logger = self._get_logger("system", "system.log")
+        self.mkt_logger = self._get_logger("market", "market_data.log")
+        self.pred_logger = self._get_logger("prediction", "model_pred.log")
+        self.llm_logger = self._get_logger("llm", "llm_dialog.log")
 
-        # 计算最大下杀幅度
-        df['max_drop_pct'] = (df['low'] - df['open']) / df['open'] * 100
-        
-        # 训练集
-        data_set = df[['open', 'close', 'high', 'low', 'max_drop_pct']].values
-        scaled_data = self.scaler.fit_transform(data_set)
-        
-        X, y = [], []
-        time_step = 30
-        for i in range(time_step, len(scaled_data)):
-            X.append(scaled_data[i-time_step:i, :])
-            y.append(scaled_data[i, 4])
-            
-        X, y = np.array(X), np.array(y)
-        
-        print(f"🔥 [AI] 正在重训模型 (适应最新股性)...")
-        model = Sequential([
-            LSTM(50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])),
-            Dropout(0.2),
-            LSTM(50, return_sequences=False),
-            Dense(1)
-        ])
-        model.compile(optimizer='adam', loss='mean_squared_error')
-        model.fit(X, y, batch_size=32, epochs=5, verbose=0) # 快速训练5轮
-        
-        # 预测今日基础阈值
-        last_30 = np.array([scaled_data[-time_step:]])
-        pred_scaled = model.predict(last_30, verbose=0)
-        
-        dummy = np.zeros((1, 5))
-        dummy[0, 4] = pred_scaled[0][0]
-        base_threshold = self.scaler.inverse_transform(dummy)[0, 4]
-        
-        # 兜底逻辑：如果AI预测跌幅太小（比如预测涨），强制给一个最小值
-        if base_threshold > -1.5: base_threshold = -1.5
-            
-        return base_threshold
+    def _get_logger(self, name, filename):
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
+        if not logger.handlers:
+            file_path = os.path.join(self.base_dir, filename)
+            handler = RotatingFileHandler(file_path, maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+        return logger
 
-# ================= 4. 实时监控层 (含恐慌传感器) =================
-def run_sniper():
-    # 1. 初始化 AI
-    ai = AIBrain()
-    base_threshold = ai.fetch_and_train()
+    def log_system(self, msg): self.sys_logger.info(msg)
+    def log_market(self, msg): self.mkt_logger.info(msg)
+    def log_pred(self, msg): self.pred_logger.info(msg)
+    def log_llm(self, msg): self.llm_logger.info(msg)
+
+logger = LogSystem()
+
+# ================= 1. 配置中心 (请在此处填Key) =================
+class Config:
+    # ⚠️⚠️⚠️ 在这里填入你的 Key ⚠️⚠️⚠️
+    # DeepSeek Key
+    DEEPSEEK_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxx" 
+    DEEPSEEK_BASE_URL = "https://api.deepseek.com"
     
-    if base_threshold is None: return
-
-    # 2. 初始化价格缓存 (用于计算瞬时跌速)
-    # 队列长度20，存最近60秒的价格 (3秒一次 * 20 = 60秒)
-    price_history = deque(maxlen=20) 
+    # 通义千问: https://dashscope.console.aliyun.com/
+    DASHSCOPE_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxx" 
     
-    os.system('cls' if os.name == 'nt' else 'clear')
-    print("="*60)
-    print(f"🤖 AI 动态狙击手 Pro | 目标: {Config.STOCK_CODE}")
-    print(f"📉 AI 预测今日支撑位: {base_threshold:.2f}%")
-    print(f"🛡️ 基础报警阈值: {base_threshold * Config.RISK_FACTOR:.2f}%")
-    print(f"🌪️ 盘中恐慌修正: {'已开启' if Config.ENABLE_DYNAMIC_ADJUST else '未开启'}")
-    print("="*60)
+    
+    # --- 🎯 目标股票池 ---
+    STOCK_LIST = [
+        "002240", # 盛新锂能
+        "002709", # 天赐材料
+        "002407", # 多氟多
+        "002463", # 沪电股份
+        "600489", # 中金黄金
+        "600343", # 航天动力
+        "603126", # 中材节能
+        "603986", # 兆易创新
+        "002121", # 科陆电子
+        "600089", # 特变电工
+        "605598", # 上海港湾
+        "600183", # 生益科技
+        "600118", # 中国卫星
+        "300455", # 航天智装
+        "000547", # 航天发展
+        "000426", # 兴业银锡
+        "000603", # 盛达资源
+        "600988", # 赤峰黄金
+        "002050", # 三花智控
+        "002837", # 英维克
+        "002080", # 中材科技
+        "601138", # 工业富联
+        "001267", # 汇绿生态
+        "002466", # 天齐锂业
+        "000630", # 铜陵有色
+        "601069", # 西部黄金
+        "603119", # 浙江荣泰
+        "600879", # 航天电子
+        "000901", # 航天科技
+        "000547", # 航天发展
+        "600855", # 航天长峰
+        # "515880", # 通信ETF
+    ]
+    STOCK_LIST = list(set([x for x in STOCK_LIST if x.isdigit()]))
 
-    while True:
+    # 权重配置
+    WEIGHTS = {'transformer': 0.4, 'xgboost': 0.2, 'lightgbm': 0.2, 'catboost': 0.2}
+    
+    # 策略参数
+    SEQ_LEN = 30          
+    EPOCHS = 20           
+    BATCH_SIZE = 32       
+    ALERT_BUFFER_PCT = 1.5   # 价格逼近缓冲带
+    MARKET_BETA = 1.2        # 大盘联动系数
+    REALTIME_INTERVAL = 5    # 轮询间隔(秒)
+    AI_COOLDOWN_SECONDS = 300 # AI 冷却时间
+
+# ================= 2. 特征工程 =================
+class AlphaFactors:
+    @staticmethod
+    def process_data(df):
+        df = df.copy()
+        cols = ['open', 'close', 'high', 'low', 'volume']
+        df[cols] = df[cols].apply(pd.to_numeric, errors='coerce')
+        df['pre_close'] = df['close'].shift(1)
+        df.dropna(inplace=True)
+        
+        # 1. 均线乖离
+        df['MA20'] = df['close'].rolling(20).mean()
+        df['Bias20'] = (df['close'] - df['MA20']) / df['MA20'] * 100
+        
+        # 2. 真实波幅 ATR
+        high_low = df['high'] - df['low']
+        tr = np.maximum(high_low, np.abs(df['high'] - df['pre_close']))
+        tr = np.maximum(tr, np.abs(df['low'] - df['pre_close']))
+        df['ATR'] = tr.rolling(14).mean()
+        df['ATR_Pct'] = df['ATR'] / df['pre_close'] * 100 
+        
+        # 3. RSI
+        delta = df['close'].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+        df['RSI'] = 100 - (100 / (1 + gain/(loss+1e-5)))
+        
+        # 4. MACD
+        exp12 = df['close'].ewm(span=12, adjust=False).mean()
+        exp26 = df['close'].ewm(span=26, adjust=False).mean()
+        df['DIF'] = exp12 - exp26
+        df['DEA'] = df['DIF'].ewm(span=9, adjust=False).mean()
+        df['MACD'] = 2 * (df['DIF'] - df['DEA'])
+        
+        # 5. BOLL
+        df['BOLL_MID'] = df['close'].rolling(20).mean()
+        df['BOLL_STD'] = df['close'].rolling(20).std()
+        df['BOLL_UP'] = df['BOLL_MID'] + 2 * df['BOLL_STD']
+        df['BOLL_LOW'] = df['BOLL_MID'] - 2 * df['BOLL_STD']
+        df['BOLL_POS'] = (df['close'] - df['BOLL_LOW']) / (df['BOLL_UP'] - df['BOLL_LOW'] + 1e-5)
+
+        # 6. 量比
+        df['Vol_Ratio'] = df['volume'] / (df['volume'].rolling(5).mean() + 1e-5)
+
+        # 预测目标
+        df['Target_Low'] = (df['low'] - df['pre_close']) / df['pre_close'] * 100
+        df['Target_High'] = (df['high'] - df['pre_close']) / df['pre_close'] * 100
+        
+        df.replace([np.inf, -np.inf], np.nan, inplace=True)
+        df.dropna(inplace=True)
+        return df
+
+    @staticmethod
+    def get_latest_summary(df):
+        row = df.iloc[-1]
+        rsi_hist = df['RSI'].tail(60) 
+        rsi_rank = (rsi_hist < row['RSI']).mean() * 100 
+        
+        if row['DIF'] > row['DEA']: macd_status = "金叉(多)"
+        else: macd_status = "死叉(空)"
+        
+        boll_status = f"{row['BOLL_POS']:.2f}"
+        if row['BOLL_POS'] > 1: boll_status += "(超买)"
+        elif row['BOLL_POS'] < 0: boll_status += "(超卖)"
+        
+        summary = (
+            f"【RSI】{row['RSI']:.1f} (历史分位:{rsi_rank:.0f}%)\n"
+            f"【MACD】{macd_status} | DIF:{row['DIF']:.2f}\n"
+            f"【布林带】位置:{boll_status}\n"
+            f"【ATR】{row['ATR_Pct']:.2f}%\n"
+            f"【量比】{row['Vol_Ratio']:.2f}"
+        )
+        return summary
+
+# ================= 3. 双核军师 =================
+class DualAdvisor:
+    def __init__(self):
+        self.ds_client = OpenAI(api_key=Config.DEEPSEEK_API_KEY, base_url=Config.DEEPSEEK_BASE_URL)
+        dashscope.api_key = Config.DASHSCOPE_API_KEY
+        self.last_consult_time = {}
+
+    def can_consult(self, code):
+        last = self.last_consult_time.get(code, 0)
+        return (time.time() - last) > Config.AI_COOLDOWN_SECONDS
+
+    def _safe_parse_json(self, content_str, source="AI"):
         try:
-            spot = ak.stock_zh_a_spot_em()
-            target = spot[spot['代码'] == Config.STOCK_CODE]
+            content_str = re.sub(r'```json|```', '', content_str).strip()
+            data = json.loads(content_str)
             
-            if target.empty:
-                time.sleep(3); continue
-                
-            current_price = float(target.iloc[0]['最新价'])
-            open_price = float(target.iloc[0]['今开'])
-            
-            # 存入历史记录
-            price_history.append(current_price)
-            
-            # --- 核心：计算动态阈值 ---
-            current_threshold = base_threshold * Config.RISK_FACTOR
-            panic_msg = ""
-            
-            if Config.ENABLE_DYNAMIC_ADJUST and len(price_history) >= 2:
-                # 计算最近1分钟的跌速
-                price_1min_ago = price_history[0]
-                drop_speed = (current_price - price_1min_ago) / price_1min_ago * 100
-                
-                # 如果1分钟内跌幅超过恐慌值 (比如 -0.5%)，说明正在砸盘
-                if drop_speed < -Config.PANIC_SENSITIVITY:
-                    # 动态下移阈值：跌得越快，阈值越低
-                    # 比如：原本 -3%，现在瞬间跌了 1%，阈值临时调整为 -3% + (-1%) = -4%
-                    adjustment = drop_speed 
-                    current_threshold += adjustment
-                    panic_msg = f"⚠️ 检测到急跌({drop_speed:.2f}%)，阈值已自动下移至 {current_threshold:.2f}%"
+            def find_val(d, key):
+                if isinstance(d, dict):
+                    if key in d: return d[key]
+                    for v in d.values():
+                        res = find_val(v, key)
+                        if res: return res
+                return None
 
-            # 计算当前累计跌幅
-            drop_from_open = (current_price - open_price) / open_price * 100
+            action = find_val(data, 'action')
+            if not action: action = data.get("decision", "WAIT")
+            action = str(action).upper()
+            if action not in ["EXECUTE", "WAIT"]: action = "WAIT"
             
-            # 打印面板
-            now = datetime.datetime.now().strftime("%H:%M:%S")
-            print(f"\r[{now}] 现价:{current_price} | 跌幅:{drop_from_open:.2f}% | 动态阈值:{current_threshold:.2f}% {panic_msg}", end=" "*10)
+            reason = data.get("reason", "AI未给出理由")
+            if isinstance(reason, dict): reason = str(reason)
             
-            # 触发判断
-            if drop_from_open <= current_threshold:
-                print("\n")
-                full_msg = (f"当前跌幅 {drop_from_open:.2f}% 击穿动态阈值 {current_threshold:.2f}%\n"
-                            f"原始AI预测: {base_threshold:.2f}%\n"
-                            f"{panic_msg}")
-                show_force_alert_window(full_msg, current_price)
-                # 报警后清空历史，防止连续触发
-                price_history.clear()
-                
-            time.sleep(Config.REALTIME_INTERVAL)
+            score = data.get("score", 0)
+            
+            suggested_price = data.get("suggested_price", 0.0)
+            if isinstance(suggested_price, str):
+                nums = re.findall(r"\d+\.?\d*", suggested_price)
+                if nums: suggested_price = float(nums[0])
+                else: suggested_price = 0.0
+            
+            return {
+                "action": action, 
+                "reason": str(reason)[:200], 
+                "score": int(score),
+                "suggested_price": float(suggested_price)
+            }
             
         except Exception as e:
-            print(f"\nRunning... {e}") # 简化报错
-            time.sleep(3)
+            logger.log_system(f"[{source}] 解析失败: {e} | 原文: {content_str}")
+            return {"action": "WAIT", "reason": f"解析异常: {e}", "score": 0, "suggested_price": 0.0}
+
+    def consult_joint_chiefs(self, code, name, curr_price, chg_pct, tech_summary, market_data, target_type, target_price):
+        self.last_consult_time[code] = time.time()
+        direction = "抄底买入" if target_type == 'BUY' else "止盈卖出"
+        
+        prompt = f"""
+        # Role: 资深A股超短线游资操盘手
+        
+        # Task: 紧急交易决策
+        标的：{name} ({code})
+        现价：{curr_price} (涨幅 {chg_pct:.2f}%)
+        量化信号：逼近{direction}位 {target_price:.2f}
+        
+        # Market Context (大盘全景)
+        上证指数(000001)：{market_data['sh']:.2f}%
+        深证成指(399001)：{market_data['sz']:.2f}%
+        创业板指(399006)：{market_data['cy']:.2f}%
+        综合情绪：{market_data['avg']:.2f}%
+        
+        # Technical Indicators (技术面)
+        {tech_summary}
+        
+        # Decision Requirements
+        请基于上述数据，判断该量化信号是否有效。如果不安全，请给出观望建议。
+        
+        # Output Format (JSON ONLY)
+        1. 必须返回扁平JSON，严禁嵌套。
+        2. 字段说明：
+           - "action": "EXECUTE" (坚决执行) 或 "WAIT" (风险大，观望)
+           - "reason": "30字以内中文理由，犀利直接"
+           - "score": 0-100 (信心分数)
+           - "suggested_price": float (你认为最合理的{direction}挂单价格，数字)
+        
+        # Example
+        {{"action": "WAIT", "reason": "大盘情绪冰点，量能背离，建议更低位接回", "score": 40, "suggested_price": {curr_price * 0.98:.2f}}}
+        """
+        
+        logger.log_llm(f" >>> [SEND to {code}] \n{prompt}")
+
+        def call_deepseek():
+            try:
+                res = self.ds_client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format={'type': 'json_object'}, temperature=0.1
+                )
+                raw = res.choices[0].message.content
+                logger.log_llm(f" <<< [DeepSeek Raw] {raw}") 
+                return self._safe_parse_json(raw, "DeepSeek")
+            except Exception as e:
+                return {"action": "WAIT", "reason": f"DS Error: {e}", "score": 0}
+
+        def call_qwen():
+            try:
+                res = dashscope.Generation.call(
+                    model='qwen-turbo',
+                    messages=[{'role': 'user', 'content': prompt}],
+                    result_format='message'
+                )
+                if res.status_code == 200:
+                    raw = res.output.choices[0].message.content
+                    logger.log_llm(f" <<< [Qwen Raw] {raw}")
+                    return self._safe_parse_json(raw, "Qwen")
+                return {"action": "WAIT", "reason": "Qwen拒绝", "score": 0}
+            except Exception as e:
+                return {"action": "WAIT", "reason": f"Qwen Error: {e}", "score": 0}
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            f1 = executor.submit(call_deepseek)
+            f2 = executor.submit(call_qwen)
+            return f1.result(), f2.result()
+
+# ================= 4. 模型融合 =================
+class EnsembleBrain:
+    def __init__(self, code):
+        self.code = code
+        self.scaler = RobustScaler()
+        self.pred_low_pct = 0.0
+        self.pred_high_pct = 0.0
+        self.latest_summary = ""
+
+    def build_transformer(self, input_shape):
+        inputs = layers.Input(shape=input_shape)
+        att = layers.MultiHeadAttention(num_heads=4, key_dim=32)(inputs, inputs)
+        x = layers.Add()([inputs, att])
+        x = layers.LayerNormalization()(x)
+        x = layers.GlobalAveragePooling1D()(x)
+        x = layers.Dense(32, activation="gelu")(x)
+        out_l = layers.Dense(1, name="l")(x)
+        out_h = layers.Dense(1, name="h")(x)
+        model = keras.Model(inputs, [out_l, out_h])
+        model.compile(optimizer='adam', loss=['mse', 'mse'], loss_weights=[0.5, 0.5])
+        return model
+
+    def train(self):
+        try:
+            end = datetime.datetime.now().strftime("%Y%m%d")
+            start = (datetime.datetime.now() - datetime.timedelta(days=400)).strftime("%Y%m%d")
+            df = ak.stock_zh_a_hist(symbol=self.code, period="daily", start_date=start, end_date=end, adjust="qfq")
+            df.rename(columns={"日期":"date","开盘":"open","收盘":"close","最高":"high","最低":"low","成交量":"volume"}, inplace=True)
+            if len(df) < 60: return False
+            df = AlphaFactors.process_data(df)
+            self.latest_summary = AlphaFactors.get_latest_summary(df)
+            
+            feat_cols = ['Bias20', 'ATR_Pct', 'Vol_Ratio', 'RSI', 'MACD', 'BOLL_POS']
+            data_X = self.scaler.fit_transform(df[feat_cols].values)
+            data_y_l = df['Target_Low'].values
+            data_y_h = df['Target_High'].values
+
+            X, yl, yh = [], [], []
+            for i in range(Config.SEQ_LEN, len(data_X)):
+                X.append(data_X[i-Config.SEQ_LEN:i])
+                yl.append(data_y_l[i])
+                yh.append(data_y_h[i])
+            X, yl, yh = np.array(X), np.array(yl), np.array(yh)
+            if len(X) < 10: return False
+
+            tf_model = self.build_transformer((Config.SEQ_LEN, len(feat_cols)))
+            tf_model.fit(X, [yl, yh], batch_size=32, epochs=15, verbose=0)
+            last_seq = data_X[-Config.SEQ_LEN:].reshape(1, Config.SEQ_LEN, len(feat_cols))
+            tf_pred = tf_model.predict(last_seq, verbose=0)
+            tf_low, tf_high = tf_pred[0][0][0], tf_pred[1][0][0]
+
+            X_flat, last_seq_flat = X.reshape(X.shape[0], -1), last_seq.reshape(1, -1)
+            xgb_l = xgb.XGBRegressor(n_estimators=50, max_depth=3, verbosity=0).fit(X_flat, yl)
+            xgb_h = xgb.XGBRegressor(n_estimators=50, max_depth=3, verbosity=0).fit(X_flat, yh)
+            lgb_l = lgb.LGBMRegressor(n_estimators=50, max_depth=3, verbose=-1).fit(X_flat, yl)
+            lgb_h = lgb.LGBMRegressor(n_estimators=50, max_depth=3, verbose=-1).fit(X_flat, yh)
+            cat_l = cb.CatBoostRegressor(iterations=50, depth=3, verbose=0).fit(X_flat, yl)
+            cat_h = cb.CatBoostRegressor(iterations=50, depth=3, verbose=0).fit(X_flat, yh)
+
+            w = Config.WEIGHTS
+            self.pred_low_pct = (tf_low*w['transformer'] + xgb_l.predict(last_seq_flat)[0]*w['xgboost'] + lgb_l.predict(last_seq_flat)[0]*w['lightgbm'] + cat_l.predict(last_seq_flat)[0]*w['catboost'])
+            self.pred_high_pct = (tf_high*w['transformer'] + xgb_h.predict(last_seq_flat)[0]*w['xgboost'] + lgb_h.predict(last_seq_flat)[0]*w['lightgbm'] + cat_h.predict(last_seq_flat)[0]*w['catboost'])
+            
+            if self.pred_low_pct > -0.5: self.pred_low_pct = -1.0
+            if self.pred_high_pct < 0.5: self.pred_high_pct = 1.0
+            return True
+        except Exception as e:
+            logger.log_system(f"训练异常 {self.code}: {e}")
+            return False
+
+# ================= 5. 弹窗 UI =================
+alert_lock = threading.Lock()
+def popup_alert(data):
+    def _show():
+        with alert_lock:
+            if winsound: winsound.Beep(600, 200)
+            root = tk.Tk()
+            is_buy = data['target_type'] == 'BUY'
+            bg_col = '#004d00' if is_buy else '#800000'
+            w, h = 750, 650
+            x, y = (root.winfo_screenwidth()-w)//2, (root.winfo_screenheight()-h)//2
+            root.geometry(f"{w}x{h}+{x}+{y}")
+            root.configure(bg=bg_col)
+            root.attributes('-topmost', True)
+            
+            title = f"🚀 抄底: {data['name']}" if is_buy else f"🛑 逃顶: {data['name']}"
+            tk.Label(root, text=title, font=("黑体", 22, "bold"), bg=bg_col, fg='yellow').pack(pady=10)
+            tk.Label(root, text=f"现价: {data['curr']:.2f} (涨幅:{data['pct']:.2f}%)", font=("Arial", 28, "bold"), bg=bg_col, fg='white').pack(pady=5)
+            tk.Label(root, text=f"🎯 预测目标: ¥{data['target_price']:.2f}", font=("微软雅黑", 16), bg=bg_col, fg='#DDDDDD').pack(pady=5)
+            
+            tech_frame = tk.LabelFrame(root, text="📊 关键指标", font=("微软雅黑", 10), bg=bg_col, fg='white')
+            tech_frame.pack(fill='x', padx=20, pady=5)
+            tk.Label(tech_frame, text=data['tech_summary'], font=("Consolas", 10), bg=bg_col, fg='#AAFFAA', justify='left').pack(padx=10, pady=5)
+            
+            ai_frame = tk.LabelFrame(root, text="🧠 双核军师建议", font=("微软雅黑", 12), bg=bg_col, fg='yellow')
+            ai_frame.pack(fill='both', expand=True, padx=20, pady=10)
+            
+            ds, qw = data['ds_advice'], data['qw_advice']
+            
+            # 显示建议价
+            ds_pr = ds.get('suggested_price', 0)
+            qw_pr = qw.get('suggested_price', 0)
+            ds_pr_str = f" | 挂单: ¥{ds_pr:.2f}" if ds_pr > 0 else ""
+            qw_pr_str = f" | 挂单: ¥{qw_pr:.2f}" if qw_pr > 0 else ""
+            
+            tk.Label(ai_frame, text=f"[DeepSeek] {ds.get('action','WAIT')} (信心:{ds.get('score',0)}){ds_pr_str}\nReason: {ds.get('reason','无')}", 
+                     font=("微软雅黑", 11), bg=bg_col, fg='cyan', wraplength=650, justify='left').pack(anchor='w', padx=10, pady=5)
+            
+            tk.Label(ai_frame, text=f"--------------------------------", bg=bg_col, fg='#555555').pack()
+            
+            tk.Label(ai_frame, text=f"[通义千问] {qw.get('action','WAIT')} (信心:{qw.get('score',0)}){qw_pr_str}\nReason: {qw.get('reason','无')}", 
+                     font=("微软雅黑", 11), bg=bg_col, fg='orange', wraplength=650, justify='left').pack(anchor='w', padx=10, pady=5)
+            
+            tk.Button(root, text="关闭", font=("微软雅黑", 12), command=root.destroy).pack(pady=10)
+            root.mainloop()
+    threading.Thread(target=_show, daemon=True).start()
+
+# ================= 6. 监控系统 =================
+class MonitorApp:
+    def __init__(self):
+        self.brains = {}
+        self.advisor = DualAdvisor()
+        self.market_data = {'sh':0.0, 'sz':0.0, 'cy':0.0, 'avg':0.0}
+        
+    def init_models(self):
+        print(f"\n⚡ 启动多模型训练 (日志已开启: ./logs/)...")
+        with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+            futures = [executor.submit(self._train_one, code) for code in Config.STOCK_LIST]
+            cnt = 0
+            for f in futures:
+                code, brain = f.result()
+                if brain:
+                    self.brains[code] = brain
+                    cnt += 1
+                    sys.stdout.write(f"\r✅ {code} 就绪")
+                    sys.stdout.flush()
+        print(f"\n🎉 训练完成: {cnt}/{len(Config.STOCK_LIST)}")
+
+    def _train_one(self, code):
+        brain = EnsembleBrain(code)
+        if brain.train(): return code, brain
+        return code, None
+
+    # 【关键修复】使用实时行情接口 Spot
+    def get_market_data(self):
+            """
+            【修复版】使用新浪实时接口获取三大指数
+            接口: stock_zh_index_spot_sina
+            优点: 一次性返回所有指数，包含实时涨跌幅
+            """
+            try:
+                # 获取所有指数实时行情
+                df = ak.stock_zh_index_spot_sina()
+                
+                # 初始化默认值
+                sh, sz, cy = 0.0, 0.0, 0.0
+                
+                # 1. 上证指数 (代码: sh000001)
+                row_sh = df[df['代码'] == 'sh000001']
+                if not row_sh.empty:
+                    sh = float(row_sh.iloc[0]['涨跌幅'])
+                    
+                # 2. 深证成指 (代码: sz399001)
+                row_sz = df[df['代码'] == 'sz399001']
+                if not row_sz.empty:
+                    sz = float(row_sz.iloc[0]['涨跌幅'])
+                    
+                # 3. 创业板指 (代码: sz399006)
+                row_cy = df[df['代码'] == 'sz399006']
+                if not row_cy.empty:
+                    cy = float(row_cy.iloc[0]['涨跌幅'])
+                
+                # 计算平均情绪
+                avg = (sh + sz + cy) / 3.0
+                
+                # 调试日志：确保数据真的获取到了 [Image of console log showing correct market percentages]
+                # logger.log_market(f"Market Check: SH={sh}% SZ={sz}% CY={cy}%")
+                
+                return {'sh': sh, 'sz': sz, 'cy': cy, 'avg': avg}
+
+            except Exception as e:
+                logger.log_system(f"大盘数据获取失败(Sina): {e}")
+                # 发生错误时尝试用兜底策略，或者返回0
+                return {'sh':0.0, 'sz':0.0, 'cy':0.0, 'avg':0.0}
+
+    def run(self):
+        print("📡 实时监控启动...")
+        while True:
+            try:
+                # 1. 获取全维度大盘
+                self.market_data = self.get_market_data()
+                
+                # 2. 获取全市场个股实时行情
+                df_real = ak.stock_zh_a_spot_em()
+                
+                for code, brain in self.brains.items():
+                    row = df_real[df_real['代码'] == code]
+                    if row.empty: continue
+                    
+                    name = row['名称'].values[0]
+                    curr = float(row['最新价'].values[0])
+                    pre_close = float(row['昨收'].values[0])
+                    pct = (curr - pre_close) / pre_close * 100
+                    
+                    # 联动大盘Beta
+                    beta_fix = self.market_data['avg'] * Config.MARKET_BETA
+                    target_low_pct = brain.pred_low_pct + (beta_fix if beta_fix < 0 else 0)
+                    target_high_pct = brain.pred_high_pct + (beta_fix if beta_fix > 0 else 0)
+                    
+                    price_buy = pre_close * (1 + target_low_pct / 100)
+                    price_sell = pre_close * (1 + target_high_pct / 100)
+                    
+                    buffer = Config.ALERT_BUFFER_PCT / 100
+                    is_buy = curr <= price_buy * (1 + buffer)
+                    is_sell = curr >= price_sell * (1 - buffer)
+                    
+                    if (is_buy or is_sell) and self.advisor.can_consult(code):
+                        target_type = 'BUY' if is_buy else 'SELL'
+                        target_price = price_buy if is_buy else price_sell
+                        print(f"\n🔍 [{name}] 触发 {target_type}, 咨询军师...")
+                        
+                        res_ds, res_qw = self.advisor.consult_joint_chiefs(
+                            code, name, curr, pct, brain.latest_summary, 
+                            self.market_data, target_type, target_price
+                        )
+                        
+                        score = res_ds.get('score',0) + res_qw.get('score',0)
+                        any_exec = (res_ds.get('action')=='EXECUTE') or (res_qw.get('action')=='EXECUTE')
+                        hard_trig = (curr <= price_buy) if is_buy else (curr >= price_sell)
+                        
+                        if any_exec or score > 130 or hard_trig:
+                            popup_alert({
+                                'code': code, 'name': name, 'curr': curr, 'pct': pct,
+                                'target_price': target_price, 'target_type': target_type,
+                                'tech_summary': brain.latest_summary,
+                                'ds_advice': res_ds, 'qw_advice': res_qw
+                            })
+                        else:
+                            print(f"📉 观望: DS信心{res_ds.get('score')} / QW信心{res_qw.get('score')}")
+
+                sys.stdout.write(f"\r[{datetime.datetime.now().strftime('%H:%M:%S')}] SH:{self.market_data['sh']:.2f}% | AVG:{self.market_data['avg']:.2f}% | Monitoring...")
+                sys.stdout.flush()
+                time.sleep(Config.REALTIME_INTERVAL)
+                
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                logger.log_system(f"主循环: {e}")
+                time.sleep(3)
 
 if __name__ == "__main__":
-    run_sniper()
+    if "sk-" not in Config.DEEPSEEK_API_KEY:
+        print("❌ 错误: 请填写 API Key")
+    else:
+        app = MonitorApp()
+        app.init_models()
+        app.run()
