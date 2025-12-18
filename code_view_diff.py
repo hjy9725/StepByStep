@@ -35,24 +35,25 @@ try:
 except ImportError:
     winsound = None
 
-# ================= 0. 日志系统 (LogSystem) =================
+# ================= 0. 日志系统 =================
 class LogSystem:
     def __init__(self):
         self.today_str = datetime.datetime.now().strftime("%Y-%m-%d")
         self.base_dir = os.path.join(os.getcwd(), "logs", self.today_str)
         if not os.path.exists(self.base_dir): os.makedirs(self.base_dir)
-        self.sys_logger = self._get_logger("system", "system.log")
-        self.mkt_logger = self._get_logger("market", "market_data.log")
-        self.pred_logger = self._get_logger("prediction", "model_pred.log")
-        self.llm_logger = self._get_logger("llm", "llm_dialog.log")
+        self.simple_fmt = logging.Formatter('%(asctime)s - %(message)s')
+        self.detail_fmt = logging.Formatter('%(asctime)s %(message)s') 
+        self.sys_logger = self._get_logger("system", "system.log", self.simple_fmt)
+        self.mkt_logger = self._get_logger("market", "market_data.log", self.detail_fmt)
+        self.pred_logger = self._get_logger("prediction", "model_pred.log", self.simple_fmt)
+        self.llm_logger = self._get_logger("llm", "llm_dialog.log", self.simple_fmt)
 
-    def _get_logger(self, name, filename):
+    def _get_logger(self, name, filename, formatter):
         logger = logging.getLogger(name)
         logger.setLevel(logging.INFO)
         if not logger.handlers:
             file_path = os.path.join(self.base_dir, filename)
-            handler = RotatingFileHandler(file_path, maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
-            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            handler = RotatingFileHandler(file_path, maxBytes=20*1024*1024, backupCount=10, encoding='utf-8')
             handler.setFormatter(formatter)
             logger.addHandler(handler)
         return logger
@@ -64,9 +65,9 @@ class LogSystem:
 
 logger = LogSystem()
 
-# ================= 1. 配置中心 (请在此处填Key) =================
+# ================= 1. 配置中心 =================
 class Config:
-    # ⚠️⚠️⚠️ 在这里填入你的 Key ⚠️⚠️⚠️
+    # ⚠️⚠️⚠️ 请填入 API Key ⚠️⚠️⚠️
     # DeepSeek Key
     DEEPSEEK_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxx" 
     DEEPSEEK_BASE_URL = "https://api.deepseek.com"
@@ -112,63 +113,78 @@ class Config:
     ]
     STOCK_LIST = list(set([x for x in STOCK_LIST if x.isdigit()]))
 
-    # 权重配置
     WEIGHTS = {'transformer': 0.4, 'xgboost': 0.2, 'lightgbm': 0.2, 'catboost': 0.2}
-    
-    # 策略参数
     SEQ_LEN = 30          
     EPOCHS = 20           
     BATCH_SIZE = 32       
-    ALERT_BUFFER_PCT = 1.5   # 价格逼近缓冲带
-    MARKET_BETA = 1.2        # 大盘联动系数
-    REALTIME_INTERVAL = 5    # 轮询间隔(秒)
-    AI_COOLDOWN_SECONDS = 300 # AI 冷却时间
+    ALERT_BUFFER_PCT = 1.5 
+    MARKET_BETA = 1.2 
+    REALTIME_INTERVAL = 5 
+    AI_COOLDOWN_SECONDS = 300 
 
 # ================= 2. 特征工程 =================
 class AlphaFactors:
     @staticmethod
-    def process_data(df):
+    def process_data(df, code="未知"):
         df = df.copy()
+        
+        # 【修复】增加对日期列名的兼容性检查
+        date_col = 'date' if 'date' in df.columns else '日期'
+        if date_col in df.columns:
+            last_date = df.iloc[-1][date_col]
+            logger.log_market(f"[{code}] 数据源最新日期: {last_date}")
+        else:
+            logger.log_market(f"[{code}] 警告: 未找到日期列")
+
         cols = ['open', 'close', 'high', 'low', 'volume']
+        # 确保列存在，防止报错
+        for c in cols:
+            if c not in df.columns: return pd.DataFrame() # 缺列直接返回空
+            
         df[cols] = df[cols].apply(pd.to_numeric, errors='coerce')
         df['pre_close'] = df['close'].shift(1)
         df.dropna(inplace=True)
         
-        # 1. 均线乖离
+        # --- 指标计算 ---
         df['MA20'] = df['close'].rolling(20).mean()
         df['Bias20'] = (df['close'] - df['MA20']) / df['MA20'] * 100
         
-        # 2. 真实波幅 ATR
         high_low = df['high'] - df['low']
         tr = np.maximum(high_low, np.abs(df['high'] - df['pre_close']))
         tr = np.maximum(tr, np.abs(df['low'] - df['pre_close']))
         df['ATR'] = tr.rolling(14).mean()
         df['ATR_Pct'] = df['ATR'] / df['pre_close'] * 100 
         
-        # 3. RSI
         delta = df['close'].diff()
         gain = (delta.where(delta > 0, 0)).rolling(14).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
         df['RSI'] = 100 - (100 / (1 + gain/(loss+1e-5)))
         
-        # 4. MACD
         exp12 = df['close'].ewm(span=12, adjust=False).mean()
         exp26 = df['close'].ewm(span=26, adjust=False).mean()
         df['DIF'] = exp12 - exp26
         df['DEA'] = df['DIF'].ewm(span=9, adjust=False).mean()
         df['MACD'] = 2 * (df['DIF'] - df['DEA'])
         
-        # 5. BOLL
         df['BOLL_MID'] = df['close'].rolling(20).mean()
         df['BOLL_STD'] = df['close'].rolling(20).std()
         df['BOLL_UP'] = df['BOLL_MID'] + 2 * df['BOLL_STD']
         df['BOLL_LOW'] = df['BOLL_MID'] - 2 * df['BOLL_STD']
         df['BOLL_POS'] = (df['close'] - df['BOLL_LOW']) / (df['BOLL_UP'] - df['BOLL_LOW'] + 1e-5)
 
-        # 6. 量比
         df['Vol_Ratio'] = df['volume'] / (df['volume'].rolling(5).mean() + 1e-5)
 
-        # 预测目标
+        # 记录计算结果
+        last = df.iloc[-1]
+        log_msg = (
+            f"[{code}] 指标验算:\n"
+            f"  > 收盘: {last['close']:.2f}\n"
+            f"  > RSI: {last['RSI']:.2f}\n"
+            f"  > MACD: DIF={last['DIF']:.3f}, DEA={last['DEA']:.3f}\n"
+            f"  > BOLL: UP={last['BOLL_UP']:.2f}, LOW={last['BOLL_LOW']:.2f}\n"
+        )
+        logger.log_market(log_msg)
+
         df['Target_Low'] = (df['low'] - df['pre_close']) / df['pre_close'] * 100
         df['Target_High'] = (df['high'] - df['pre_close']) / df['pre_close'] * 100
         
@@ -262,9 +278,9 @@ class DualAdvisor:
         量化信号：逼近{direction}位 {target_price:.2f}
         
         # Market Context (大盘全景)
-        上证指数(000001)：{market_data['sh']:.2f}%
-        深证成指(399001)：{market_data['sz']:.2f}%
-        创业板指(399006)：{market_data['cy']:.2f}%
+        上证指数(sh000001)：{market_data['sh']:.2f}%
+        深证成指(sz399001)：{market_data['sz']:.2f}%
+        创业板指(sz399006)：{market_data['cy']:.2f}%
         综合情绪：{market_data['avg']:.2f}%
         
         # Technical Indicators (技术面)
@@ -321,6 +337,7 @@ class DualAdvisor:
             return f1.result(), f2.result()
 
 # ================= 4. 模型融合 =================
+# ================= 4. 模型融合 =================
 class EnsembleBrain:
     def __init__(self, code):
         self.code = code
@@ -346,10 +363,44 @@ class EnsembleBrain:
         try:
             end = datetime.datetime.now().strftime("%Y%m%d")
             start = (datetime.datetime.now() - datetime.timedelta(days=400)).strftime("%Y%m%d")
+            
+            # 获取数据
             df = ak.stock_zh_a_hist(symbol=self.code, period="daily", start_date=start, end_date=end, adjust="qfq")
-            df.rename(columns={"日期":"date","开盘":"open","收盘":"close","最高":"high","最低":"low","成交量":"volume"}, inplace=True)
+            
+            if df is None or df.empty:
+                # logger.log_system(f"[{self.code}] 获取数据为空") # 可选日志
+                return False
+
+            # 【修复】统一列名重命名，增强鲁棒性
+            # 1. 先打印原始列名，方便调试 (可选)
+            # logger.log_market(f"[{self.code}] 原始列名: {df.columns.tolist()}")
+
+            # 2. 定义映射关系，覆盖中文和英文情况
+            rename_map = {
+                "日期": "date", "date": "date",
+                "开盘": "open", "open": "open",
+                "收盘": "close", "close": "close",
+                "最高": "high", "high": "high",
+                "最低": "low", "low": "low",
+                "成交量": "volume", "volume": "volume"
+            }
+            df.rename(columns=rename_map, inplace=True)
+
+            # 3. 检查关键列是否存在
+            required_cols = ['date', 'open', 'close', 'high', 'low', 'volume']
+            missing_cols = [c for c in required_cols if c not in df.columns]
+            if missing_cols:
+                logger.log_system(f"[{self.code}] 缺失关键列: {missing_cols}，跳过训练")
+                return False
+            
             if len(df) < 60: return False
-            df = AlphaFactors.process_data(df)
+            
+            # 【日志记录】验证数据源是否包含今日数据
+            logger.log_market(f"[{self.code}] 训练数据最后日期: {df.iloc[-1]['date']}")
+
+            df = AlphaFactors.process_data(df, self.code)
+            if df.empty: return False 
+            
             self.latest_summary = AlphaFactors.get_latest_summary(df)
             
             feat_cols = ['Bias20', 'ATR_Pct', 'Vol_Ratio', 'RSI', 'MACD', 'BOLL_POS']
@@ -365,6 +416,7 @@ class EnsembleBrain:
             X, yl, yh = np.array(X), np.array(yl), np.array(yh)
             if len(X) < 10: return False
 
+            # 模型训练
             tf_model = self.build_transformer((Config.SEQ_LEN, len(feat_cols)))
             tf_model.fit(X, [yl, yh], batch_size=32, epochs=15, verbose=0)
             last_seq = data_X[-Config.SEQ_LEN:].reshape(1, Config.SEQ_LEN, len(feat_cols))
@@ -383,11 +435,15 @@ class EnsembleBrain:
             self.pred_low_pct = (tf_low*w['transformer'] + xgb_l.predict(last_seq_flat)[0]*w['xgboost'] + lgb_l.predict(last_seq_flat)[0]*w['lightgbm'] + cat_l.predict(last_seq_flat)[0]*w['catboost'])
             self.pred_high_pct = (tf_high*w['transformer'] + xgb_h.predict(last_seq_flat)[0]*w['xgboost'] + lgb_h.predict(last_seq_flat)[0]*w['lightgbm'] + cat_h.predict(last_seq_flat)[0]*w['catboost'])
             
+            logger.log_pred(f"[{self.code}] 原始预测: Low={self.pred_low_pct:.2f}% High={self.pred_high_pct:.2f}%")
+
             if self.pred_low_pct > -0.5: self.pred_low_pct = -1.0
             if self.pred_high_pct < 0.5: self.pred_high_pct = 1.0
             return True
         except Exception as e:
-            logger.log_system(f"训练异常 {self.code}: {e}")
+            # 打印更详细的错误堆栈
+            import traceback
+            logger.log_system(f"训练异常 {self.code}: {e}\n{traceback.format_exc()}")
             return False
 
 # ================= 5. 弹窗 UI =================
@@ -419,7 +475,6 @@ def popup_alert(data):
             
             ds, qw = data['ds_advice'], data['qw_advice']
             
-            # 显示建议价
             ds_pr = ds.get('suggested_price', 0)
             qw_pr = qw.get('suggested_price', 0)
             ds_pr_str = f" | 挂单: ¥{ds_pr:.2f}" if ds_pr > 0 else ""
@@ -463,56 +518,33 @@ class MonitorApp:
         if brain.train(): return code, brain
         return code, None
 
-    # 【关键修复】使用实时行情接口 Spot
     def get_market_data(self):
-            """
-            【修复版】使用新浪实时接口获取三大指数
-            接口: stock_zh_index_spot_sina
-            优点: 一次性返回所有指数，包含实时涨跌幅
-            """
-            try:
-                # 获取所有指数实时行情
-                df = ak.stock_zh_index_spot_sina()
+        try:
+            df = ak.stock_zh_index_spot_sina()
+            sh, sz, cy = 0.0, 0.0, 0.0
+            
+            row_sh = df[df['代码'] == 'sh000001']
+            if not row_sh.empty: sh = float(row_sh.iloc[0]['涨跌幅'])
                 
-                # 初始化默认值
-                sh, sz, cy = 0.0, 0.0, 0.0
+            row_sz = df[df['代码'] == 'sz399001']
+            if not row_sz.empty: sz = float(row_sz.iloc[0]['涨跌幅'])
                 
-                # 1. 上证指数 (代码: sh000001)
-                row_sh = df[df['代码'] == 'sh000001']
-                if not row_sh.empty:
-                    sh = float(row_sh.iloc[0]['涨跌幅'])
-                    
-                # 2. 深证成指 (代码: sz399001)
-                row_sz = df[df['代码'] == 'sz399001']
-                if not row_sz.empty:
-                    sz = float(row_sz.iloc[0]['涨跌幅'])
-                    
-                # 3. 创业板指 (代码: sz399006)
-                row_cy = df[df['代码'] == 'sz399006']
-                if not row_cy.empty:
-                    cy = float(row_cy.iloc[0]['涨跌幅'])
-                
-                # 计算平均情绪
-                avg = (sh + sz + cy) / 3.0
-                
-                # 调试日志：确保数据真的获取到了 [Image of console log showing correct market percentages]
-                # logger.log_market(f"Market Check: SH={sh}% SZ={sz}% CY={cy}%")
-                
-                return {'sh': sh, 'sz': sz, 'cy': cy, 'avg': avg}
+            row_cy = df[df['代码'] == 'sz399006']
+            if not row_cy.empty: cy = float(row_cy.iloc[0]['涨跌幅'])
+            
+            avg = (sh + sz + cy) / 3.0
+            logger.log_market(f"Market Sentiment: SH={sh}% SZ={sz}% CY={cy}% AVG={avg}%")
+            return {'sh': sh, 'sz': sz, 'cy': cy, 'avg': avg}
 
-            except Exception as e:
-                logger.log_system(f"大盘数据获取失败(Sina): {e}")
-                # 发生错误时尝试用兜底策略，或者返回0
-                return {'sh':0.0, 'sz':0.0, 'cy':0.0, 'avg':0.0}
+        except Exception as e:
+            logger.log_system(f"大盘数据异常: {e}")
+            return {'sh':0.0, 'sz':0.0, 'cy':0.0, 'avg':0.0}
 
     def run(self):
         print("📡 实时监控启动...")
         while True:
             try:
-                # 1. 获取全维度大盘
                 self.market_data = self.get_market_data()
-                
-                # 2. 获取全市场个股实时行情
                 df_real = ak.stock_zh_a_spot_em()
                 
                 for code, brain in self.brains.items():
@@ -524,7 +556,6 @@ class MonitorApp:
                     pre_close = float(row['昨收'].values[0])
                     pct = (curr - pre_close) / pre_close * 100
                     
-                    # 联动大盘Beta
                     beta_fix = self.market_data['avg'] * Config.MARKET_BETA
                     target_low_pct = brain.pred_low_pct + (beta_fix if beta_fix < 0 else 0)
                     target_high_pct = brain.pred_high_pct + (beta_fix if beta_fix > 0 else 0)
@@ -541,6 +572,8 @@ class MonitorApp:
                         target_price = price_buy if is_buy else price_sell
                         print(f"\n🔍 [{name}] 触发 {target_type}, 咨询军师...")
                         
+                        logger.log_system(f"触发咨询: {name}({code}) {target_type} Price:{curr} Target:{target_price}")
+
                         res_ds, res_qw = self.advisor.consult_joint_chiefs(
                             code, name, curr, pct, brain.latest_summary, 
                             self.market_data, target_type, target_price
