@@ -1,0 +1,215 @@
+<div id="classifyBox" class="classify">
+  <span id="classifyText"></span><span>：</span>
+</div>
+<div id="questionBox" class="text">{{Question}}</div>
+
+{{#Options}}
+<ol id="optionBox" style="list-style-type: upper-alpha; padding-left: 1.5em; margin-left: 10px;"></ol>
+
+<div id="optionBuffer" style="opacity: 0; position: absolute; z-index: -100; height: 0; overflow: hidden; pointer-events: none;">{{Options}}</div>
+<div id="answerBuffer" style="display:none">{{text:Answer}}</div>
+
+<hr id="hrLine" style="display:none">
+<div id="answerBox" style="display:none">
+    <b>答案：</b><span id="newAns" style="font-weight:bold; color:green;"></span>
+    <span style="font-size:0.8em; color:#666;">（对应原卷 <span id="origAns"></span>）</span>
+</div>
+<div id="remarkBox" style="display:none; margin-top:10px; padding:10px; background-color:#1F1F1F; border-radius:5px;">
+    <b>解析：</b>{{Remark}}
+</div>
+
+<button id="submitButton" style="display:none;">提交</button>
+{{/Options}}
+
+<style>
+  /* 移动端优化样式 */
+  #optionBox li {
+    margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    line-height: 1.5;
+  }
+  /* 增大文字可读性 */
+  #optionBox label {
+    display: inline-block;
+    margin-left: 5px;
+    vertical-align: top;
+  }
+  #optionBox input {
+    vertical-align: top; 
+    margin-top: 4px;
+    /* 禁用交互，因为这是背面显示结果 */
+    pointer-events: none; 
+  }
+  
+  /* 结果高亮样式 */
+  .VeryRight { background-color: #dff0d8; border: 1px solid #d6e9c6; color: #3c763d; font-weight: bold; }
+  .RightNotSelected { background-color: #fcf8e3; border: 1px solid #faebcc; color: #8a6d3b; text-decoration: underline; font-weight: bold; }
+  .WrongSelected { background-color: #f2dede; border: 1px solid #ebccd1; color: #a94442; }
+</style>
+
+<script>
+(function() {
+"use strict";
+
+// --- 随机数工具 ---
+function mulberry32(seed) {
+  return function() {
+    seed += 0x6D2B79F5;
+    let t = seed;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+
+const getRandomSeed = () => {
+  const timestamp = Date.now();
+  const mathRandom = Math.floor(Math.random() * 0xFFFFFFFF);
+  const performance = window.performance?.now() || 0;
+  return (timestamp ^ mathRandom ^ Math.floor(performance)) >>> 0;
+};
+
+function shuffleArray(arr, rng) {
+  const newArr = [...arr];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+// 初始化
+const seed = getRandomSeed();
+const rng = mulberry32(seed);
+
+// 元素获取
+const optionBox = document.getElementById("optionBox");
+const optionBuffer = document.getElementById("optionBuffer");
+const answerBuffer = document.getElementById("answerBuffer");
+const remarkBox = document.getElementById("remarkBox");
+const hrLine = document.getElementById("hrLine");
+const newAns = document.getElementById("newAns");
+const origAns = document.getElementById("origAns");
+const classifyText = document.getElementById("classifyText");
+const submitButton = document.getElementById("submitButton");
+
+const delimiter = "@---#*#*#*#*#*---@";
+
+// 修复3：兼容性更强的文本提取逻辑
+if(optionBuffer.children.length > 0) {
+    for(let i = 0; i < optionBuffer.children.length; ++i) {
+        const span = document.createElement("span");
+        span.innerText = delimiter;
+        const child = optionBuffer.children[i];
+        if(child.firstChild) {
+            child.insertBefore(span, child.firstChild);
+        } else {
+            child.appendChild(span);
+        }
+    }
+} else {
+    // 纯文本后备处理
+    optionBuffer.innerHTML = optionBuffer.innerHTML.replace(/<br\s*\/?>/gi, delimiter);
+}
+
+// 使用 textContent 确保手机端即使在不可见状态下也能读取
+const bufferText = optionBuffer.textContent || optionBuffer.innerText;
+const rawOptionList = bufferText.split(delimiter).filter(item => item && item.trim() !== "");
+
+const optionExp = /^\s*([a-zA-Z]\s*[ \.、]\s*)?(.+?)\s*$/;
+const alphabetExp = /^[a-zA-Z]$/;
+
+const optionWithMarks = rawOptionList.map((rawOption, index) => {
+  const cleanContent = rawOption.trim();
+  const match = optionExp.exec(cleanContent);
+  const content = match?.[2] || cleanContent;
+  const originalMark = String.fromCharCode(65 + index);
+  return { content, originalMark };
+});
+
+if(optionWithMarks.length === 0) {
+    optionBox.innerHTML = "<div style='color:red;'>错误：无法读取选项内容，请检查模板。</div>";
+    return;
+}
+
+// 洗牌
+const shuffledOptionWithMarks = shuffleArray(optionWithMarks, rng);
+
+// 处理答案
+const rawAnswer = answerBuffer.innerText.trim();
+const answerList = Array.from(rawAnswer)
+  .filter(x => alphabetExp.test(x))
+  .map(x => x.trim().toUpperCase());
+
+origAns.innerText = answerList.join("、");
+
+const newAnswerList = answerList.map(ansMark => {
+  const targetOption = shuffledOptionWithMarks.find(item => item.originalMark === ansMark);
+  if (!targetOption) return "";
+  const newMarkIndex = shuffledOptionWithMarks.indexOf(targetOption);
+  return String.fromCharCode(65 + newMarkIndex);
+}).filter(mark => mark);
+
+newAns.innerText = newAnswerList.join("、") || "无";
+
+// 渲染
+const isSingle = answerList.length === 1;
+classifyText.innerText = isSingle ? "单选题" : "多选题";
+
+// 注意：在背面模板中，chosenList 默认为空，因为JS状态不保留
+// 除非你有额外的 persistence.js 脚本。
+// 这里我们主要展示正确答案。
+const chosenList = new Array(shuffledOptionWithMarks.length).fill(false);
+const liList = [];
+
+shuffledOptionWithMarks.forEach(({ content }, index) => {
+  const checkboxId = `checkbox-${index}`;
+  const li = document.createElement("li");
+  liList.push(li);
+  
+  const check = document.createElement("input");
+  check.type = isSingle ? "radio" : "checkbox";
+  check.id = checkboxId;
+  check.disabled = true; // 背面禁止修改
+  
+  const label = document.createElement("label");
+  label.htmlFor = checkboxId;
+  label.innerHTML = content;
+  
+  li.appendChild(check);
+  li.appendChild(label);
+  optionBox.appendChild(li);
+});
+
+// 提交验证逻辑
+function onSubmit() {
+  shuffledOptionWithMarks.forEach(({ originalMark }, index) => {
+    const isChosen = chosenList[index]; // 默认为 false
+    const li = liList[index];
+    const isAnswer = answerList.includes(originalMark);
+    
+    // 逻辑：
+    // 如果是答案且未选中 -> RightNotSelected (显示为黄色/下划线，表示这是正确答案)
+    // 如果是答案且选中 -> VeryRight (绿色)
+    // 如果不是答案且选中 -> WrongSelected (红色)
+    
+    if (isAnswer) {
+        li.classList.add(isChosen ? "VeryRight" : "RightNotSelected");
+        // 勾选正确答案的框，视觉提示更明显
+        li.querySelector("input").checked = true;
+    } else if (isChosen) {
+        li.classList.add("WrongSelected");
+    }
+  });
+  
+  hrLine.style.display = "block";
+  answerBox.style.display = "block";
+  remarkBox.style.display = "block";
+}
+
+// 自动执行
+onSubmit();
+
+})();
+</script>
