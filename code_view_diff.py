@@ -1,3 +1,4 @@
+为什么全是显示买入，有的明显是高于均线很多了，需要卖出了，因为代码不一定连接了我的持仓情况，所以有可能不知道我到底有没有底仓，但是这个不是代码需要考虑的问题，只需要考虑低于均线一定情况提示买入，高于均线一定情况提示卖出。改一下，返回完整代码。
 import akshare as ak
 import pandas as pd
 import numpy as np
@@ -61,18 +62,77 @@ logger = LogSystem()
 # ================= 1. 配置中心 =================
 class Config:
     # ⚠️⚠️⚠️ 请在此处填入你的 API Key ⚠️⚠️⚠️
-    DEEPSEEK_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxx" 
+    DEEPSEEK_API_KEY = "sk-" 
     DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-    DASHSCOPE_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxx" 
+    DASHSCOPE_API_KEY = "sk-" 
     
     # --- 🎯 目标股票池 ---
     STOCK_LIST = [
-        "601069", "600988", "001337", "600547", 
-        "600879", "002716", "600343", "000858"
-    ]
+#     {
+#   "有色金属板块": 
+    "001337", #四川黄金,
+    "002716", #湖南白银,
+    "603799", #华友钴业,
+    "600362", #江西铜业,
+    "002460", #赣锋锂业,
+    "600961", #株冶集团,
+    "000657", #中钨高新,
+    "300618", #寒锐钴业,
+    "600547", #山东黄金,
+    "600988", #赤峰黄金,
+    "601069", #西部黄金,
+    "000630", #铜陵有色,
+    "002240", #盛新锂能,
+    "000831", #中国稀土,
+    "601212", #白银有色,
+    "600489", #中金黄金,
+    "601899", #紫金矿业,
+    "000426" #兴业银锡
+#   ],
+#   "科技板块": [
+    "601208", #东材科技,
+    "002759", #天际股份,
+    "000681", #视觉中国,
+    "002121", #科陆电子,
+    "002837", #英维克,
+    "002518", #科士达,
+    "002407", #多氟多,
+    "002466", #天齐锂业,
+    "603090", #宏盛股份,
+    "002409", #雅克科技,
+    "002709", #天赐材料,
+    "000409", #云鼎科技,
+    "600183", #生益科技,
+    "002050", #三花智控,
+    "002463", #沪电股份,
+    "600089", #特变电工,
+    "601138", #工业富联,
+    "603986", #兆易创新,
+    "600895", #张江高科,
+    "002851", #麦格米特,
+    "000603", #盛达资源,
+    "600730", #中国高科,
+    "603119", #浙江荣泰,
+    "605598", #上海港湾,
+    "002027", #分众传媒,
+    "002261", #拓维信息,
+    "002792", #通宇通讯,
+    "002202" #金风科技
+#   ],
+#   "航天军工板块": [
+    "600501", #航天晨光,
+    "600855", #航天长峰,
+    "000901", #航天科技,
+    "600343", #航天动力,
+    "600877", #电科芯片,
+    "600879", #航天电子,
+    "000547", #航天发展,
+    "002255" #海陆重工
+  ]
+    # 确保只保留数字代码
     
     # --- ⚙️ 策略参数 ---
-    VWAP_THRESHOLD_PCT = 2.0  # 乖离率阈值 (黄线战法核心)
+    VWAP_THRESHOLD_PCT = 2.0  # 乖离率阈值
     REALTIME_INTERVAL = 3     # 刷新频率
     AI_COOLDOWN_SECONDS = 300 # AI冷却时间
     SEQ_LEN = 30              # 回看天数
@@ -137,7 +197,7 @@ class AlphaFactors:
             df['BOLL_LOW'] = df['BOLL_MID'] - 2 * df['BOLL_STD']
             df['BOLL_POS'] = (df['close'] - df['BOLL_LOW']) / (df['BOLL_UP'] - df['BOLL_LOW'] + 1e-9)
 
-            # Vol Ratio (这里只是历史计算，实时计算在MonitorApp)
+            # Vol Ratio (Simple history calc)
             df['Vol_MA5'] = df['volume'].rolling(5).mean()
             df['Vol_Ratio'] = df['volume'] / (df['Vol_MA5'] + 1e-9)
 
@@ -260,7 +320,7 @@ class EnsembleBrain:
         self.code = code
         self.scaler = RobustScaler()
         self.latest_summary = ""
-        self.vol_ma5 = 0.0 # 备用均量
+        self.vol_ma5 = 0.0 # 备用手动均量
 
     def build_transformer(self, input_shape):
         inputs = layers.Input(shape=input_shape)
@@ -269,7 +329,6 @@ class EnsembleBrain:
         out_l = layers.Dense(1, name="l")(x)
         out_h = layers.Dense(1, name="h")(x)
         model = keras.Model(inputs, [out_l, out_h])
-        # 修复Loss配置
         model.compile(optimizer='adam', loss=['mse', 'mse'], loss_weights=[0.5, 0.5])
         return model
 
@@ -286,7 +345,7 @@ class EnsembleBrain:
             
             self.latest_summary = AlphaFactors.get_latest_summary(df)
             
-            # 计算备用均量
+            # 计算备用均量 (以防万一API不返回量比)
             vol_hist = df['volume'].shift(1).rolling(5).mean()
             self.vol_ma5 = vol_hist.iloc[-1] if not pd.isna(vol_hist.iloc[-1]) else 0
             
@@ -331,7 +390,7 @@ def popup_alert(data):
             title_txt = f"⚡ 信号触发: {data['name']} ({data['code']})"
             tk.Label(root, text=title_txt, font=("黑体", 20, "bold"), bg=bg_col, fg='yellow').pack(pady=10)
             
-            # 核心数据
+            # --- 核心数据 (现价+涨幅) ---
             core_frame = tk.Frame(root, bg=bg_col)
             core_frame.pack(pady=10)
             
@@ -343,7 +402,7 @@ def popup_alert(data):
             tk.Label(core_frame, text=f"{pct_val:+.2f}%", 
                      font=("Arial", 36, "bold"), bg=bg_col, fg=pct_col).pack(side='left', padx=20)
             
-            # 辅助数据
+            # --- 辅助数据 ---
             sub_frame = tk.Frame(root, bg=bg_col)
             sub_frame.pack(pady=5)
             
@@ -359,7 +418,7 @@ def popup_alert(data):
             
             tk.Label(root, text=f"触发原因: {data['reason']}", font=("微软雅黑", 12), bg=bg_col, fg='#AAAAAA').pack(pady=5)
             
-            # AI 建议
+            # --- AI 建议 ---
             ai_frame = tk.LabelFrame(root, text="🧠 AI 军师团", font=("微软雅黑", 12), bg=bg_col, fg='white')
             ai_frame.pack(fill='both', expand=True, padx=20, pady=10)
             
@@ -376,7 +435,7 @@ def popup_alert(data):
             
     threading.Thread(target=_show, daemon=True).start()
 
-# ================= 6. 监控系统 (核心修复版) =================
+# ================= 6. 监控系统 (优先使用官方量比) =================
 class MonitorApp:
     def __init__(self):
         self.brains = {}
@@ -418,7 +477,6 @@ class MonitorApp:
         while True:
             try:
                 self.market_data = self.get_market_data()
-                # 获取实时数据
                 df_real = ak.stock_zh_a_spot_em()
                 
                 for code, brain in self.brains.items():
@@ -433,39 +491,39 @@ class MonitorApp:
                     amount = float(row['成交额'].values[0])
                     volume_hand = float(row['成交量'].values[0]) 
                     
-                    # === 1. 优先读取官方量比字段 ===
+                    # === 核心修改：优先读取 akshare 官方计算的量比 ===
                     real_vol_ratio = 1.0
+                    
+                    # 尝试直接读取 '量比' 字段 (最准确)
                     if '量比' in row.columns and row['量比'].values[0] is not None:
                         try:
                             val = row['量比'].values[0]
-                            # 处理可能返回的 '-' 或 非数字字符
+                            # 有时候返回 '-' 或 NaN
                             if str(val).replace('.', '', 1).isdigit():
                                 real_vol_ratio = float(val)
                             else:
-                                raise ValueError("Empty VR")
+                                raise ValueError("Invalid VR")
                         except:
-                            # 备用方案：手动计算
+                            # 如果官方数据读取失败，启用备用手动计算
                             minutes_elapsed = (datetime.datetime.now() - datetime.datetime.now().replace(hour=9, minute=30)).seconds / 60
                             minutes_elapsed = max(1, minutes_elapsed)
                             pred_vol_day = volume_hand / minutes_elapsed * 240
                             real_vol_ratio = pred_vol_day / (brain.vol_ma5 + 1e-5)
                     
-                    # === 2. 计算 VWAP (黄线) ===
+                    # === 计算 VWAP (黄线) ===
                     vwap = curr 
                     if volume_hand > 0:
                         vwap = amount / (volume_hand * 100)
                     
                     bias_vwap = (curr - vwap) / vwap * 100
                     
-                    # === 3. 信号触发 (黄线战法) ===
+                    # === 信号触发 ===
                     trigger_type = None
                     trigger_reason = ""
                     
-                    # 低吸: 股价低于均线
                     if bias_vwap < -Config.VWAP_THRESHOLD_PCT:
                         trigger_type = "BUY_VWAP"
                         trigger_reason = f"股价低于均线 {abs(bias_vwap):.2f}% (超卖回归)"
-                    # 高抛: 股价高于均线
                     elif bias_vwap > Config.VWAP_THRESHOLD_PCT:
                         trigger_type = "SELL_VWAP"
                         trigger_reason = f"股价高于均线 {bias_vwap:.2f}% (超买回归)"
@@ -484,7 +542,6 @@ class MonitorApp:
                             self.market_data, trigger_reason
                         )
                         
-                        # 弹窗条件: AI同意 OR 信心分高
                         if res_ds.get('action') == 'EXECUTE' or res_qw.get('action') == 'EXECUTE' or res_ds.get('score', 0) > 80:
                             popup_alert({
                                 'code': code, 'name': name, 'type': trigger_type,
