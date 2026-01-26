@@ -1,8 +1,8 @@
-为什么全是显示买入，有的明显是高于均线很多了，需要卖出了，因为代码不一定连接了我的持仓情况，所以有可能不知道我到底有没有底仓，但是这个不是代码需要考虑的问题，只需要考虑低于均线一定情况提示买入，高于均线一定情况提示卖出。改一下，返回完整代码。
 import akshare as ak
 import pandas as pd
 import numpy as np
 import time
+import random
 import datetime
 import os
 import sys
@@ -23,7 +23,7 @@ from sklearn.preprocessing import RobustScaler
 
 # === 大模型 API ===
 from openai import OpenAI
-import dashscope 
+import dashscope
 
 warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -40,7 +40,7 @@ class LogSystem:
         self.base_dir = os.path.join(os.getcwd(), "logs", self.today_str)
         if not os.path.exists(self.base_dir): os.makedirs(self.base_dir)
         self.simple_fmt = logging.Formatter('%(asctime)s - %(message)s')
-        
+       
         self.sys_logger = self._get_logger("system", "system.log", self.simple_fmt)
         self.llm_logger = self._get_logger("llm", "llm_dialog.log", self.simple_fmt)
 
@@ -62,77 +62,22 @@ logger = LogSystem()
 # ================= 1. 配置中心 =================
 class Config:
     # ⚠️⚠️⚠️ 请在此处填入你的 API Key ⚠️⚠️⚠️
-    DEEPSEEK_API_KEY = "sk-" 
-    DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-    DASHSCOPE_API_KEY = "sk-" 
-    
+   
     # --- 🎯 目标股票池 ---
-    STOCK_LIST = [
-#     {
-#   "有色金属板块": 
-    "001337", #四川黄金,
-    "002716", #湖南白银,
-    "603799", #华友钴业,
-    "600362", #江西铜业,
-    "002460", #赣锋锂业,
-    "600961", #株冶集团,
-    "000657", #中钨高新,
-    "300618", #寒锐钴业,
-    "600547", #山东黄金,
-    "600988", #赤峰黄金,
-    "601069", #西部黄金,
-    "000630", #铜陵有色,
-    "002240", #盛新锂能,
-    "000831", #中国稀土,
-    "601212", #白银有色,
-    "600489", #中金黄金,
-    "601899", #紫金矿业,
-    "000426" #兴业银锡
-#   ],
-#   "科技板块": [
-    "601208", #东材科技,
-    "002759", #天际股份,
-    "000681", #视觉中国,
-    "002121", #科陆电子,
-    "002837", #英维克,
-    "002518", #科士达,
-    "002407", #多氟多,
-    "002466", #天齐锂业,
-    "603090", #宏盛股份,
-    "002409", #雅克科技,
-    "002709", #天赐材料,
-    "000409", #云鼎科技,
-    "600183", #生益科技,
-    "002050", #三花智控,
-    "002463", #沪电股份,
-    "600089", #特变电工,
-    "601138", #工业富联,
-    "603986", #兆易创新,
-    "600895", #张江高科,
-    "002851", #麦格米特,
-    "000603", #盛达资源,
-    "600730", #中国高科,
-    "603119", #浙江荣泰,
-    "605598", #上海港湾,
-    "002027", #分众传媒,
-    "002261", #拓维信息,
-    "002792", #通宇通讯,
-    "002202" #金风科技
-#   ],
-#   "航天军工板块": [
-    "600501", #航天晨光,
-    "600855", #航天长峰,
-    "000901", #航天科技,
-    "600343", #航天动力,
-    "600877", #电科芯片,
-    "600879", #航天电子,
-    "000547", #航天发展,
-    "002255" #海陆重工
-  ]
+    STOCK_LIST = ['001337', '002716', '603799', '600362', '002460', '600961', 
+                  '000657', '300618', '600547', '600988', '601069', '000630', 
+                  '002240', '000831', '601212', '600489', '601899', '000426', 
+                  '601208', '002759', '000681', '002121', '002837', '002518', 
+                  '002407', '002466', '603090', '002409', '002709', '000409', 
+                  '600183', '002050', '002463', '600089', '601138', '603986', 
+                  '600895', '002851', '000603', '600730', '603119', '605598', 
+                  '002027', '002261', '002792', '002202', '600501', '600855', 
+                  '000901', '600343', '600877', '600879', '000547', '002255']
     # 确保只保留数字代码
-    
+   
     # --- ⚙️ 策略参数 ---
-    VWAP_THRESHOLD_PCT = 2.0  # 乖离率阈值
+    # 乖离率阈值 (当价格偏离均线超过此百分比时触发)
+    VWAP_THRESHOLD_PCT = 2.0  
     REALTIME_INTERVAL = 3     # 刷新频率
     AI_COOLDOWN_SECONDS = 300 # AI冷却时间
     SEQ_LEN = 30              # 回看天数
@@ -152,12 +97,12 @@ class AlphaFactors:
             "成交额": "amount", "amount": "amount"
         }
         df.rename(columns=rename_map, inplace=True)
-        
+       
         cols = ['open', 'close', 'high', 'low', 'volume']
         for c in cols:
             if c in df.columns:
                 df[c] = pd.to_numeric(df[c], errors='coerce')
-        
+       
         df.dropna(subset=['close', 'open'], inplace=True)
         if df.empty: return pd.DataFrame()
 
@@ -171,11 +116,11 @@ class AlphaFactors:
             # MA & Bias
             df['MA20'] = df['close'].rolling(20).mean()
             df['Bias20'] = (df['close'] - df['MA20']) / (df['MA20'] + 1e-5) * 100
-            
+           
             # ATR
             tr = np.maximum(df['high'] - df['low'], np.abs(df['high'] - df['pre_close']))
             df['ATR'] = tr.rolling(14).mean()
-            df['ATR_Pct'] = df['ATR'] / df['pre_close'] * 100 
+            df['ATR_Pct'] = df['ATR'] / df['pre_close'] * 100
 
             # RSI
             delta = df['close'].diff()
@@ -188,7 +133,7 @@ class AlphaFactors:
             exp26 = df['close'].ewm(span=26, adjust=False).mean()
             df['DIF'] = exp12 - exp26
             df['DEA'] = df['DIF'].ewm(span=9, adjust=False).mean()
-            df['MACD'] = 2 * (df['DIF'] - df['DEA']) 
+            df['MACD'] = 2 * (df['DIF'] - df['DEA'])
 
             # BOLL
             df['BOLL_MID'] = df['close'].rolling(20).mean()
@@ -206,7 +151,7 @@ class AlphaFactors:
 
             df.replace([np.inf, -np.inf], np.nan, inplace=True)
             df.dropna(inplace=True)
-            
+           
             if len(df) < 30: return pd.DataFrame()
             return df
 
@@ -240,50 +185,54 @@ class DualAdvisor:
     def _safe_parse_json(self, content_str, source="AI"):
         try:
             content_str = re.sub(r'```json|```', '', content_str).strip()
-            if content_str.endswith("}") and not content_str.endswith("}}"): pass 
+            if content_str.endswith("}") and not content_str.endswith("}}"): pass
             data = json.loads(content_str)
             return data
         except Exception as e:
             logger.log_system(f"[{source}] JSON解析失败: {e}")
             return {"action": "WAIT", "reason": f"解析异常: {str(e)[:20]}", "score": 0}
 
-    def consult_joint_chiefs(self, code, name, realtime_data, tech_summary, market_data, trigger_reason):
+    def consult_joint_chiefs(self, code, name, realtime_data, tech_summary, market_data, trigger_reason, trigger_direction):
         self.last_consult_time[code] = time.time()
-        
+       
         curr = realtime_data['current']
         pct = realtime_data['pct']
         vwap = realtime_data['vwap']
         bias_vwap = realtime_data['vwap_bias']
         vol_ratio = realtime_data.get('vol_ratio', 1.0)
-        
+       
         vol_status = "缩量"
         if vol_ratio > 1.2: vol_status = "温和放量"
         if vol_ratio > 2.0: vol_status = "显著放量"
-        
+       
+        # 动态调整 Prompt，告知 AI 是该考虑卖出还是买入
+        action_hint = "考虑【卖出止盈】" if trigger_direction == "SELL" else "考虑【低吸买入】"
+       
         prompt = f"""
         # Role: 资深A股日内操盘手
-        
-        # Task: 紧急交易判断
+       
+        # Task: 紧急交易判断 ({action_hint})
         标的：{name} ({code})
-        
+       
         # Real-time Status
         - 现价：{curr} (今日涨幅: {pct:.2f}%)
         - 均价(黄线)：{vwap:.2f}
-        - **乖离率**：{bias_vwap:.2f}%
+        - **乖离率**：{bias_vwap:.2f}% (当前触发阈值)
         - **官方量比**：{vol_ratio:.2f} ({vol_status})
-        
+       
         # Trigger
         系统触发: {trigger_reason}
-        
+        方向倾向: {trigger_direction}
+       
         # Context
         - 大盘情绪: {market_data['avg']:.2f}%
         - 技术面: {tech_summary}
-        
+       
         # Output Format (JSON ONLY)
         {{"action": "EXECUTE" | "WAIT", "reason": "简短理由", "score": 0-100, "suggested_price": float}}
         """
-        
-        logger.log_llm(f" >>> [SEND {code}] VolRatio:{vol_ratio:.2f} Bias:{bias_vwap:.2f}%")
+       
+        logger.log_llm(f" >>> [SEND {code}] Type:{trigger_direction} Bias:{bias_vwap:.2f}%")
 
         def call_deepseek():
             try:
@@ -336,19 +285,19 @@ class EnsembleBrain:
         try:
             end = datetime.datetime.now().strftime("%Y%m%d")
             start = (datetime.datetime.now() - datetime.timedelta(days=400)).strftime("%Y%m%d")
-            
+            time.sleep(random.uniform(0.5, 2.0))
             df = ak.stock_zh_a_hist(symbol=self.code, period="daily", start_date=start, end_date=end, adjust="qfq")
             if df is None or df.empty: return False
 
             df = AlphaFactors.process_data(df, self.code)
-            if df.empty: return False 
-            
+            if df.empty: return False
+           
             self.latest_summary = AlphaFactors.get_latest_summary(df)
-            
-            # 计算备用均量 (以防万一API不返回量比)
+           
+            # 计算备用均量
             vol_hist = df['volume'].shift(1).rolling(5).mean()
             self.vol_ma5 = vol_hist.iloc[-1] if not pd.isna(vol_hist.iloc[-1]) else 0
-            
+           
             feat_cols = ['Bias20', 'ATR_Pct', 'Vol_Ratio', 'RSI', 'MACD', 'BOLL_POS']
             data_X = self.scaler.fit_transform(df[feat_cols].values)
             data_y_l = df['Target_Low'].values
@@ -360,7 +309,7 @@ class EnsembleBrain:
                 yl.append(data_y_l[i])
                 yh.append(data_y_h[i])
             X, yl, yh = np.array(X), np.array(yl), np.array(yh)
-            
+           
             if len(X) < 10: return False
 
             tf_model = self.build_transformer((Config.SEQ_LEN, len(feat_cols)))
@@ -377,74 +326,85 @@ def popup_alert(data):
         with alert_lock:
             if winsound: winsound.Beep(800, 300)
             root = tk.Tk()
-            
-            is_buy = 'BUY' in data['type']
-            bg_col = '#004d00' if is_buy else '#660000'
-            
+           
+            # === 根据信号类型改变背景颜色 ===
+            # SELL (卖出) -> 红色背景 (A股红代表涨/高位/火热)
+            # BUY  (买入) -> 绿色背景 (A股绿代表跌/低位/冷静)
+            trigger_dir = data.get('direction', 'BUY')
+           
+            if trigger_dir == 'SELL':
+                bg_col = '#660000' # 深红 (卖出)
+                fg_title = '#FF5555'
+                type_text = "卖出信号 (SELL)"
+            else:
+                bg_col = '#004d00' # 深绿 (买入)
+                fg_title = '#55FF55'
+                type_text = "买入信号 (BUY)"
+
             w, h = 800, 750
             x, y = (root.winfo_screenwidth()-w)//2, (root.winfo_screenheight()-h)//2
             root.geometry(f"{w}x{h}+{x}+{y}")
             root.configure(bg=bg_col)
             root.attributes('-topmost', True)
-            
-            title_txt = f"⚡ 信号触发: {data['name']} ({data['code']})"
-            tk.Label(root, text=title_txt, font=("黑体", 20, "bold"), bg=bg_col, fg='yellow').pack(pady=10)
-            
+           
+            title_txt = f"⚡ {type_text}: {data['name']} ({data['code']})"
+            tk.Label(root, text=title_txt, font=("黑体", 20, "bold"), bg=bg_col, fg=fg_title).pack(pady=10)
+           
             # --- 核心数据 (现价+涨幅) ---
             core_frame = tk.Frame(root, bg=bg_col)
             core_frame.pack(pady=10)
-            
-            tk.Label(core_frame, text=f"现价: {data['curr']}", 
+           
+            tk.Label(core_frame, text=f"现价: {data['curr']}",
                      font=("Arial", 36, "bold"), bg=bg_col, fg='white').pack(side='left', padx=20)
-            
+           
             pct_val = data['pct']
-            pct_col = '#FF5555' if pct_val > 0 else '#55FF55' 
-            tk.Label(core_frame, text=f"{pct_val:+.2f}%", 
+            pct_col = '#FF5555' if pct_val > 0 else '#55FF55'
+            tk.Label(core_frame, text=f"{pct_val:+.2f}%",
                      font=("Arial", 36, "bold"), bg=bg_col, fg=pct_col).pack(side='left', padx=20)
-            
+           
             # --- 辅助数据 ---
             sub_frame = tk.Frame(root, bg=bg_col)
             sub_frame.pack(pady=5)
-            
-            tk.Label(sub_frame, text=f"均价: {data['vwap']:.2f}", 
+           
+            tk.Label(sub_frame, text=f"均价: {data['vwap']:.2f}",
                      font=("微软雅黑", 14), bg=bg_col, fg='#CCCCCC').pack(side='left', padx=15)
-            
-            bias_col = '#FF9999' if data['vwap_bias'] > 0 else '#99FF99'
-            tk.Label(sub_frame, text=f"乖离: {data['vwap_bias']:.2f}%", 
+           
+            bias_col = 'white'
+            tk.Label(sub_frame, text=f"乖离: {data['vwap_bias']:.2f}%",
                      font=("微软雅黑", 14, "bold"), bg=bg_col, fg=bias_col).pack(side='left', padx=15)
 
-            tk.Label(sub_frame, text=f"量比: {data.get('vol_ratio',0):.2f}", 
+            tk.Label(sub_frame, text=f"量比: {data.get('vol_ratio',0):.2f}",
                      font=("微软雅黑", 14), bg=bg_col, fg='cyan').pack(side='left', padx=15)
-            
-            tk.Label(root, text=f"触发原因: {data['reason']}", font=("微软雅黑", 12), bg=bg_col, fg='#AAAAAA').pack(pady=5)
-            
+           
+            tk.Label(root, text=f"触发原因: {data['reason']}", font=("微软雅黑", 12), bg=bg_col, fg='#DDDDDD').pack(pady=5)
+           
             # --- AI 建议 ---
             ai_frame = tk.LabelFrame(root, text="🧠 AI 军师团", font=("微软雅黑", 12), bg=bg_col, fg='white')
             ai_frame.pack(fill='both', expand=True, padx=20, pady=10)
-            
+           
             ds, qw = data['ds'], data['qw']
-            
-            tk.Label(ai_frame, text=f"[DeepSeek] {ds.get('action')} (信心:{ds.get('score')}) -> 挂单:{ds.get('suggested_price')}\nReason: {ds.get('reason')}", 
+           
+            tk.Label(ai_frame, text=f"[DeepSeek] {ds.get('action')} (信心:{ds.get('score')}) -> 挂单:{ds.get('suggested_price')}\nReason: {ds.get('reason')}",
                      font=("微软雅黑", 11), bg=bg_col, fg='cyan', wraplength=700, justify='left').pack(anchor='w', padx=10, pady=5)
             tk.Label(ai_frame, text="--------------------------------", bg=bg_col, fg='gray').pack()
-            tk.Label(ai_frame, text=f"[Qwen] {qw.get('action')} (信心:{qw.get('score')}) -> 挂单:{qw.get('suggested_price')}\nReason: {qw.get('reason')}", 
+            tk.Label(ai_frame, text=f"[Qwen] {qw.get('action')} (信心:{qw.get('score')}) -> 挂单:{qw.get('suggested_price')}\nReason: {qw.get('reason')}",
                      font=("微软雅黑", 11), bg=bg_col, fg='orange', wraplength=700, justify='left').pack(anchor='w', padx=10, pady=5)
-            
+           
             tk.Button(root, text="关闭窗口", font=("微软雅黑", 12), command=root.destroy).pack(pady=10)
             root.mainloop()
-            
+           
     threading.Thread(target=_show, daemon=True).start()
 
-# ================= 6. 监控系统 (优先使用官方量比) =================
+# ================= 6. 监控系统 (核心修正) =================
 class MonitorApp:
     def __init__(self):
         self.brains = {}
         self.advisor = DualAdvisor()
         self.market_data = {'sh':0.0, 'sz':0.0, 'cy':0.0, 'avg':0.0}
-        
+       
     def init_models(self):
         print(f"\n⚡ 初始化模型与数据...")
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=1) as executor:
             futures = [executor.submit(self._train_one, code) for code in Config.STOCK_LIST]
             cnt = 0
             for f in futures:
@@ -473,78 +433,89 @@ class MonitorApp:
             print("❌ 没有可用的模型，请检查网络或股票代码。")
             return
 
-        print("📡 [分时均线战法] 监控已启动...")
+        print("📡 [分时均线战法 - 买卖双向版] 监控已启动...")
         while True:
             try:
                 self.market_data = self.get_market_data()
                 df_real = ak.stock_zh_a_spot_em()
-                
+               
                 for code, brain in self.brains.items():
                     row = df_real[df_real['代码'] == code]
                     if row.empty: continue
-                    
+                   
                     name = row['名称'].values[0]
                     curr = float(row['最新价'].values[0])
                     pre_close = float(row['昨收'].values[0])
                     pct = (curr - pre_close) / pre_close * 100
-                    
+                   
                     amount = float(row['成交额'].values[0])
-                    volume_hand = float(row['成交量'].values[0]) 
-                    
-                    # === 核心修改：优先读取 akshare 官方计算的量比 ===
+                    volume_hand = float(row['成交量'].values[0])
+                   
                     real_vol_ratio = 1.0
-                    
-                    # 尝试直接读取 '量比' 字段 (最准确)
+                   
+                    # 尝试读取官方量比
                     if '量比' in row.columns and row['量比'].values[0] is not None:
                         try:
                             val = row['量比'].values[0]
-                            # 有时候返回 '-' 或 NaN
                             if str(val).replace('.', '', 1).isdigit():
                                 real_vol_ratio = float(val)
                             else:
                                 raise ValueError("Invalid VR")
                         except:
-                            # 如果官方数据读取失败，启用备用手动计算
                             minutes_elapsed = (datetime.datetime.now() - datetime.datetime.now().replace(hour=9, minute=30)).seconds / 60
                             minutes_elapsed = max(1, minutes_elapsed)
                             pred_vol_day = volume_hand / minutes_elapsed * 240
                             real_vol_ratio = pred_vol_day / (brain.vol_ma5 + 1e-5)
-                    
+                   
                     # === 计算 VWAP (黄线) ===
-                    vwap = curr 
+                    vwap = curr
                     if volume_hand > 0:
                         vwap = amount / (volume_hand * 100)
-                    
+                   
+                    # 乖离率 (当前价相对于均线的偏离度)
                     bias_vwap = (curr - vwap) / vwap * 100
-                    
-                    # === 信号触发 ===
+                   
+                    # === 信号触发逻辑 (修改处) ===
                     trigger_type = None
                     trigger_reason = ""
-                    
+                    trigger_direction = "HOLD" # BUY, SELL, HOLD
+                   
+                    # 1. 低于均线 -> 提示买入
                     if bias_vwap < -Config.VWAP_THRESHOLD_PCT:
-                        trigger_type = "BUY_VWAP"
+                        trigger_type = "VWAP_DIVERGENCE_LOW"
+                        trigger_direction = "BUY"
                         trigger_reason = f"股价低于均线 {abs(bias_vwap):.2f}% (超卖回归)"
+                       
+                    # 2. 高于均线 -> 提示卖出 (新增)
                     elif bias_vwap > Config.VWAP_THRESHOLD_PCT:
-                        trigger_type = "SELL_VWAP"
-                        trigger_reason = f"股价高于均线 {bias_vwap:.2f}% (超买回归)"
-                        
+                        trigger_type = "VWAP_DIVERGENCE_HIGH"
+                        trigger_direction = "SELL"
+                        trigger_reason = f"股价高于均线 {bias_vwap:.2f}% (超涨回调)"
+                       
                     if trigger_type and self.advisor.can_consult(code):
-                        print(f"\n🔍 [{name}] 触发 {trigger_type} | 现价:{curr} ({pct:.2f}%) | 量比:{real_vol_ratio:.2f}")
-                        
+                        print(f"\n🔍 [{name}] 触发 {trigger_direction} | 现价:{curr} | 乖离:{bias_vwap:.2f}% | 量比:{real_vol_ratio:.2f}")
+                       
                         realtime_data = {
-                            'current': curr, 'pct': pct, 
+                            'current': curr, 'pct': pct,
                             'vwap': vwap, 'vwap_bias': bias_vwap,
                             'vol_ratio': real_vol_ratio
                         }
-                        
+                       
                         res_ds, res_qw = self.advisor.consult_joint_chiefs(
-                            code, name, realtime_data, brain.latest_summary, 
-                            self.market_data, trigger_reason
+                            code, name, realtime_data, brain.latest_summary,
+                            self.market_data, trigger_reason, trigger_direction
                         )
-                        
-                        if res_ds.get('action') == 'EXECUTE' or res_qw.get('action') == 'EXECUTE' or res_ds.get('score', 0) > 80:
+                       
+                        # 如果 AI 也建议 EXECUTE，或者这是卖出信号且乖离很大，则弹窗
+                        should_popup = (
+                            res_ds.get('action') == 'EXECUTE' or
+                            res_qw.get('action') == 'EXECUTE' or
+                            abs(bias_vwap) > (Config.VWAP_THRESHOLD_PCT * 1.5)
+                        )
+                       
+                        if should_popup:
                             popup_alert({
-                                'code': code, 'name': name, 'type': trigger_type,
+                                'code': code, 'name': name, 'direction': trigger_direction,
                                 'curr': curr, 'pct': pct,
                                 'vwap': vwap, 'vwap_bias': bias_vwap,
                                 'vol_ratio': real_vol_ratio,
@@ -552,12 +523,12 @@ class MonitorApp:
                                 'ds': res_ds, 'qw': res_qw
                             })
                         else:
-                            print(f"   -> AI建议观望: {res_ds.get('reason')}")
+                            print(f"   -> AI建议观望: DS:{res_ds.get('reason')} / QW:{res_qw.get('reason')}")
 
                 sys.stdout.write(f"\r[{datetime.datetime.now().strftime('%H:%M:%S')}] 监控中... 大盘:{self.market_data['sh']:.2f}%")
                 sys.stdout.flush()
                 time.sleep(Config.REALTIME_INTERVAL)
-                
+               
             except KeyboardInterrupt:
                 break
             except Exception as e:
