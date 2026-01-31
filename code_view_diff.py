@@ -27,6 +27,7 @@ try:
     import stock_list_config as cfg
     RAW_STOCK_LIST = cfg.CURRENT_STOCK_LIST
 except ImportError:
+    # 这里依然使用你指定的静态列表（未应用动态筛选修改）
     RAW_STOCK_LIST = ['600460', '000625', '000063'] 
 
 TARGET_SYMBOLS = []
@@ -35,8 +36,8 @@ for code in RAW_STOCK_LIST:
     else: TARGET_SYMBOLS.append("SZSE." + code)
 
 # --- 参数 ---
-POSITION_RATIO = 0.98   
-SWITCH_THRESHOLD = 1.3  # 提高换仓门槛，减少频繁操作
+POSITION_RATIO = 0.99   
+SWITCH_THRESHOLD = 1.3  
 MAX_DRAWDOWN_SELL = 0.05 
 
 # ================= 3. AI 核心 (保持不变) =================
@@ -88,22 +89,20 @@ class MomentumBrain:
 # ================= 4. 优化后的主逻辑 =================
 
 def init(context):
-    print("🔥 [AI 主升浪追击 v3.1 极速版] 启动...")
+    print("🔥 [AI 主升浪追击 v3.2 修正版] 启动...")
     context.target_symbols = TARGET_SYMBOLS 
     context.brains = {}         
     context.high_water_mark = {} 
     
-    # === 优化点1：减少训练数据量，只取最近1年 ===
-    # 之前是3年，其实最近1年的数据对捕捉当前妖股特征更重要，且训练快3倍
+    # 训练模型逻辑保持不变
     print(f"🧠 正在极速训练 AI (最近1年数据)...")
     end_t = context.backtest_start_time
     start_t = (pd.to_datetime(end_t) - timedelta(days=365)).strftime('%Y-%m-%d %H:%M:%S')
     
     count = 0
-    # 批量处理：如果本地有缓存，这里其实很快
     for symbol in context.target_symbols:
         try:
-            data = history(symbol=symbol, frequency='tick', start_time=start_t, end_time=end_t, 
+            data = history(symbol=symbol, frequency='1d', start_time=start_t, end_time=end_t, 
                            fields='close,high,low', adjust=ADJUST_PREV, df=True)
             brain = MomentumBrain(symbol)
             brain.train(data)
@@ -113,38 +112,28 @@ def init(context):
         except: pass
             
     print(f"✅ 模型就绪: {count}/{len(TARGET_SYMBOLS)} 只. 开始监控...")
-    # 依然订阅分钟线，用于精确止损，但选股逻辑我们会降频处理
     subscribe(symbols=context.target_symbols, frequency='60s')
 
 def on_bar(context, bars):
-    # --- 模块 A: 实时风控 (每一分钟都跑) ---
-    # 必须每分钟检查，防止主升浪瞬间跳水
+    # 风控检查
     check_positions_risk(context, bars)
     
-    # --- 模块 B: AI 选股与换仓 (每 30 分钟跑一次) ---
-    # 优化核心：不在每分钟都做全市场扫描
-    # 逻辑：只有在 10:00, 10:30, 11:00, 13:30... 这种整点半点时刻才选股
-    if context.now.minute % 2 != 0:
+    # 定时选股
+    if context.now.minute % 30 != 0:
         return
 
-    # 执行选股逻辑
     do_market_scan_and_switch(context, bars)
 
 def check_positions_risk(context, bars):
-    """
-    负责持仓的止盈止损，反应要快
-    """
     positions = context.account().positions()
     for pos in positions:
         symbol = pos.symbol
         if pos.volume <= 0: continue
         
-        # 快速获取当前价格
         current_bar = [b for b in bars if b.symbol == symbol]
         if not current_bar: continue
         price = current_bar[0].close
         
-        # 更新高水位
         if symbol not in context.high_water_mark: context.high_water_mark[symbol] = pos.vwap
         if price > context.high_water_mark[symbol]: context.high_water_mark[symbol] = price
         
@@ -155,7 +144,6 @@ def check_positions_risk(context, bars):
         should_sell = False
         reason = ""
 
-        # 止损止盈逻辑
         if pnl_pct < -0.08:
             should_sell = True; reason = "硬止损-8%"
         elif pnl_pct > 0.05 and drawdown > MAX_DRAWDOWN_SELL:
@@ -166,27 +154,38 @@ def check_positions_risk(context, bars):
             order_close_all()
 
 def do_market_scan_and_switch(context, bars):
-    """
-    负责全市场扫描，寻找更强的票
-    """
     market_scores = scan_market_scores(context)
     if not market_scores: return
 
     best_candidate = market_scores[0]
     positions = context.account().positions()
     
+    # 获取实时快照，用于判断是否涨停 (修改2 的前置准备)
+    # 注意：在实盘或仿真中，current() 返回的是最新tick
+    try:
+        snap_data = current(symbols=best_candidate['symbol'])[0]
+        current_price = snap_data.price
+        upper_limit = snap_data.upper_limit
+    except:
+        return #以此防御数据获取失败
+
     # 1. 空仓买入
     if not positions:
         if best_candidate['score'] > 0:
+            # === [修改2] 增加涨停无法买入的判断 ===
+            if current_price >= upper_limit:
+                print(f"⛔ [无法买入] {best_candidate['symbol']} 已涨停，放弃操作。")
+                return 
+            # ====================================
+
             print(f"🚀 [AI 买入] 龙头 {best_candidate['symbol']} | 评分: {best_candidate['score']:.2f}")
             order_target_percent(symbol=best_candidate['symbol'], percent=POSITION_RATIO, order_type=OrderType_Market, position_side=PositionSide_Long)
             context.high_water_mark[best_candidate['symbol']] = best_candidate['price']
         return
 
-    # 2. 持仓换股 (Switch)
-    # 只有当手里有票时才对比
+    # 2. 持仓换股
     for pos in positions:
-        if pos.symbol == best_candidate['symbol']: return # 已经持有第一名，不动
+        if pos.symbol == best_candidate['symbol']: return 
         
         current_score = -99
         for item in market_scores:
@@ -194,8 +193,13 @@ def do_market_scan_and_switch(context, bars):
                 current_score = item['score']
                 break
         
-        # 换仓阈值：新票比老票强 1.3 倍才换
         if best_candidate['score'] > current_score * SWITCH_THRESHOLD and best_candidate['score'] > 5.0:
+            # === [修改2] 增加涨停无法买入的判断 ===
+            if current_price >= upper_limit:
+                print(f"⛔ [无法换仓] 目标 {best_candidate['symbol']} 已涨停，放弃换股。")
+                return 
+            # ====================================
+
             print(f"🔄 [强弱切换] 卖 {pos.symbol}({current_score:.1f}) -> 买 {best_candidate['symbol']}({best_candidate['score']:.1f})")
             order_close_all()
             order_target_percent(symbol=best_candidate['symbol'], percent=POSITION_RATIO, order_type=OrderType_Market, position_side=PositionSide_Long)
@@ -203,28 +207,44 @@ def do_market_scan_and_switch(context, bars):
 
 def scan_market_scores(context):
     candidates = []
-    # 优化：批量获取最后一行数据用于快速过滤，避免每只票都拉历史
-    # 这里为了代码兼容性，我们依然遍历，但由于频率降低到了30分钟一次，速度是完全可以接受的
+    
+    # === [修改1] 消除未来函数：分离历史数据与实时数据 ===
+    # 1. 历史数据只取到“昨天”，确保不包含今天的 Close
+    yesterday = (context.now - timedelta(days=1)).strftime('%Y-%m-%d 15:00:00')
     
     for symbol in context.target_symbols:
-        # 只取最近25个数据点，极速模式
-        recent = history_n(symbol=symbol, frequency='1d', count=25, end_time=context.now, fields='close', df=True)
-        if len(recent) < 22: continue
+        # 获取昨天的历史 (count=25)
+        history_df = history_n(symbol=symbol, frequency='1d', count=25, end_time=yesterday, fields='close', df=True)
+        if len(history_df) < 22: continue
         
-        close = recent['close'].iloc[-1]
-        close_5 = recent['close'].iloc[-6]
+        # 2. 获取当前实时价格
+        try:
+            curr_snap = current(symbols=symbol)[0]
+            curr_price = curr_snap.price
+        except:
+            continue
+            
+        # 3. 手动合成序列进行计算：[过去24天收盘价, 当前最新价]
+        # 这样 RSI 和 MA 都是基于“当下”最新价格动态计算的，而不是偷看收盘价
+        close_series = list(history_df['close'].values)
+        close_series.append(curr_price)
+        prices = pd.Series(close_series)
+        
+        # --- 下面的计算逻辑保持原样，但输入数据源变了 ---
+        
+        # 现在的 prices[-1] 是当前价，prices[-6] 是5天前的收盘价
+        close = prices.iloc[-1]
+        close_5 = prices.iloc[-6]
         roc_5 = (close / close_5 - 1) * 100
         
-        # 粗过滤：如果最近5天没涨，甚至在跌，直接 pass，不计算 RSI 和 AI，节省时间
         if roc_5 < 0: continue 
 
-        ma20 = recent['close'].iloc[-20:].mean()
+        ma20 = prices.iloc[-20:].mean()
         trend_bias = (close - ma20) / ma20
         
-        # 只有多头排列才算细账
         if trend_bias > 0:
-            # RSI 计算
-            delta = recent['close'].diff()
+            delta = prices.diff()
+            # 只取最后6个点计算RSI
             u = delta.where(delta > 0, 0).iloc[-6:].mean()
             d = (-delta.where(delta < 0, 0)).iloc[-6:].mean()
             rsi = 100 if d == 0 else 100 - (100 / (1 + u/d))
@@ -246,16 +266,22 @@ def on_order_status(context, order):
 # ================= 回测入口 =================
 if __name__ == '__main__':
     now = pd.Timestamp.now()
-    # 核心修改：保留当前日期，强制设置为16:00:00
-    end_time = now.replace(hour=16, minute=0, second=0, microsecond=0)
-    end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
-    start_str = (now - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S") # 回测4个月
+    # end_str = now.strftime("%Y-%m-%d %H:%M:%S")
+    end_str = (now - timedelta(days=180)).strftime("%Y-%m-%d %H:%M:%S")
+    start_str = (now - timedelta(days=360)).strftime("%Y-%m-%d %H:%M:%S") # 4个月
     
     print("========================================")
     print(f"⏳ 回测区间: {start_str} ~ {end_str}")
     print("========================================")
 
-        filename='main.py',                  
-        mode=MODE_LIVE,
+    run(strategy_id=cfg.ID, 
+        filename='longtou_fixed.py',                  
+        mode=MODE_BACKTEST,
+        token=cfg.TOKEN,           
+        backtest_start_time=start_str,
+        backtest_end_time=end_str,
+        backtest_adjust=ADJUST_PREV,
+        backtest_initial_cash=1000000, 
+        backtest_commission_ratio=0.0001,
         backtest_slippage_ratio=0.0001,
         backtest_match_mode=1)
