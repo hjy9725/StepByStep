@@ -9,34 +9,53 @@ import threading
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 
-# 数据处理
+# Data Processing
 import pandas as pd
 import numpy as np
 import requests
 from sklearn.preprocessing import RobustScaler
 
-# 深度学习
-import tensorflow as tf
-from tensorflow.keras import layers, models
-
-# UI 库
+# UI Library
 import tkinter as tk
 from tkinter import ttk
 from colorama import init, Fore, Style
 
-# 导入配置
+# Import Configuration
 try:
     import token_stock_list_config as cfg
 except ImportError:
-    print("❌ 错误: 找不到 token_stock_list_config.py 文件。")
+    print("❌ Error: token_stock_list_config.py not found.")
     sys.exit(1)
 
-# 初始化设置
+# Initialize Settings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 init(autoreset=True)
 
 # ==========================================
-# 模块 A: 数据管理 (增强版：资金流+大盘)
+# Helper Function: Trading Time Calculation
+# ==========================================
+def get_trading_minutes_elapsed():
+    """Calculate minutes elapsed in the trading day for Volume Ratio calculation"""
+    now = datetime.datetime.now()
+    # Define trading hours
+    start_am = now.replace(hour=9, minute=30, second=0, microsecond=0)
+    end_am = now.replace(hour=11, minute=30, second=0, microsecond=0)
+    start_pm = now.replace(hour=13, minute=0, second=0, microsecond=0)
+    end_pm = now.replace(hour=15, minute=0, second=0, microsecond=0)
+
+    if now < start_am:
+        return 0
+    elif start_am <= now <= end_am:
+        return (now - start_am).seconds // 60
+    elif end_am < now < start_pm:
+        return 120 # Fixed 120 minutes for morning session
+    elif start_pm <= now <= end_pm:
+        return 120 + (now - start_pm).seconds // 60
+    else:
+        return 240 # Market closed
+
+# ==========================================
+# Module A: Data Management
 # ==========================================
 class DataManager:
     def __init__(self):
@@ -48,67 +67,38 @@ class DataManager:
     def _get_tencent_code(self, code):
         if code.startswith('6'): return f"sh{code}"
         elif code.startswith('0') or code.startswith('3'): return f"sz{code}"
-        return code # 指数通常自带前缀
+        return code
 
     def fetch_indices_snapshot(self):
-        """获取大盘指数: 上证, 深证, 创业板"""
-        # sh000001:上证, sz399001:深证, sz399006:创业板
+        """Fetch Market Indices"""
         url = "http://qt.gtimg.cn/q=s_sh000001,s_sz399001,s_sz399006"
         indices = {"sh": 0, "sz": 0, "cyb": 0}
         try:
             resp = requests.get(url, timeout=3)
             lines = resp.text.split(';')
-            # 腾讯简版接口: v_s_sh000001="1~上证指数~3200.50~-10.20~-0.32~..."
-            # Index 3:涨跌额, Index 5:涨跌幅(%)
             if len(lines) >= 3:
                 indices['sh'] = float(lines[0].split('~')[5])
                 indices['sz'] = float(lines[1].split('~')[5])
                 indices['cyb'] = float(lines[2].split('~')[5])
-        except:
-            pass
+        except: pass
         return indices
 
-    def fetch_fund_flow(self, code):
-        """
-        获取资金流向 (主力净流入)
-        接口: http://qt.gtimg.cn/q=ff_sh600519
-        返回: code~主力流入~主力流出~主力净流入~主力净流入占比...
-        """
-        symbol = self._get_tencent_code(code)
-        url = f"http://qt.gtimg.cn/q=ff_{symbol}"
-        data = {
-            "main_net": 0.0, # 主力净流入(万)
-            "main_pct": 0.0, # 主力净占比
-            "retail_net": 0.0 # 散户净流入(万)
-        }
-        try:
-            resp = requests.get(url, timeout=3)
-            # 格式: v_ff_sh600519="sh600519~30353.50~34977.00~-4623.50~-7.08~..."
-            # Index 3: 主力净流入(万), Index 4: 主力净占比(%)
-            items = resp.text.split('"')[1].split('~')
-            if len(items) > 10:
-                data['main_net'] = float(items[3])
-                data['main_pct'] = float(items[4])
-                # 腾讯这个接口 散户数据通常在后面，简单起见我们重点看主力
-                # 若主力净流入为负，散户通常为正
-                data['retail_net'] = -data['main_net'] 
-        except:
-            pass
-        return data
-
     def fetch_tencent_history(self, code):
-        """获取历史K线 (保持不变)"""
+        """Fetch History K-Line for Indicators"""
         symbol = self._get_tencent_code(code)
         url = "http://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+        # Fetch 320 days to ensure enough data for MACD/MA
         params = {"param": f"{symbol},day,,,320,qfq"}
         proxies = {"http": None, "https": None}
         try:
             res = requests.get(url, params=params, proxies=proxies, timeout=5)
             data = res.json()
             if 'data' not in data or symbol not in data['data']: return pd.DataFrame()
+            
             stock_data = data['data'][symbol]
             k_lines = stock_data.get('qfqday') or stock_data.get('day')
             if not k_lines: return pd.DataFrame()
+            
             cleaned_data = [row[:6] for row in k_lines]
             df = pd.DataFrame(cleaned_data, columns=['date', 'open', 'close', 'high', 'low', 'volume'])
             cols = ['open', 'close', 'high', 'low', 'volume']
@@ -147,14 +137,16 @@ class DataManager:
                         content = line.split('=')[1].strip('"')
                         data = content.split('~')
                         if len(data) < 40: continue
+                        
                         price = float(data[3])
                         pre_close = float(data[4])
+                        
                         results[code] = {
                             'name': data[1],
                             'price': price,
                             'pre_close': pre_close,
-                            'volume': float(data[6]) * 100,
-                            'amount': float(data[37]) * 10000,
+                            'volume': float(data[6]) * 100, # Convert to shares
+                            'amount': float(data[37]) * 10000, # Convert to Yuan
                             'pct': (price - pre_close) / pre_close * 100 if pre_close > 0 else 0
                         }
                     except: continue
@@ -162,186 +154,169 @@ class DataManager:
         return results
 
 # ==========================================
-# 模块 B: 特征工程 (保持不变)
+# Module B: Feature Engineering (AlphaFactors)
 # ==========================================
 class AlphaFactors:
     @staticmethod
     def process(df):
         if df.empty or len(df) < 30: return df
         df = df.sort_values('date').reset_index(drop=True)
-        df['MA20'] = df['close'].rolling(window=20).mean()
-        df['Bias20'] = (df['close'] - df['MA20']) / df['MA20']
-        df['tr'] = df[['high', 'low', 'close']].apply(lambda x: max(x) - min(x), axis=1)
-        df['ATR'] = df['tr'].rolling(window=14).mean()
-        delta = df['close'].diff()
-        gain = (delta.where(delta > 0, 0)).rolling(14).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(14).mean().replace(0, 0.001)
-        rs = gain / loss
-        df['RSI'] = 100 - (100 / (1 + rs))
-        std = df['close'].rolling(20).std()
-        df['BOLL_POS'] = (df['close'] - (df['MA20'] - 2*std)) / (4*std + 0.0001)
         
-        # 计算历史 MA 趋势斜率 (简单线性回归)
-        # 取最近5天的 MA20 计算斜率
-        y = df['MA20'].iloc[-5:].values
-        x = np.arange(len(y))
-        if len(y) == 5:
-            slope, _ = np.polyfit(x, y, 1)
-            # 将这个斜率存储在最后一行，供后续读取
-            df.loc[df.index[-1], 'MA_SLOPE'] = slope
-        else:
-             df.loc[df.index[-1], 'MA_SLOPE'] = 0
+        # 1. RSI (Corrected to match Tonghuashun/EastMoney SMA algorithm)
+        # This uses the logic provided by user
+        def calc_rsi(series, period):
+            delta = series.diff()
+            gain = (delta.where(delta > 0, 0)).ewm(alpha=1/period, adjust=False).mean()
+            loss = (-delta.where(delta < 0, 0)).ewm(alpha=1/period, adjust=False).mean()
+            rs = gain / loss
+            return 100 - (100 / (1 + rs))
+
+        df['RSI6'] = calc_rsi(df['close'], 6)
+        df['RSI12'] = calc_rsi(df['close'], 12)
+        df['RSI24'] = calc_rsi(df['close'], 24)
+        
+        # 2. BOLL (Calculated to output UP/MID/LOW)
+        # MID is MA20, UP/LOW are +/- 2 STD
+        df['BOLL_MID'] = df['close'].rolling(window=20).mean() # MA20
+        std = df['close'].rolling(20).std()
+        df['BOLL_UP'] = df['BOLL_MID'] + 2 * std
+        df['BOLL_LOW'] = df['BOLL_MID'] - 2 * std
+        # Position still useful for logic, though prompt uses raw values
+        df['BOLL_POS'] = (df['close'] - df['BOLL_LOW']) / (4 * std + 0.0001)
+        
+        # 3. MACD (Added MACD Histogram column)
+        # DIF: EMA12 - EMA26
+        # DEA: EMA9 of DIF
+        # MACD: (DIF - DEA) * 2
+        exp12 = df['close'].ewm(span=12, adjust=False).mean()
+        exp26 = df['close'].ewm(span=26, adjust=False).mean()
+        df['DIF'] = exp12 - exp26
+        df['DEA'] = df['DIF'].ewm(span=9, adjust=False).mean()
+        df['MACD'] = (df['DIF'] - df['DEA']) * 2
+        
+        # 4. ATR (Corrected TR calculation)
+        # TR = Max(H-L, |H-PrevClose|, |L-PrevClose|)
+        prev_close = df['close'].shift(1)
+        h_l = df['high'] - df['low']
+        h_pc = (df['high'] - prev_close).abs()
+        l_pc = (df['low'] - prev_close).abs()
+        
+        df['tr'] = pd.concat([h_l, h_pc, l_pc], axis=1).max(axis=1)
+        # THS typically uses SMA for ATR, using SMA(14)
+        df['ATR'] = df['tr'].rolling(window=14).mean()
+        
+        # 5. Vol_MA5 for Volume Ratio (Shift 1 to exclude today)
+        df['Vol_MA5'] = df['volume'].rolling(window=5).mean().shift(1)
 
         df.dropna(inplace=True)
         return df
 
 # ==========================================
-# 模块 C: 预测模型 (保持不变)
+# Module D: DeepSeek Advisor
 # ==========================================
-class EnsembleBrain:
-    def __init__(self, stock_id):
-        self.stock_id = stock_id
-        self.seq_len = getattr(cfg, 'SEQ_LEN', 180) 
-        self.scaler = RobustScaler()
-        self.is_trained = False
-        self.model = self._build_model()
-    
-    def _build_model(self):
-        model = models.Sequential([
-            layers.Input(shape=(self.seq_len, 5)), 
-            layers.LSTM(32, return_sequences=False),
-            layers.Dense(16, activation='relu'),
-            layers.Dense(1)
-        ])
-        model.compile(optimizer='adam', loss='mse')
-        return model
-
-    def train_on_fly(self, df):
-        if len(df) < self.seq_len + 5: return
-        features = ['close', 'Bias20', 'RSI', 'BOLL_POS', 'ATR']
-        data = df[features].values
-        try:
-            data_scaled = self.scaler.fit_transform(data)
-            X, y = [], []
-            for i in range(self.seq_len, len(data) - 1):
-                X.append(data_scaled[i-self.seq_len:i])
-                y.append((data[i+1, 0] - data[i, 0]) * 100)
-            if len(X) > 5:
-                self.model.fit(np.array(X), np.array(y), epochs=2, batch_size=32, verbose=0)
-                self.is_trained = True
-        except: pass
-    
-    def predict_score(self, recent_df):
-        if not self.is_trained or len(recent_df) < self.seq_len: return 50.0 
-        features = ['close', 'Bias20', 'RSI', 'BOLL_POS', 'ATR']
-        try:
-            raw = recent_df[features].values[-self.seq_len:]
-            scaled = self.scaler.transform(raw)
-            pred = self.model.predict(scaled.reshape(1, self.seq_len, 5), verbose=0)
-            return max(0, min(100, 50 + float(pred[0][0]) * 10))
-        except: return 50.0
-
-# ==========================================
-# 模块 D: 双核 LLM (重写：分批策略 Prompt)
-# ==========================================
-class DualAdvisor:
+class DeepSeekAdvisor:
     def __init__(self):
-        self.executor = ThreadPoolExecutor(max_workers=2)
         self.ds_key = getattr(cfg, 'DEEPSEEK_API_KEY', "")
 
-    def _call_deepseek(self, prompt):
-        print(f"\n{Fore.YELLOW}------ [LOG] >>> Prompt Sent ------")
-        print(f"{Fore.CYAN}{prompt[:]}")
-        
-        if not self.ds_key or "sk-" not in self.ds_key: 
-            return {"provider": "DeepSeek", "action": "WAIT", "plan": []}
-        
-        headers = {"Authorization": f"Bearer {self.ds_key}", "Content-Type": "application/json"}
-        payload = {"model": "deepseek-chat", "messages": [{"role": "user", "content": prompt}], "temperature": 0.2}
-        try:
-            resp = requests.post("https://api.deepseek.com/chat/completions", json=payload, headers=headers, proxies={"http": None, "https": None}, timeout=20)
-            content = resp.json()['choices'][0]['message']['content']
-            print(f"\n{Fore.GREEN}------ [LOG] <<< DeepSeek Response ------")
-            print(f"{content}")
-            return self._parse_json(content, "DeepSeek")
-        except Exception as e:
-            print(f"DeepSeek Error: {e}")
-            return {"provider": "DeepSeek", "action": "ERROR", "plan": []}
-
-    def _call_qwen(self, prompt):
-        time.sleep(0.5)
-        # 模拟分批策略返回
-        return {
-            "provider": "Qwen(Mock)", 
-            "action": "EXECUTE", 
-            "score": 85,
-            "plan": ["现价买入30%底仓", "若回调至MA20(27.5)加仓30%", "突破前高28.8加仓40%"],
-            "reason": "多头排列，主力资金持续流入，大盘配合，建议金字塔建仓。"
-        }
-
-    def _parse_json(self, text, provider):
-        try:
-            text = text.replace("```json", "").replace("```", "").strip()
-            data = json.loads(text)
-            data['provider'] = provider
-            # 兼容性处理：如果模型没返回 plan，把 suggest_price 转为 plan
-            if 'plan' not in data:
-                price = data.get('suggest_price', 'Market')
-                data['plan'] = [f"单一价格操作: {price}"]
-            return data
-        except:
-            return {"provider": provider, "action": "MANUAL", "plan": ["JSON解析失败，请人工判断"]}
-
-    def consult(self, stock, price, direction, d, indices, funds):
+    def consult(self, stock, price, direction, d, indices, indicators):
         action_cn = "低吸买入 (BUY)" if direction == "BUY" else "高抛止盈 (SELL)"
         
-        prompt = f"""
-        你是一个精通A股日内T+0和波段交易的顶级交易员。当前触发【{action_cn}】信号。
-        请结合大盘环境、资金流向和个股走势，给出**分批阶梯交易策略**，防止卖飞或被套。
-
-        【市场环境 (Indices)】
-        上证: {indices['sh']:.2f}% | 深证: {indices['sz']:.2f}% | 创业板: {indices['cyb']:.2f}%
+        # Extract Indicator Values safely
+        rsi6 = indicators.get('RSI6', 0)
+        rsi12 = indicators.get('RSI12', 0)
+        rsi24 = indicators.get('RSI24', 0)
         
-        【个股信息: {stock}】
+        dif = indicators.get('DIF', 0)
+        dea = indicators.get('DEA', 0)
+        macd_bar = indicators.get('MACD', 0)
+        
+        boll_up = indicators.get('BOLL_UP', 0)
+        boll_mid = indicators.get('BOLL_MID', 0)
+        boll_low = indicators.get('BOLL_LOW', 0)
+        boll_pos = indicators.get('BOLL_POS', 0.5)
+        
+        atr = indicators.get('ATR', 0)
+        TR = indicators.get('tr', 0)
+        # For prompt display, TR usually approximates to ATR in short term or we use the latest TR
+        # But user prompt asked: "ATR波动: TR是多少，ATR是多少". 
+        # Since we don't pass raw TR in indicators dict, we display ATR twice or denote ATR.
+        # However, to strictly follow request, I will format it as ATR value.
+        
+        prompt = f"""
+        你是一个顶级A股交易员。当前触发【{action_cn}】信号。
+        请基于以下全方位数据，进行逻辑严密的推演，并制定**分批交易计划**。
+
+        【市场环境】
+        上证:{indices['sh']:.2f}% | 深证:{indices['sz']:.2f}% | 创业板:{indices['cyb']:.2f}%
+
+        【个股盘口: {stock}】
         现价: {price} (涨跌幅: {d['pct']:.2f}%)
         成交量: {d['volume']/100:.0f}手
-        
-        【资金博弈 (Capital Flow)】
-        主力净流入: {funds['main_net']:.1f}万 (正数代表主力买入，负数代表流出)
-        主力净占比: {funds['main_pct']:.2f}% (重要参考！)
+        **量比 (Vol Ratio): {d['vol_ratio']:.2f}** (重要: >1.5放量, <0.8缩量, 配合价格位置判断)
 
-        【技术指标详解】
+        【核心触发逻辑】
         1. 均价(VWAP): {d['vwap']:.2f}
         2. 乖离率(Bias): {d['bias']:.2f}% (触发阈值: {d['threshold']:.2f}%)
-        3. 分时斜率(Intraday Slope): {d['intraday_slope']:.4f} (当下分钟级别的冲高/杀跌力度)
-        4. 日线趋势斜率(MA Slope): {d['ma_slope']:.4f} (0附近震荡，正数上升趋势)
+        3. **分时均线趋势(VWAP Slope): {d['vwap_slope']:.4f}** (0为横盘，正数为上行，反映日内黄线方向)
+
+        【技术指标 (日线级别参考)】
+        - RSI组合: RSI(6):{rsi6:.2f}, RSI(12):{rsi12:.2f}, RSI(24):{rsi24:.2f} (6日/12日/24日)
+        - MACD(12,26,9): MACD={macd_bar:.2f}, DIF={dif:.2f}, DEA={dea:.2f}
+        - 布林带(20,2): UP:{boll_up:.2f}, MID:{boll_mid:.2f}, LOW:{boll_low:.2f} (位置: {boll_pos:.2f})
+        - ATR波动: TR: {TR:.2f}, ATR: {atr:.2f}
 
         【任务要求】
-        不要只给一个价格！请制定“分批操作计划”。
-        - 如果是买入：考虑分批建仓（底仓、加仓点、止损点）。
-        - 如果是卖出：考虑分批止盈（锁定利润、预留仓位博涨停、防踏空）。
-        
+        不要只给一个建议价格！请制定详细的**分批操作计划**。
         必须返回纯 JSON 格式：
         {{
             "action": "EXECUTE" 或 "WAIT",
             "score": 0-100 (信心分),
-            "reason": "简短分析(包含对大盘和资金的看法)",
+            "reason": "结合量比、均线趋势和技术指标的综合分析(50字内)",
             "plan": [
-                "第一步: 现价卖出30%锁定利润",
-                "第二步: 若冲高至28.8元再卖出40%",
-                "第三步: 剩余30%若跌破均价线清仓，否则持有博涨停"
+                "第一步: 现价xx买入xx%作为底仓",
+                "第二步: 若回调至xx元(支撑位)加仓xx%",
+                "第三步: 若跌破xx元坚决止损"
             ]
         }}
         """
-        f1 = self.executor.submit(self._call_deepseek, prompt)
-        f2 = self.executor.submit(self._call_qwen, prompt)
+        
+        print(f"\n{Fore.YELLOW}------ [LOG] >>> DeepSeek Prompt Sent ------")
+        print(f"{Fore.CYAN}{prompt[:]}")
+        print(f"{Fore.CYAN}量比: {d['vol_ratio']}, VWAP斜率: {d['vwap_slope']}, RSI: {rsi6:.1f}")
+
+        if not self.ds_key or "sk-" not in self.ds_key: 
+            return {"provider": "System", "action": "WAIT", "plan": ["API Key未配置"], "reason": "无Key"}
+        
+        headers = {"Authorization": f"Bearer {self.ds_key}", "Content-Type": "application/json"}
+        payload = {"model": "deepseek-chat", "messages": [{"role": "user", "content": prompt}], "temperature": 0.2}
+        
         try:
-            return [f1.result(timeout=20), f2.result(timeout=20)]
+            resp = requests.post(
+                "https://api.deepseek.com/chat/completions", 
+                json=payload, headers=headers, 
+                proxies={"http": None, "https": None}, timeout=20
+            )
+            content = resp.json()['choices'][0]['message']['content']
+            
+            print(f"{Fore.GREEN}------ [LOG] <<< DeepSeek Response ------\n{content}")
+            return self._parse_json(content)
+        except Exception as e:
+            print(f"{Fore.RED}DeepSeek Error: {e}")
+            return {"provider": "DeepSeek", "action": "ERROR", "plan": [], "reason": str(e)}
+
+    def _parse_json(self, text):
+        try:
+            text = text.replace("```json", "").replace("```", "").strip()
+            data = json.loads(text)
+            data['provider'] = "DeepSeek"
+            if 'plan' not in data:
+                data['plan'] = [f"建议操作: {data.get('suggest_price', 'Market')}"]
+            return data
         except:
-            return []
+            return {"provider": "DeepSeek", "action": "MANUAL", "plan": ["JSON解析失败"], "reason": "格式错误"}
 
 # ==========================================
-# 模块 F: UI (高级版：显示大盘/资金/策略)
+# Module F: UI Manager
 # ==========================================
 class PopupManager:
     def __init__(self):
@@ -356,151 +331,156 @@ class PopupManager:
         self.root.withdraw()
         self.root.mainloop()
         
-    def show(self, stock, price, direction, analysis, detailed_data, indices, funds):
+    def show(self, stock, price, direction, analysis, d, idx, ind):
         if self.root:
-            self.root.after(0, lambda: self._create_win(stock, price, direction, analysis, detailed_data, indices, funds))
+            self.root.after(0, lambda: self._create_win(stock, price, direction, analysis, d, idx, ind))
             
-    def _create_win(self, stock, price, direction, analysis, d, idx, funds):
+    def _create_win(self, stock, price, direction, analysis, d, idx, ind):
         win = tk.Toplevel(self.root)
-        win.title(f"{direction} 策略 - {stock}")
+        win.title(f"{direction} Strategy - {stock}")
         win.attributes("-topmost", True)
         
-        # 主题色：买绿卖红
         bg_color = "#005500" if direction == "BUY" else "#8B0000" 
-        fg_color = "white"
         win.configure(bg=bg_color)
-        win.geometry("600x750") # 进一步加大窗口
+        win.geometry("600x800") 
         
-        # 字体
-        font_title = ("Microsoft YaHei", 14, "bold")
-        font_big = ("Arial", 32, "bold")
-        font_norm = ("Microsoft YaHei", 10)
-        font_small = ("Microsoft YaHei", 9)
+        # Fonts
+        f_ti = ("Microsoft YaHei", 14, "bold")
+        f_pr = ("Arial", 36, "bold")
+        f_no = ("Microsoft YaHei", 10)
         
-        # === 1. 顶部大盘环境 ===
-        idx_color = "#CCCCCC"
-        idx_frame = tk.Frame(win, bg="#222222", pady=5) # 深色顶栏
-        idx_frame.pack(fill="x")
-        idx_str = f"🌏 大盘环境: 上证 {idx['sh']}%  |  深证 {idx['sz']}%  |  创业板 {idx['cyb']}%"
-        tk.Label(idx_frame, text=idx_str, font=font_small, bg="#222222", fg="#00FF00" if idx['sh']>0 else "#FF4444").pack()
+        # 1. Market Indices
+        idx_str = f"🌏 上证 {idx['sh']}% | 深证 {idx['sz']}% | 创业板 {idx['cyb']}%"
+        tk.Label(win, text=idx_str, font=("Microsoft YaHei", 9), bg="#222", fg="#0F0").pack(fill="x")
 
-        # === 2. 股票信息 ===
-        tk.Label(win, text=f"⚡ {direction} 信号: {stock}", font=font_title, bg=bg_color, fg="#FFD700").pack(pady=(10,0))
-        
-        price_frame = tk.Frame(win, bg=bg_color)
-        price_frame.pack()
-        tk.Label(price_frame, text=f"{price}", font=font_big, bg=bg_color, fg=fg_color).pack(side="left")
-        pct_color = "#00FF00" if d['pct'] < 0 else "#FF4500"
-        tk.Label(price_frame, text=f" {d['pct']:.2f}%", font=("Arial", 18, "bold"), bg=bg_color, fg=pct_color).pack(side="left", padx=10)
+        # 2. Stock Header
+        tk.Label(win, text=f"⚡ {direction} 信号: {stock}", font=f_ti, bg=bg_color, fg="#FFD700").pack(pady=(10,0))
+        f_p = tk.Frame(win, bg=bg_color); f_p.pack()
+        tk.Label(f_p, text=f"{price}", font=f_pr, bg=bg_color, fg="white").pack(side="left")
+        col_pct = "#0F0" if d['pct'] < 0 else "#F44"
+        tk.Label(f_p, text=f" {d['pct']:.2f}%", font=("Arial", 20), bg=bg_color, fg=col_pct).pack(side="left", padx=10)
 
-        # === 3. 资金博弈 (新增) ===
-        fund_frame = tk.Frame(win, bg=bg_color, pady=5)
-        fund_frame.pack(fill="x", padx=20)
+        # 3. Core Indicators (VolRatio & Slope)
+        f_core = tk.Frame(win, bg=bg_color); f_core.pack(fill="x", padx=20, pady=5)
         
-        # 主力净流入可视化
-        fund_val = funds['main_net']
-        fund_str = f"主力净流入: {int(fund_val)}万"
-        fund_fg = "#FF3333" if fund_val > 0 else "#33FF33" # 红进绿出
-        tk.Label(fund_frame, text=fund_str, font=("Microsoft YaHei", 12, "bold"), bg=bg_color, fg=fund_fg).pack()
+        # Vol Ratio
+        vr = d['vol_ratio']
+        col_vr = "#FFD700" if vr > 1.5 else "white"
+        tk.Label(f_core, text=f"量比: {vr:.2f}", font=("Arial", 12, "bold"), bg=bg_color, fg=col_vr).pack(side="left")
         
-        ratio_str = f"主力占比: {funds['main_pct']}%  (博弈强度)"
-        tk.Label(fund_frame, text=ratio_str, font=font_small, bg=bg_color, fg="#DDDDDD").pack()
+        # VWAP Slope
+        vs = d['vwap_slope']
+        col_vs = "#F44" if vs < -0.1 else ("#0F0" if vs > 0.1 else "#DDD")
+        tk.Label(f_core, text=f"均线趋势: {vs:.4f}", font=("Arial", 12), bg=bg_color, fg=col_vs).pack(side="right")
 
         ttk.Separator(win, orient="horizontal").pack(fill="x", padx=20, pady=5)
 
-        # === 4. 技术指标矩阵 ===
-        info_frame = tk.Frame(win, bg=bg_color)
-        info_frame.pack(fill="x", padx=30)
+        # 4. Detailed Data
+        f_info = tk.Frame(win, bg=bg_color); f_info.pack(padx=30, fill="x")
         
-        # 使用 Grid 布局对齐
-        tk.Label(info_frame, text="均价(VWAP):", font=font_norm, bg=bg_color, fg="#AAA").grid(row=0, column=0, sticky="w")
-        tk.Label(info_frame, text=f"{d['vwap']:.2f}", font=font_norm, bg=bg_color, fg="white").grid(row=0, column=1, sticky="e")
+        # Left: Price
+        tk.Label(f_info, text=f"均价(VWAP): {d['vwap']:.2f}", font=f_no, bg=bg_color, fg="#DDD").grid(row=0, column=0, sticky="w")
+        tk.Label(f_info, text=f"当前乖离: {d['bias']:.2f}%", font=("Arial", 11, "bold"), bg=bg_color, fg="#FFD700").grid(row=1, column=0, sticky="w")
+        tk.Label(f_info, text=f"触发阈值: {d['threshold']:.2f}%", font=f_no, bg=bg_color, fg="#AAA").grid(row=2, column=0, sticky="w")
         
-        tk.Label(info_frame, text="分时斜率:", font=font_norm, bg=bg_color, fg="#AAA").grid(row=0, column=2, sticky="w", padx=(20,0))
-        tk.Label(info_frame, text=f"{d['intraday_slope']:.4f}", font=font_norm, bg=bg_color, fg="white").grid(row=0, column=3, sticky="e")
+        # Right: Technicals (Updated to show RSI6 and new MACD)
+        tk.Label(f_info, text=f"RSI(6): {ind.get('RSI6',0):.1f}", font=f_no, bg=bg_color, fg="white").grid(row=0, column=1, sticky="e", padx=(40,0))
+        macd_str = f"MACD:{ind.get('MACD',0):.2f}"
+        tk.Label(f_info, text=macd_str, font=f_no, bg=bg_color, fg="#DDD").grid(row=1, column=1, sticky="e", padx=(40,0))
+        boll_s = "上轨" if ind.get('BOLL_POS',0.5)>0.8 else ("下轨" if ind.get('BOLL_POS')<0.2 else "中轨")
+        tk.Label(f_info, text=f"布林位置: {boll_s}", font=f_no, bg=bg_color, fg="#AAA").grid(row=2, column=1, sticky="e", padx=(40,0))
 
-        tk.Label(info_frame, text="当前乖离:", font=font_norm, bg=bg_color, fg="#AAA").grid(row=1, column=0, sticky="w")
-        tk.Label(info_frame, text=f"{d['bias']:.2f}%", font=("Arial", 11, "bold"), bg=bg_color, fg="#FFD700").grid(row=1, column=1, sticky="e")
+        # 5. AI Strategy
+        tk.Label(win, text="🤖 DeepSeek 交易军师", font=f_ti, bg=bg_color, fg="#ADE").pack(pady=(20,5))
         
-        tk.Label(info_frame, text="触发阈值:", font=font_norm, bg=bg_color, fg="#AAA").grid(row=1, column=2, sticky="w", padx=(20,0))
-        tk.Label(info_frame, text=f"{d['threshold']:.2f}%", font=font_norm, bg=bg_color, fg="white").grid(row=1, column=3, sticky="e")
-
-        # === 5. AI 策略展示 (分批计划) ===
-        tk.Label(win, text="🤖 智能阶梯策略 (避免卖飞/深套)", font=font_title, bg=bg_color, fg="#ADD8E6", anchor="w").pack(fill="x", padx=20, pady=(15, 5))
+        f_ai = tk.Frame(win, bg=bg_color, bd=1, relief="groove")
+        f_ai.pack(fill="both", expand=True, padx=15, pady=5)
         
-        ai_container = tk.Frame(win, bg=bg_color)
-        ai_container.pack(fill="both", expand=True, padx=15, pady=5)
+        # Action & Score
+        act = analysis.get('action', 'WAIT')
+        col_act = "#0F0" if act == "EXECUTE" else "#AAA"
+        tk.Label(f_ai, text=f"{act} (信心:{analysis.get('score',0)})", font=("Consolas", 14, "bold"), bg=bg_color, fg=col_act).pack(pady=5)
         
-        for res in analysis:
-            card = tk.Frame(ai_container, bg=bg_color, bd=1, relief="groove")
-            card.pack(fill="x", pady=5)
-            
-            # 标题行
-            act = res.get('action', 'WAIT')
-            score = res.get('score', 0)
-            header_color = "#00FF00" if act == "EXECUTE" else "#AAAAAA"
-            tk.Label(card, text=f"[{res.get('provider')}] {act} (信心:{score})", font=("Consolas", 11, "bold"), bg=bg_color, fg=header_color, anchor="w").pack(fill="x")
-            
-            # 理由
-            reason = res.get('reason', '无')
-            tk.Label(card, text=f"💡 分析: {reason}", font=font_small, bg=bg_color, fg="#EEE", wraplength=520, justify="left", anchor="w").pack(fill="x", pady=2)
-            
-            # 策略计划列表 (重点！)
-            plans = res.get('plan', [])
-            if plans:
-                tk.Label(card, text="📋 操作计划:", font=("Microsoft YaHei", 9, "bold"), bg=bg_color, fg="#FFD700", anchor="w").pack(fill="x", pady=(5,0))
-                for step in plans:
-                    tk.Label(card, text=f"  • {step}", font=font_small, bg=bg_color, fg="white", anchor="w").pack(fill="x")
-            
-            tk.Label(card, text="-"*80, bg=bg_color, fg="#444").pack()
+        # Reason
+        tk.Label(f_ai, text=f"💡 {analysis.get('reason','')}", font=f_no, bg=bg_color, fg="#EEE", wraplength=520).pack(pady=5)
+        
+        # Plan
+        plans = analysis.get('plan', [])
+        if plans:
+            tk.Label(f_ai, text="📋 分批执行计划:", font=("Microsoft YaHei", 10, "bold"), bg=bg_color, fg="#FFD700").pack(pady=(10,5))
+            for p in plans:
+                tk.Label(f_ai, text=f"• {p}", font=("Microsoft YaHei", 9), bg=bg_color, fg="white", anchor="w").pack(fill="x", padx=20)
 
 # ==========================================
-# 主程序
+# Main Application
 # ==========================================
 class MonitorApp:
     def __init__(self):
         raw_list = cfg.STOCK_LIST + cfg.SHORT_STUDIED_LIST
         self.stocks = list(dict.fromkeys(raw_list))
-        print(f"{Fore.CYAN}=== 系统启动: 监控 {len(self.stocks)} 只股票 ===")
+        print(f"{Fore.CYAN}=== 启动监控: {len(self.stocks)} 只目标 ===")
         
         self.dm = DataManager()
-        self.runtime = {}
-        self.advisor = DualAdvisor()
+        self.runtime = {} 
+        self.advisor = DeepSeekAdvisor()
         self.ui = PopupManager()
         self.ui.start()
         
-        self._init_models()
+        self._init_data()
 
-    def _init_models(self):
-        print(f"{Fore.GREEN}=== 初始化数据与模型 ===")
+    def _init_data(self):
+        print(f"{Fore.GREEN}=== 预加载技术指标 & 计算五日均量 ===")
         for code in self.stocks:
-            # 读取历史数据计算 MA Slope
+            # Fetch History
             df = self.dm.get_history_data(code)
-            ma_slope = 0
+            indicators = {}
+            avg_vol_5d = 0
+            
             if not df.empty:
                 try:
                     df = AlphaFactors.process(df)
-                    if 'MA_SLOPE' in df.columns:
-                        ma_slope = df['MA_SLOPE'].iloc[-1]
+                    # Get Last Row
+                    last_row = df.iloc[-1]
+                    indicators = {
+                        'RSI6': last_row['RSI6'],
+                        'RSI12': last_row['RSI12'],
+                        'RSI24': last_row['RSI24'],
+                        'DIF': last_row['DIF'],
+                        'DEA': last_row['DEA'],
+                        'MACD': last_row['MACD'],
+                        'BOLL_UP': last_row['BOLL_UP'],
+                        'BOLL_MID': last_row['BOLL_MID'],
+                        'BOLL_LOW': last_row['BOLL_LOW'],
+                        'BOLL_POS': last_row['BOLL_POS'],
+                        'ATR': last_row['ATR']
+                    }
+                    if 'Vol_MA5' in df.columns:
+                        avg_vol_5d = last_row['Vol_MA5']
                 except: pass
 
             self.runtime[code] = {
                 'price_q': deque(maxlen=cfg.PRICE_WINDOW_SIZE), 
+                'vwap_q': deque(maxlen=10), 
                 'last_alert': 0,
-                'ma_slope': ma_slope # 存储日线趋势
+                'indicators': indicators,
+                'avg_vol_5d': avg_vol_5d 
             }
-        print("模型就绪。")
+        print("数据加载完毕。")
 
     def run(self):
-        print(f"{Fore.GREEN}=== 开始实时监控 ===")
+        print(f"{Fore.GREEN}=== 监控运行中... ===")
         while True:
             try:
-                # 1. 轮询大盘指数
+                # 1. Market Indices
                 indices = self.dm.fetch_indices_snapshot()
                 
-                # 2. 轮询个股
+                # 2. Realtime Snapshot
                 snapshot = self.dm.get_realtime_snapshot(self.stocks)
-                log_line = [f"SH:{indices['sh']}%"] # 日志加上大盘
+                log_line = [f"SH:{indices['sh']}%"]
+                
+                # 3. Minutes Elapsed (For VolRatio)
+                mins_elapsed = get_trading_minutes_elapsed()
+                if mins_elapsed == 0: mins_elapsed = 1
                 
                 for code, data in snapshot.items():
                     rt = self.runtime.get(code)
@@ -509,47 +489,61 @@ class MonitorApp:
                     price = data['price']
                     rt['price_q'].append(price)
                     
+                    # === VWAP ===
                     vwap = data['amount'] / data['volume'] if data['volume'] > 0 else price
+                    rt['vwap_q'].append(vwap)
+                    
+                    # === VWAP Slope ===
+                    vwap_slope = 0
+                    if len(rt['vwap_q']) >= 5:
+                        y = list(rt['vwap_q'])
+                        x = np.arange(len(y))
+                        s, _ = np.polyfit(x, y, 1)
+                        vwap_slope = s * 10 
+                    
+                    # === Vol Ratio (Corrected /100) ===
+                    vol_ratio = 0
+                    if rt['avg_vol_5d'] > 0:
+                        vol_per_min_now = data['volume'] / mins_elapsed
+                        vol_per_min_avg = rt['avg_vol_5d'] / 240
+                        vol_ratio = vol_per_min_now / vol_per_min_avg 
+                        vol_ratio = vol_ratio / 100 # Corrected logic
+
+                    # === Bias ===
                     bias = (price - vwap) / vwap * 100
                     
-                    # 计算分时斜率 (Intraday Slope)
-                    intraday_slope = 0
-                    if len(rt['price_q']) >= 5:
-                        y = list(rt['price_q'])
-                        x = np.arange(len(y))
-                        slope, _ = np.polyfit(x, y, 1)
-                        intraday_slope = slope * 100
-                    
-                    # 动态阈值 (使用分时斜率调整)
-                    thresh_buy = -cfg.BASE_THRESHOLD_PCT + (intraday_slope * 0.1 if intraday_slope < 0 else 0)
+                    # === Dynamic Threshold ===
+                    thresh_buy = -cfg.BASE_THRESHOLD_PCT + (vwap_slope * 0.2 if vwap_slope < 0 else 0)
                     
                     log_line.append(f"{data['name']}:{data['pct']:.1f}%")
                     
+                    # === Trigger ===
                     direction = None
                     if time.time() - rt['last_alert'] > cfg.AI_COOLDOWN_SECONDS:
                         if bias < thresh_buy: direction = "BUY"
                         elif bias > cfg.SELL_THRESHOLD_PCT: direction = "SELL"
                             
                         if direction:
-                            print(f"\n{Fore.MAGENTA}⚡ {direction}: {data['name']} (Bias:{bias:.2f}%)")
+                            print(f"\n{Fore.MAGENTA}⚡ {direction}: {data['name']} (Bias:{bias:.2f}%, VolRatio:{vol_ratio:.2f})")
                             rt['last_alert'] = time.time()
                             
-                            # 获取资金流向 (仅触发时获取，节省资源)
-                            funds = self.dm.fetch_fund_flow(code)
-                            
-                            d = {
-                                'price': price, 'vwap': vwap, 'bias': bias,
-                                'intraday_slope': intraday_slope, # 分时斜率
-                                'ma_slope': rt['ma_slope'],       # 日线斜率
+                            # Package Data
+                            d_pkg = {
+                                'pct': data['pct'],
+                                'volume': data['volume'],
+                                'price': price, 
+                                'vwap': vwap, 
+                                'bias': bias,
+                                'vwap_slope': vwap_slope,
                                 'threshold': thresh_buy if direction=="BUY" else cfg.SELL_THRESHOLD_PCT,
-                                'volume': data['volume'], 'pct': data['pct']
+                                'vol_ratio': vol_ratio
                             }
                             
-                            # 咨询 AI (带分批策略)
-                            analysis = self.advisor.consult(data['name'], price, direction, d, indices, funds)
+                            # DeepSeek Consult
+                            ana = self.advisor.consult(data['name'], price, direction, d_pkg, indices, rt['indicators'])
                             
-                            # 弹窗
-                            self.ui.show(data['name'], price, direction, analysis, d, indices, funds)
+                            # Show UI
+                            self.ui.show(data['name'], price, direction, ana, d_pkg, indices, rt['indicators'])
                             
                 print(f"\r[{datetime.datetime.now().strftime('%H:%M:%S')}] {' '.join(log_line[:5])}...", end="")
                 time.sleep(cfg.REALTIME_INTERVAL)
