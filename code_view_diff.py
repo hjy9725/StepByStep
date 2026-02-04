@@ -162,8 +162,12 @@ class AlphaFactors:
         if df.empty or len(df) < 30: return df
         df = df.sort_values('date').reset_index(drop=True)
         
-        # 1. RSI (Corrected to match Tonghuashun/EastMoney SMA algorithm)
-        # This uses the logic provided by user
+        # 1. MA
+        df['MA20'] = df['close'].rolling(window=20).mean()
+        
+        # 2. RSI (Corrected to match Tonghuashun/EastMoney SMA algorithm)
+        # THS Logic: SMA(MAX(CLOSE-LC,0),N,1)/SMA(ABS(CLOSE-LC),N,1)*100
+        # This is equivalent to Pandas ewm(alpha=1/N, adjust=False)
         def calc_rsi(series, period):
             delta = series.diff()
             gain = (delta.where(delta > 0, 0)).ewm(alpha=1/period, adjust=False).mean()
@@ -175,37 +179,30 @@ class AlphaFactors:
         df['RSI12'] = calc_rsi(df['close'], 12)
         df['RSI24'] = calc_rsi(df['close'], 24)
         
-        # 2. BOLL (Calculated to output UP/MID/LOW)
-        # MID is MA20, UP/LOW are +/- 2 STD
-        df['BOLL_MID'] = df['close'].rolling(window=20).mean() # MA20
+        # 3. BOLL (Standard Logic: Mid=MA20, Up/Low=MA20 +/- 2*Std)
         std = df['close'].rolling(20).std()
-        df['BOLL_UP'] = df['BOLL_MID'] + 2 * std
-        df['BOLL_LOW'] = df['BOLL_MID'] - 2 * std
-        # Position still useful for logic, though prompt uses raw values
+        df['BOLL_MID'] = df['MA20']
+        df['BOLL_UP'] = df['MA20'] + 2 * std
+        df['BOLL_LOW'] = df['MA20'] - 2 * std
         df['BOLL_POS'] = (df['close'] - df['BOLL_LOW']) / (4 * std + 0.0001)
         
-        # 3. MACD (Added MACD Histogram column)
-        # DIF: EMA12 - EMA26
-        # DEA: EMA9 of DIF
-        # MACD: (DIF - DEA) * 2
+        # 4. MACD (Added MACD Histogram bar)
         exp12 = df['close'].ewm(span=12, adjust=False).mean()
         exp26 = df['close'].ewm(span=26, adjust=False).mean()
         df['DIF'] = exp12 - exp26
         df['DEA'] = df['DIF'].ewm(span=9, adjust=False).mean()
         df['MACD'] = (df['DIF'] - df['DEA']) * 2
         
-        # 4. ATR (Corrected TR calculation)
-        # TR = Max(H-L, |H-PrevClose|, |L-PrevClose|)
-        prev_close = df['close'].shift(1)
-        h_l = df['high'] - df['low']
-        h_pc = (df['high'] - prev_close).abs()
-        l_pc = (df['low'] - prev_close).abs()
-        
-        df['tr'] = pd.concat([h_l, h_pc, l_pc], axis=1).max(axis=1)
-        # THS typically uses SMA for ATR, using SMA(14)
+        # 5. ATR (14) - Fix: Include Previous Close for True Range
+        df['prev_close'] = df['close'].shift(1)
+        # TR = Max(High-Low, |High-PrevClose|, |Low-PrevClose|)
+        c1 = df['high'] - df['low']
+        c2 = abs(df['high'] - df['prev_close'])
+        c3 = abs(df['low'] - df['prev_close'])
+        df['tr'] = np.maximum(c1, np.maximum(c2, c3))
         df['ATR'] = df['tr'].rolling(window=14).mean()
         
-        # 5. Vol_MA5 for Volume Ratio (Shift 1 to exclude today)
+        # 6. Vol_MA5 for Volume Ratio (Shift 1 to exclude today)
         df['Vol_MA5'] = df['volume'].rolling(window=5).mean().shift(1)
 
         df.dropna(inplace=True)
@@ -220,27 +217,6 @@ class DeepSeekAdvisor:
 
     def consult(self, stock, price, direction, d, indices, indicators):
         action_cn = "低吸买入 (BUY)" if direction == "BUY" else "高抛止盈 (SELL)"
-        
-        # Extract Indicator Values safely
-        rsi6 = indicators.get('RSI6', 0)
-        rsi12 = indicators.get('RSI12', 0)
-        rsi24 = indicators.get('RSI24', 0)
-        
-        dif = indicators.get('DIF', 0)
-        dea = indicators.get('DEA', 0)
-        macd_bar = indicators.get('MACD', 0)
-        
-        boll_up = indicators.get('BOLL_UP', 0)
-        boll_mid = indicators.get('BOLL_MID', 0)
-        boll_low = indicators.get('BOLL_LOW', 0)
-        boll_pos = indicators.get('BOLL_POS', 0.5)
-        
-        atr = indicators.get('ATR', 0)
-        TR = indicators.get('tr', 0)
-        # For prompt display, TR usually approximates to ATR in short term or we use the latest TR
-        # But user prompt asked: "ATR波动: TR是多少，ATR是多少". 
-        # Since we don't pass raw TR in indicators dict, we display ATR twice or denote ATR.
-        # However, to strictly follow request, I will format it as ATR value.
         
         prompt = f"""
         你是一个顶级A股交易员。当前触发【{action_cn}】信号。
@@ -260,10 +236,10 @@ class DeepSeekAdvisor:
         3. **分时均线趋势(VWAP Slope): {d['vwap_slope']:.4f}** (0为横盘，正数为上行，反映日内黄线方向)
 
         【技术指标 (日线级别参考)】
-        - RSI组合: RSI(6):{rsi6:.2f}, RSI(12):{rsi12:.2f}, RSI(24):{rsi24:.2f} (6日/12日/24日)
-        - MACD(12,26,9): MACD={macd_bar:.2f}, DIF={dif:.2f}, DEA={dea:.2f}
-        - 布林带(20,2): UP:{boll_up:.2f}, MID:{boll_mid:.2f}, LOW:{boll_low:.2f} (位置: {boll_pos:.2f})
-        - ATR波动: TR: {TR:.2f}, ATR: {atr:.2f}
+        - RSI组合: RSI(6):{indicators.get('RSI6', 0):.2f}, RSI(12):{indicators.get('RSI12', 0):.2f}, RSI(24):{indicators.get('RSI24', 0):.2f} (6日/12日/24日)
+        - MACD(12,26,9): MACD={indicators.get('MACD', 0):.2f}, DIF={indicators.get('DIF', 0):.2f}, DEA={indicators.get('DEA', 0):.2f}
+        - 布林带(20,2): UP:{indicators.get('BOLL_UP', 0):.2f}, MID:{indicators.get('BOLL_MID', 0):.2f}, LOW:{indicators.get('BOLL_LOW', 0):.2f} (位置: {indicators.get('BOLL_POS', 0.5):.2f})
+        - ATR波动: TR={indicators.get('TR', 0):.2f}, ATR={indicators.get('ATR', 0):.2f}
 
         【任务要求】
         不要只给一个建议价格！请制定详细的**分批操作计划**。
@@ -282,7 +258,7 @@ class DeepSeekAdvisor:
         
         print(f"\n{Fore.YELLOW}------ [LOG] >>> DeepSeek Prompt Sent ------")
         print(f"{Fore.CYAN}{prompt[:]}")
-        print(f"{Fore.CYAN}量比: {d['vol_ratio']}, VWAP斜率: {d['vwap_slope']}, RSI: {rsi6:.1f}")
+        print(f"{Fore.CYAN}量比: {d['vol_ratio']:.2f}, VWAP斜率: {d['vwap_slope']:.4f}, RSI(12): {indicators.get('RSI12',0):.1f}")
 
         if not self.ds_key or "sk-" not in self.ds_key: 
             return {"provider": "System", "action": "WAIT", "plan": ["API Key未配置"], "reason": "无Key"}
@@ -383,9 +359,10 @@ class PopupManager:
         tk.Label(f_info, text=f"当前乖离: {d['bias']:.2f}%", font=("Arial", 11, "bold"), bg=bg_color, fg="#FFD700").grid(row=1, column=0, sticky="w")
         tk.Label(f_info, text=f"触发阈值: {d['threshold']:.2f}%", font=f_no, bg=bg_color, fg="#AAA").grid(row=2, column=0, sticky="w")
         
-        # Right: Technicals (Updated to show RSI6 and new MACD)
-        tk.Label(f_info, text=f"RSI(6): {ind.get('RSI6',0):.1f}", font=f_no, bg=bg_color, fg="white").grid(row=0, column=1, sticky="e", padx=(40,0))
-        macd_str = f"MACD:{ind.get('MACD',0):.2f}"
+        # Right: Technicals
+        # Use RSI12 for generic display
+        tk.Label(f_info, text=f"RSI(12): {ind.get('RSI12',0):.1f}", font=f_no, bg=bg_color, fg="white").grid(row=0, column=1, sticky="e", padx=(40,0))
+        macd_str = f"DIF:{ind.get('DIF',0):.2f}"
         tk.Label(f_info, text=macd_str, font=f_no, bg=bg_color, fg="#DDD").grid(row=1, column=1, sticky="e", padx=(40,0))
         boll_s = "上轨" if ind.get('BOLL_POS',0.5)>0.8 else ("下轨" if ind.get('BOLL_POS')<0.2 else "中轨")
         tk.Label(f_info, text=f"布林位置: {boll_s}", font=f_no, bg=bg_color, fg="#AAA").grid(row=2, column=1, sticky="e", padx=(40,0))
@@ -448,11 +425,12 @@ class MonitorApp:
                         'DIF': last_row['DIF'],
                         'DEA': last_row['DEA'],
                         'MACD': last_row['MACD'],
-                        'BOLL_UP': last_row['BOLL_UP'],
                         'BOLL_MID': last_row['BOLL_MID'],
+                        'BOLL_UP': last_row['BOLL_UP'],
                         'BOLL_LOW': last_row['BOLL_LOW'],
                         'BOLL_POS': last_row['BOLL_POS'],
-                        'ATR': last_row['ATR']
+                        'ATR': last_row['ATR'],
+                        'TR': last_row['tr']
                     }
                     if 'Vol_MA5' in df.columns:
                         avg_vol_5d = last_row['Vol_MA5']
